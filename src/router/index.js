@@ -8,6 +8,12 @@ const routes = [
     meta: { title: "Login"}
   },
   {
+    path: "/Homepage",
+    name: "Homepage",
+    component: () => import("../views/Homepage.vue"),
+    meta: { title: "Homepage"}
+  },
+  {
     path: "/:catchAll(.*)", // 404 Not found
     name: "Not Found",
     component: () => import("../views/NotFound.vue"),
