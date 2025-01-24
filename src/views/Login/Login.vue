@@ -4,14 +4,14 @@
       <v-row>
         <v-col cols="6">
           <v-img 
-            :src="require('../assets/bg_login.jpg')"
+            :src="require('@/assets/Images/bg_login.jpg')"
             height="100vh"
             cover
             position="relative"
           >
             <div class="pa-12">
               <v-img
-                :src="require('../assets/logo_miiot.png')"
+                :src="require('@/assets/Images/logo_miiot.png')"
                 width="16rem"
                 height="3rem"
               >

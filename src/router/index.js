@@ -4,14 +4,32 @@ const routes = [
   {
     path: "/",
     name: "Login",
-    component: () => import("../views/Login.vue"),
+    component: () => import("../views/Login/Login.vue"),
     meta: { title: "Login"}
-  },
+  }, 
   {
     path: "/Homepage",
     name: "Homepage",
-    component: () => import("../views/Homepage.vue"),
+    component: () => import("../views/Home/Homepage.vue"),
     meta: { title: "Homepage"}
+  },
+  {
+    path: "/Barge",
+    name: "Barge",
+    component: () => import("../views/Overview/BargeOverview.vue"),
+    meta: { title: "Barge"}
+  },
+  {
+    path: "/Tugboat",
+    name: "Tugboat",
+    component: () => import("../views/Overview/TugboatOverview.vue"),
+    meta: { title: "Tugboat"}
+  },
+  {
+    path: "/Supharat",
+    name: "Supharat",
+    component: () => import("../views/BargeUnit.vue"),
+    meta: { title: "Supharat"}
   },
   {
     path: "/:catchAll(.*)", // 404 Not found

@@ -1,7 +1,7 @@
 <template>
-  <div id="app">
+  <v-app id="app">
     <router-view />
-  </div>
+  </v-app>
 </template>
 
 <script>
@@ -17,7 +17,7 @@ export default {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  background-color: #F7F9FC;
+  background-color: #F7F9FC !important;
   overflow: hidden;
 }
 </style>
