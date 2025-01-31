@@ -12,7 +12,7 @@
           sm="6"
           lg="4"
         >
-          <v-card class="h-100" :to="{ name: 'Supharat' }">
+          <v-card class="h-100" :to="{ name: 'BargeDetail', params: { id: barge.id } }">
             <v-row no-gutters>
               <!-- Barge Image -->
               <v-col cols="4">

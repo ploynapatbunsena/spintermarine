@@ -45,12 +45,9 @@ import { barges } from '@/data/config';
               v-bind="props"
               prepend-icon="mdi-anchor"
               title="Barge"
+              :to="{ name: 'Barge' }"
             ></v-list-item>
           </template>
-          <v-list-item 
-            prepend-icon="mdi-format-list-bulleted" 
-            title="Overview">
-          </v-list-item>
           <v-list-group
             v-for="barge in barges"
             :key="barge.id"
@@ -61,6 +58,7 @@ import { barges } from '@/data/config';
                 v-bind="props"
                 prepend-icon="mdi-ship-wheel"
                 :title="barge.name"
+                :to="{ name: 'BargeDetail', params: { id: barge.id } }"
               ></v-list-item>
             </template>
             <v-list-item
@@ -68,6 +66,7 @@ import { barges } from '@/data/config';
               :key="item.id"
               :title="item.title"
               :value="item.id"
+              :to="{ name: ''}"
             ></v-list-item>
           </v-list-group>
         </v-list-group>

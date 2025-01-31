@@ -1,6 +1,6 @@
 export const barges = [
   {
-    id: 'supharat',
+    id: 'Supharat',
     name: 'Supharat',
     nameThai: 'ทุ่นศุภราช',
     image: require('@/assets/Images/overview_barge.jpg'),
@@ -21,7 +21,7 @@ export const barges = [
     ]
   },
   {
-    id: 'ladawan',
+    id: 'Ladawan',
     name: 'Ladawan',
     nameThai: 'ทุ่นลดาวัลย์',
     image: require('@/assets/Images/overview_barge.jpg'),
@@ -42,7 +42,7 @@ export const barges = [
     ]
   },
   {
-    id: 'kaentawan',
+    id: 'Kaentawan',
     name: 'Kaentawan',
     nameThai: 'ทุ่นแก่นตะวัน',
     image: require('@/assets/Images/overview_barge.jpg'),
@@ -63,7 +63,7 @@ export const barges = [
     ]
   },
   {
-    id: 'thongarun',
+    id: 'Thongarun',
     name: 'Thongarun',
     nameThai: 'ทุ่นทองอรุณ',
     image: require('@/assets/Images/overview_barge.jpg'),
@@ -85,7 +85,7 @@ export const barges = [
     ]
   },
   {
-    id: 'karaket',
+    id: 'Karaket',
     name: 'Karaket',
     nameThai: 'ทุ่นการะเกด',
     image: require('@/assets/Images/overview_barge.jpg'),
@@ -107,7 +107,7 @@ export const barges = [
     ]
   },
   {
-    id: 'chamchuri',
+    id: 'Chamchuri',
     name: 'Chamchuri',
     nameThai: 'ทุ่นจามจุรี',
     image: require('@/assets/Images/overview_barge.jpg'),
@@ -127,7 +127,7 @@ export const barges = [
     ]
   },
   {
-    id: 'bunga',
+    id: 'Bunga',
     name: 'Bunga',
     nameThai: 'ทุ่นบุหงา',
     image: require('@/assets/Images/overview_barge.jpg'),
@@ -385,33 +385,41 @@ export const reports = [
   {
     id: 'report01',
     name: 'Notification Report',
+    nameThai: 'รายงานการแจ้งเตือน',
   },
   {
     id: 'report02',
-    name: 'Report Chart Historical',
+    name: 'Report Historical Chart',
+    nameThai: 'รายงานข้อมูลย้อนหลังแบบกราฟ',
   },
   {
     id: 'report03',
     name: 'Report on Daily Fuel Consumption for the Barge',
+    nameThai: 'รายงานการบริโภคน้ำมันรายวันของทุ่น',
   },
   {
     id: 'report04',
-    name: 'Report on RPM and Speed and %Throttle Affected by Wind Speed of Tugboat'
+    name: 'Report on RPM and Speed and %Throttle Affected by Wind Speed of Tugboat',
+    nameThai: 'รายงาน RPM, ความเร็ว และ %คันเร่ง ที่ถูกกระทบด้วยความเร็วลมของเรือยนต์ ',
   },
   {
     id: 'report05',
     name: 'Report on Tugboats Encountering Storms',
+    nameThai: 'รายงานเรือยนต์ที่เจอพายุ',
   },
   {
     id: 'report06',
     name: 'Report on Fuel Rate per RPM for Evaluating Engine Efficiency of Motor Barge',
+    nameThai: 'รายงานอัตราการใช้ชื้อเพลิง ต่อ RPM เพื่อดูประสิทธิภาพเครื่องยนต์ของทุ่น',
   },
   {
     id: 'report07',
     name: 'Report on %Throttle vs. RPM vs. Fuel Rate',
+    nameThai: 'รายงาน %คันเร่ง ต่อ RPM ต่อ อัตราการใช้ชื้อเพลิง สำหรับเรือยนต์',
   },
   {
     id: 'report08',
-    name: 'Report on Barge Tilt '
+    name: 'Report on Barge Tilt ',
+    nameThai: 'รายงานความเอียงทุ่น (แนวแกน X)',
   }
 ]
