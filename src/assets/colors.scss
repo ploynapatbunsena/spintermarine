@@ -1,0 +1,79 @@
+:root {
+  --primary: #007BFF; /* Login & Save button , Standby/Maintenance */
+  --dark-blue: #080F25; /* bg side & nav bar */
+  --light-blue: #223368; /* search button */
+  --blue: #20263A;
+  --white: #FFFFFF;
+  --background: #F7F9FC;
+  --dark-red: #E62020; /* clear & cancel button */
+  --light-red: #FFDADA; /* bg_danger */
+  --red: #DC2B2B; /* danger */
+  --yellow: #FAC12A; /* warning */
+  --light-green: #8DEB51; /* Running/Maintenance */
+  --dark-green: #28A745; /* Running */
+  --gray: #9F9F9F; /* Offline */
+  --dark-gray: #4B4B4B;
+  --grey-02: #70707B;
+
+  --light-gray: #F4F4F4;
+  --black: #000000; /* Maintenance, Down */
+  --sky: #00B8F2; /* Standby */
+  --light-sky: #EAF4FF;
+  --dark-sky: #2297F2;
+  --soline-tank: linear-gradient(90deg, #FEE114 0%, #FFF6DE 100%);
+  --bg-soline: #F0F0F0;
+  --border-gen: #D6E6F2;
+  --neutral-300: #E9EAF3;
+  --black: #000000;
+  --white: #FFFFFF;
+
+  /* Generator */
+  --bg-green: #E5FFEA;
+  --symbol-green: #13A570;
+  --bg-blue: #E2F3FF;
+  --symbol-blue: #1570EF;
+  --bg-sky: #DBE7FF;
+  --symbol-sky: #2D94FB;
+  --bg-purple: #ECE9FF;
+  --symbol-purple: #AF52DE;
+  --bg-yellow: #FFF9CE;
+  --symbol-yellow: #FFBA03;
+  --bg-lightsky: #E8F9FF;
+  --symbol-lightsky: #01C2FF;
+  --bg-mint: #DFFFE7;
+  --symbol-mint: #00C7BE;
+  --bg-red: #FFD5D5;
+  --symbol-red: #DC2B2B;
+  --bg-wind: #96D2FF;
+
+  /* Gen Image */
+  --bg-gen: #073E28;
+  --text-gen: #64DD17;
+
+  /* Status of Barge */
+  --bg-running: #CDF3E1;
+  --text-running: #14CA74;
+  --bg-warning: #FFF5AD;
+  --text-warning: #FFBF14;
+  --bg-danger: #FFCCCC;
+  --bg-standby: #BCEFFF;
+  --text-standby: #00A9DF;
+  --bg-s-m: #C6DEFF;
+  --text-s-m: #1570EF;
+  --bg-r-m: #DEFFC9
+
+  --bg-edit: #E3F2FD;
+  --text-edit: #1570EF;
+
+  /* Row color */
+  --bg-row: #F9F9FA;
+  --stroke: #F4F4F5;
+  --shadow-color: rgba(104, 141, 196, 0.07); /* 0px 2px 10px 0px */
+
+  /* Tugboat */
+  --normal-tugboat: #009688;
+  --bg-light-tugboat: #E7F1FF;
+  --text-light-tugboat: #2563EB;
+  --bg-heavy-tugboat: #FFFAE6;
+  --text-heavy-tugboat: #FAAA2A;
+}

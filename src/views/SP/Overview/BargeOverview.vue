@@ -40,22 +40,22 @@
                   <div class="d-flex mt-6 mb-0">
                     <div class="status-panel">
                       <div class="text-blue">Standby</div>
-                      <div class="barge-number">{{ barge.standby }}</div>
+                      <div class="barge-value">{{ barge.standby }}</div>
                       <div class="bottom-line-blue"></div>
                     </div>
                     <div class="status-panel">
                       <div class="text-green">Running</div>
-                      <div class="barge-number">{{ barge.running }}</div>
+                      <div class="barge-value">{{ barge.running }}</div>
                       <div class="bottom-line-green"></div>
                     </div>
                     <div class="status-panel">
                       <div class="text-grey">Offline</div>
-                      <div class="barge-number">{{ barge.offline }}</div>
+                      <div class="barge-value">{{ barge.offline }}</div>
                       <div class="bottom-line-grey"></div>
                     </div>
                     <div class="status-panel">
                       <div class="text-black">Maintenance</div>
-                      <div class="barge-number">{{ barge.maintenance }}</div>
+                      <div class="barge-value">{{ barge.maintenance }}</div>
                       <div class="bottom-line-black"></div>
                     </div>
                   </div>
@@ -130,7 +130,7 @@ export default {
   align-items: center;
   justify-content: center;
   font-size: 32px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .bottom-line-blue {
@@ -170,7 +170,7 @@ export default {
   margin: 4px;
 }
 
-.barge-number {
+.barge-value {
   font-family: 'Inter', serif;
   font-size: 21px;
   font-weight: 600;

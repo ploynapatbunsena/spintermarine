@@ -9,15 +9,119 @@ export const barges = [
     offline: 1,
     maintenance: 3,
     items: [
-      { id: 'gen-106', title: 'Gen No.106 CUMMINS K 38 M' },
-      { id: 'gen-107', title: 'Gen No.107 CUMMINS K 38 M' },
-      { id: 'gen-104', title: 'Gen No.104 CUMMINS KTA38' },
-      { id: 'gen-127', title: 'Gen No.127 WEICHAI BM21G385' },
-      { id: 'gen-124', title: 'Gen No.124 YUCHAI 380KVA' },
-      { id: 'gen-109', title: 'Gen No.109 YUCHAI 100KVA' },
-      { id: 'gen-130', title: 'Gen No.130 YUCHAI 100KVA' },
-      { id: 'gen-119', title: 'Gen No.119 WEICHAI 37KVA' },
-      { id: 'gen-120', title: 'Gen No.120 WEICHAI 37KVA' }
+      { id: 'gen-106', 
+        title: 'Gen No.106 CUMMINS K 38 M',
+        status: "running-maintenance",
+        measuremnets: [
+          { id: 'axis-x', title: 'Axis - X', value: '0' },
+          { id: 'axis-y', title: 'Axis - Y', value: '0' },
+          { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
+          { id: 'water-temp', title: 'Water Temperature', values: '0' },
+          { id: 'rpm', title: 'RPM', values: '0' },
+          { id: 'battery', title: 'battery', values: '0' },
+        ]
+      },
+      { id: 'gen-107', 
+        title: 'Gen No.107 CUMMINS K 38 M', 
+        status: "warning",
+        measuremnets: [
+          { id: 'axis-x', title: 'Axis - X', value: '0' },
+          { id: 'axis-y', title: 'Axis - Y', value: '0' },
+          { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
+          { id: 'water-temp', title: 'Water Temperature', values: '0' },
+          { id: 'rpm', title: 'RPM', values: '0' },
+          { id: 'battery', title: 'battery', values: '0' },
+        ]
+       },
+      { id: 'gen-104', 
+        title: 'Gen No.104 CUMMINS KTA38', 
+        status: "danger",
+        measuremnets: [
+          { id: 'axis-x', title: 'Axis - X', value: '0' },
+          { id: 'axis-y', title: 'Axis - Y', value: '0' },
+          { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
+          { id: 'water-temp', title: 'Water Temperature', values: '0' },
+          { id: 'rpm', title: 'RPM', values: '0' },
+          { id: 'battery', title: 'battery', values: '0' },
+        ]
+      },
+      { id: 'gen-127', 
+        title: 'Gen No.127 WEICHAI BM21G385',
+        status: "down",
+        measuremnets: [
+          { id: 'axis-x', title: 'Axis - X', value: '0' },
+          { id: 'axis-y', title: 'Axis - Y', value: '0' },
+          { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
+          { id: 'water-temp', title: 'Water Temperature', values: '0' },
+          { id: 'rpm', title: 'RPM', values: '0' },
+          { id: 'battery', title: 'battery', values: '0' },
+        ]
+      },
+      { id: 'gen-124', 
+        title: 'Gen No.124 YUCHAI 380KVA', 
+        status: "running",
+        measuremnets: [
+          { id: 'axis-x', title: 'Axis - X', value: '0' },
+          { id: 'axis-y', title: 'Axis - Y', value: '0' },
+          { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
+          { id: 'water-temp', title: 'Water Temperature', values: '0' },
+          { id: 'rpm', title: 'RPM', values: '0' },
+          { id: 'battery', title: 'battery', values: '0' },
+        ]
+      },
+      { id: 'gen-109', 
+        title: 'Gen No.109 YUCHAI 100KVA', 
+        status: "standby",
+        measuremnets: [
+          { id: 'axis-x', title: 'Axis - X', value: '0' },
+          { id: 'axis-y', title: 'Axis - Y', value: '0' },
+          { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
+          { id: 'water-temp', title: 'Water Temperature', values: '0' },
+          { id: 'rpm', title: 'RPM', values: '0' },
+          { id: 'battery', title: 'battery', values: '0' },
+        ]
+      },
+      { id: 'gen-130', 
+        title: 'Gen No.130 YUCHAI 100KVA', 
+        status: "standby-maintenance",
+        measuremnets: [
+          { id: 'axis-x', title: 'Axis - X', value: '0' },
+          { id: 'axis-y', title: 'Axis - Y', value: '0' },
+          { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
+          { id: 'water-temp', title: 'Water Temperature', values: '0' },
+          { id: 'rpm', title: 'RPM', values: '0' },
+          { id: 'battery', title: 'battery', values: '0' },
+        ]
+      },
+      { id: 'gen-119', 
+        title: 'Gen No.119 WEICHAI 37KVA', 
+        status: "warning",
+        measuremnets: [
+          { id: 'axis-x', title: 'Axis - X', value: '0' },
+          { id: 'axis-y', title: 'Axis - Y', value: '0' },
+          { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
+          { id: 'water-temp', title: 'Water Temperature', values: '0' },
+          { id: 'rpm', title: 'RPM', values: '0' },
+          { id: 'battery', title: 'battery', values: '0' },
+        ]
+      },
+      { id: 'gen-120',
+        title: 'Gen No.120 WEICHAI 37KVA',
+        status: "running-maintenance",
+        measuremnets: [
+          { id: 'axis-x', title: 'Axis - X', value: '0' },
+          { id: 'axis-y', title: 'Axis - Y', value: '0' },
+          { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
+          { id: 'water-temp', title: 'Water Temperature', values: '0' },
+          { id: 'rpm', title: 'RPM', values: '0' },
+          { id: 'battery', title: 'battery', values: '0' },
+        ]
+      }
+    ],
+    cranes: [
+      { id: "crane-01", title: "Crane No. 1", status: "standby" },
+      { id: "crane-02", title: "Crane No. 2", status: "running" },
+      { id: "crane-03", title: "Crane No. 3", status: "maintenance" },
     ]
   },
   {
@@ -30,15 +134,20 @@ export const barges = [
     offline: 1,
     maintenance: 3,
     items: [
-      { id: 'gen-125', title: 'Gen No.125 CUMMINS K 50' },
-      { id: 'gen-108', title: 'Gen No.108 CUMMINS K 38 DMT)' },
-      { id: 'gen-53', title: 'Gen No.53 CAT3412 850KVA' },
-      { id: 'gen-153', title: 'Gen No.153 YUCHAI375 375KVA' },
-      { id: 'gen-154', title: 'Gen No.154 YUCHAI375 375KVA' },
-      { id: 'gen-136', title: 'Gen No.136 YUCHAI 100KVA' },
-      { id: 'gen-110', title: 'Gen No.110 YUCHAI 100KVA' },
-      { id: 'gen-137', title: 'Gen No.137 YUCHAI 38KVA' },
-      { id: 'gen-111', title: 'Gen No.111 WEICHAI 37KVA' }
+      { id: 'gen-125', title: 'Gen No.125 CUMMINS K 50', status: "running-maintenance" },
+      { id: 'gen-108', title: 'Gen No.108 CUMMINS K 38 DMT)', status: "running-maintenance" },
+      { id: 'gen-53', title: 'Gen No.53 CAT3412 850KVA', status: "down" },
+      { id: 'gen-153', title: 'Gen No.153 YUCHAI375 375KVA', status: "warning" },
+      { id: 'gen-154', title: 'Gen No.154 YUCHAI375 375KVA', status: "standby-maintenance" },
+      { id: 'gen-136', title: 'Gen No.136 YUCHAI 100KVA', status: "running-maintenance" },
+      { id: 'gen-110', title: 'Gen No.110 YUCHAI 100KVA', status: "running" },
+      { id: 'gen-137', title: 'Gen No.137 YUCHAI 38KVA', status: "running" },
+      { id: 'gen-111', title: 'Gen No.111 WEICHAI 37KVA', status: "danger" }
+    ],
+    cranes: [
+      { id: "crane-01", title: "Crane No. 1", status: "standby" },
+      { id: "crane-02", title: "Crane No. 2", status: "running" },
+      { id: "crane-03", title: "Crane No. 3", status: "maintenance" },
     ]
   },
   {
@@ -51,15 +160,20 @@ export const barges = [
     offline: 1,
     maintenance: 3,
     items: [
-      { id: "gen-99", title: "Gen No.99 CUMMINS - KTA38 900KVA" },
-      { id: "gen-51", title: "Gen No.51 CAT3412 STA 850KVA" },
-      { id: "gen-52", title: "Gen No.52 CAT3412 STA 850KVA" },
-      { id: "gen-91", title: "Gen No.91 CUMMINS NTA855 470KVA" },
-      { id: "gen-92", title: "Gen No.92 CUMMINS BIGCAM 470KVA" },
-      { id: "gen-135", title: "Gen No.135 YUCHAI 100KVA" },
-      { id: "gen-148", title: "Gen No.148 YUCHAI 100KVA" },
-      { id: "gen-117", title: "Gen No.117 WEICHAI 37KVA" },
-      { id: "gen-118", title: "Gen No.118 WEICHAI 37KVA" }
+      { id: "gen-99", title: "Gen No.99 CUMMINS - KTA38 900KVA", status: "running-maintenance" },
+      { id: "gen-51", title: "Gen No.51 CAT3412 STA 850KVA", status: "warning" },
+      { id: "gen-52", title: "Gen No.52 CAT3412 STA 850KVA", status: "danger" },
+      { id: "gen-91", title: "Gen No.91 CUMMINS NTA855 470KVA", status: "down" },
+      { id: "gen-92", title: "Gen No.92 CUMMINS BIGCAM 470KVA", status: "running" },
+      { id: "gen-135", title: "Gen No.135 YUCHAI 100KVA", status: "standby" },
+      { id: "gen-148", title: "Gen No.148 YUCHAI 100KVA", status: "standby-maintenance" },
+      { id: "gen-117", title: "Gen No.117 WEICHAI 37KVA", status: "warning" },
+      { id: "gen-118", title: "Gen No.118 WEICHAI 37KVA", status: "running-maintenance" }
+    ],
+    cranes: [
+      { id: "crane-01", title: "Crane No. 1", status: "standby" },
+      { id: "crane-02", title: "Crane No. 2", status: "running" },
+      { id: "crane-03", title: "Crane No. 3", status: "maintenance" },
     ]
   },
   {
@@ -72,16 +186,21 @@ export const barges = [
     offline: 1,
     maintenance: 3,
     items: [
-      { id: "gen-139", title: "Gen No.139 YUCHAI 1500KVA" },
-      { id: "gen-140", title: "Gen No.140 WEICHAI 1500KVA" },
-      { id: "gen-141", title: "Gen No.141 YUCHAI 1000KVA" },
-      { id: "gen-142", title: "Gen No.142 CUMMINS 1000 KVA" },
-      { id: "gen-143", title: "Gen No.143 YUCHAI 450 KVA" },
-      { id: "gen-144", title: "Gen No.144 YUCHAI 450KVA" },
-      { id: "gen-131", title: "Gen No.131 YUCHAI 100KVA" },
-      { id: "gen-152", title: "Gen No.152 YUCHAI 100KVA" },
-      { id: "gen-145", title: "Gen No.145 WEICHAI 40KVA" },
-      { id: "gen-146", title: "Gen No.146 WEICHAI 40KVA" }
+      { id: "gen-139", title: "Gen No.139 YUCHAI 1500KVA", status: "running-maintenance" },
+      { id: "gen-140", title: "Gen No.140 WEICHAI 1500KVA", status: "running" },
+      { id: "gen-141", title: "Gen No.141 YUCHAI 1000KVA", status: "running" },
+      { id: "gen-142", title: "Gen No.142 CUMMINS 1000 KVA", status: "running" },
+      { id: "gen-143", title: "Gen No.143 YUCHAI 450 KVA", status: "standby-maintenance" },
+      { id: "gen-144", title: "Gen No.144 YUCHAI 450KVA", status: "standby-maintenance" },
+      { id: "gen-131", title: "Gen No.131 YUCHAI 100KVA", status: "standby" },
+      { id: "gen-152", title: "Gen No.152 YUCHAI 100KVA", status: "danger" },
+      { id: "gen-145", title: "Gen No.145 WEICHAI 40KVA", status: "warning" },
+      { id: "gen-146", title: "Gen No.146 WEICHAI 40KVA", status: "down" }
+    ],
+    cranes: [
+      { id: "crane-01", title: "Crane No. 1", status: "standby" },
+      { id: "crane-02", title: "Crane No. 2", status: "running" },
+      { id: "crane-03", title: "Crane No. 3", status: "maintenance" },
     ]
   },
   {
@@ -94,16 +213,21 @@ export const barges = [
     offline: 1,
     maintenance: 3,
     items: [
-      { id: "gen-128", title: "Gen No.128 CUMMINS K 50 1500KVA" },
-      { id: "gen-67", title: "Gen No.67 CAT3412 STA 850KVA" },
-      { id: "gen-69", title: "Gen No.69 CAT3412 STA 850KVA" },
-      { id: "gen-70", title: "Gen No.70 CAT3412 STA 850KVA" },
-      { id: "gen-109", title: "Gen No.109 YUCHAI 400KVA" },
-      { id: "gen-123", title: "Gen No.123 YUCHAI 400KVA" },
-      { id: "gen-132", title: "Gen No.132 YUCHAI 100KVA" },
-      { id: "gen-147", title: "Gen No.147 YUCHAI 100KVA" },
-      { id: "gen-115", title: "Gen No.115 WEICHAI 37KVA" },
-      { id: "gen-116", title: "Gen No.116 WEICHAI 37KVA" }
+      { id: "gen-128", title: "Gen No.128 CUMMINS K 50 1500KVA", status: "standby" },
+      { id: "gen-67", title: "Gen No.67 CAT3412 STA 850KVA", status: "standby" },
+      { id: "gen-69", title: "Gen No.69 CAT3412 STA 850KVA", status: "standby" },
+      { id: "gen-70", title: "Gen No.70 CAT3412 STA 850KVA", status: "standby" },
+      { id: "gen-109", title: "Gen No.109 YUCHAI 400KVA", status: "standby" },
+      { id: "gen-123", title: "Gen No.123 YUCHAI 400KVA", status: "standby" },
+      { id: "gen-132", title: "Gen No.132 YUCHAI 100KVA", status: "standby" },
+      { id: "gen-147", title: "Gen No.147 YUCHAI 100KVA", status: "standby" },
+      { id: "gen-115", title: "Gen No.115 WEICHAI 37KVA", status: "standby" },
+      { id: "gen-116", title: "Gen No.116 WEICHAI 37KVA", status: "standby" }
+    ],
+    cranes: [
+      { id: "crane-01", title: "Crane No. 1", status: "standby" },
+      { id: "crane-02", title: "Crane No. 2", status: "running" },
+      { id: "crane-03", title: "Crane No. 3", status: "maintenance" },
     ]
   },
   {
@@ -116,14 +240,19 @@ export const barges = [
     offline: 1,
     maintenance: 3,
     items: [
-      { id: "gen-32", title: "Gen No.32 CAT3412 850KVA" },
-      { id: "gen-16", title: "Gen No.16 CUMMIN K19 550KVA" },
-      { id: "gen-29", title: "Gen No.29 CAT3306B 350KVA" },
-      { id: "gen-129", title: "Gen No.129 YUCHAI 100KVA" },
-      { id: "gen-130", title: "Gen No.130 WEICHAI 100KVA" },
-      { id: "gen-112", title: "Gen No.112 WEICHAI 37KVA" },
-      { id: "gen-113", title: "Gen No.113 WEICHAI 37KVA" },
-      { id: "gen-114", title: "Gen No.114 WEICHAI 37KVA" }
+      { id: "gen-32", title: "Gen No.32 CAT3412 850KVA", status: "standby" },
+      { id: "gen-16", title: "Gen No.16 CUMMIN K19 550KVA", status: "running" },
+      { id: "gen-29", title: "Gen No.29 CAT3306B 350KVA", status: "running" },
+      { id: "gen-129", title: "Gen No.129 YUCHAI 100KVA", status: "running-maintenance" },
+      { id: "gen-130", title: "Gen No.130 WEICHAI 100KVA", status: "down" },
+      { id: "gen-112", title: "Gen No.112 WEICHAI 37KVA", status: "danger" },
+      { id: "gen-113", title: "Gen No.113 WEICHAI 37KVA", status: "warning" },
+      { id: "gen-114", title: "Gen No.114 WEICHAI 37KVA", status: "standby-maintenance" }
+    ],
+    cranes: [
+      { id: "crane-01", title: "Crane No. 1", status: "standby" },
+      { id: "crane-02", title: "Crane No. 2", status: "running" },
+      { id: "crane-03", title: "Crane No. 3", status: "maintenance" },
     ]
   },
   {
@@ -136,16 +265,21 @@ export const barges = [
     offline: 1,
     maintenance: 3,
     items: [
-      { id: "gen-102", title: "Gen No.102 CUMMINS - KTA38 1310KVA" },
-      { id: "gen-103", title: "Gen No.103 CUMMINS - KTA38 1310KVA" },
-      { id: "gen-105", title: "Gen No.105 CUMMINS - KTA38 1000KVA" },
-      { id: "gen-68", title: "Gen No.68 CAT3412STA 850KVA" },
-      { id: "gen-34", title: "Gen No.34 CUMMINK19 550KVA" },
-      { id: "gen-110", title: "Gen No.110 YUCHAI 380KVA" },
-      { id: "gen-133", title: "Gen No.133 YUCHAI 100KVA" },
-      { id: "gen-149", title: "Gen No.149 YUCHAI 100KVA" },
-      { id: "gen-121", title: "Gen No.121 WEICHAI 37KVA" },
-      { id: "gen-122", title: "Gen No.122 WEICHAI 37KVA" }
+      { id: "gen-102", title: "Gen No.102 CUMMINS - KTA38 1310KVA", status: "standby" },
+      { id: "gen-103", title: "Gen No.103 CUMMINS - KTA38 1310KVA", status: "running" },
+      { id: "gen-105", title: "Gen No.105 CUMMINS - KTA38 1000KVA", status: "running" },
+      { id: "gen-68", title: "Gen No.68 CAT3412STA 850KVA", status: "running-maintenance" },
+      { id: "gen-34", title: "Gen No.34 CUMMINK19 550KVA", status: "down" },
+      { id: "gen-110", title: "Gen No.110 YUCHAI 380KVA", status: "danger" },
+      { id: "gen-133", title: "Gen No.133 YUCHAI 100KVA", status: "danger" },
+      { id: "gen-149", title: "Gen No.149 YUCHAI 100KVA", status: "warning" },
+      { id: "gen-121", title: "Gen No.121 WEICHAI 37KVA", status: "standby" },
+      { id: "gen-122", title: "Gen No.122 WEICHAI 37KVA", status: "standby-maintenance" }
+    ],
+    cranes: [
+      { id: "crane-01", title: "Crane No. 1", status: "standby" },
+      { id: "crane-02", title: "Crane No. 2", status: "running" },
+      { id: "crane-03", title: "Crane No. 3", status: "maintenance" },
     ]
   }
 ];
@@ -159,7 +293,13 @@ export const tugboats = [
     status: "Running",
     date: "",
     category: "River",
-
+    measuremnets: [
+      { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
+      { id: 'water-temp', title: 'Water Temperature', values: '0' },
+      { id: 'rpm', title: 'RPM', values: '0' },
+      { id: 'wind-speed', title: 'Wind Speed', values: '0' },
+      { id: 'battery', title: 'battery', values: '0' },
+    ]
   },
   {
     id: 'ket02',
@@ -169,6 +309,13 @@ export const tugboats = [
     status: "Maintenance",
     date: "12/01/2568",
     category: "River",
+    measuremnets: [
+      { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
+      { id: 'water-temp', title: 'Water Temperature', values: '0' },
+      { id: 'rpm', title: 'RPM', values: '0' },
+      { id: 'wind-speed', title: 'Wind Speed', values: '0' },
+      { id: 'battery', title: 'battery', values: '0' },
+    ]
   },
   {
     id: 'ket04',
@@ -178,6 +325,13 @@ export const tugboats = [
     status: "Pending",
     date: "12/01/2568",
     category: "River",
+    measuremnets: [
+      { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
+      { id: 'water-temp', title: 'Water Temperature', values: '0' },
+      { id: 'rpm', title: 'RPM', values: '0' },
+      { id: 'wind-speed', title: 'ind Speed', values: '0' },
+      { id: 'battery', title: 'battery', values: '0' },
+    ]
   },
   {
     id: 'ket05',

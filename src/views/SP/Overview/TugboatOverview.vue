@@ -125,10 +125,12 @@
                       </div>
                     </div>
                     <div class="mt-6">
+                      <!-- ไม่ต้องมีก็ได้ -->
                       <div 
                         class="status-panel d-flex align-items-center" 
                         :class="getStatusClass(tugboat.status)"
                       >
+                        <!-- Icon -->
                         <span 
                           class="material-symbols-rounded status-icon" 
                           :class="getStatusClass(tugboat.status)"
@@ -142,7 +144,6 @@
                           {{ tugboat.status }}
                         </div>
                       </div>
-
                       <div class="due-date d-flex justify-space-between mt-2" :class="getBottomLineClass(tugboat.status)">
                         <span class="thai-letters" v-if="tugboat.status === 'Maintenance'">กำหนดเสร็จ</span>
                         <span class="thai-letters" v-else-if="tugboat.status === 'Pending'">เข้าซ่อม</span>
@@ -155,8 +156,7 @@
               </v-row>
             </v-card>
           </v-col>
-        </v-row>
-
+        </v-row>  
       </div>
     </v-container>
   </v-app>
