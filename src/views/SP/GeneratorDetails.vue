@@ -120,7 +120,7 @@
         </v-col>
         <!-- notification table -->
          <v-col cols="6">
-          <v-card class="pa-2 rounded-xl h-100">
+          <v-card class="pa-2 rounded-xl">
             <NoticeTable />
           </v-card> 
          </v-col>

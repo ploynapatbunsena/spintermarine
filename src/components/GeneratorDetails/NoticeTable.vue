@@ -2,7 +2,7 @@
   <v-container>
     <div class="d-flex justify-space-between align-center mb-4">
       <p class="header">Notification</p>
-      <router-link :to="{ name: '', params: { id: 'someId' } }">
+      <router-link :to="{ name: 'NotificationReport', params: { id: 'id' } }">
         <v-icon icon="mdi-pencil-outline" class="edit"></v-icon>
       </router-link>
     </div>
@@ -16,7 +16,6 @@
           hide-default-footer
           fixed-header
           height="250px"
-          style="width: 1040px;"
         >
           <template v-slot:item="{ item }">
             <tr>

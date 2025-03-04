@@ -12,19 +12,19 @@ export const barges = [
       { id: 'gen-106', 
         title: 'Gen No.106 CUMMINS K 38 M',
         status: "running-maintenance",
-        measuremnets: [
-          { id: 'axis-x', title: 'Axis - X', value: '0' },
-          { id: 'axis-y', title: 'Axis - Y', value: '0' },
-          { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
-          { id: 'water-temp', title: 'Water Temperature', values: '0' },
-          { id: 'rpm', title: 'RPM', values: '0' },
-          { id: 'battery', title: 'battery', values: '0' },
-        ]
+        measurements: {
+          a_xis_x: -5,
+          a_xis_y: 3,
+          oilPressure: 6,
+          waterTemperature: 88,
+          rpm: 1950,
+          battery: 32,
+        }
       },
       { id: 'gen-107', 
         title: 'Gen No.107 CUMMINS K 38 M', 
         status: "warning",
-        measuremnets: [
+        measurements: [
           { id: 'axis-x', title: 'Axis - X', value: '0' },
           { id: 'axis-y', title: 'Axis - Y', value: '0' },
           { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
@@ -36,11 +36,11 @@ export const barges = [
       { id: 'gen-104', 
         title: 'Gen No.104 CUMMINS KTA38', 
         status: "danger",
-        measuremnets: [
-          { id: 'axis-x', title: 'Axis - X', value: '0' },
-          { id: 'axis-y', title: 'Axis - Y', value: '0' },
-          { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
-          { id: 'water-temp', title: 'Water Temperature', values: '0' },
+        measurements: [
+          { id: 'axisX', title: 'Axis - X', value: '0' },
+          { id: 'axisY', title: 'Axis - Y', value: '0' },
+          { id: 'oilPressure', title: 'Oil Pressure', value: '0' },
+          { id: 'waterTemp', title: 'Water Temperature', values: '0' },
           { id: 'rpm', title: 'RPM', values: '0' },
           { id: 'battery', title: 'battery', values: '0' },
         ]
@@ -48,7 +48,7 @@ export const barges = [
       { id: 'gen-127', 
         title: 'Gen No.127 WEICHAI BM21G385',
         status: "down",
-        measuremnets: [
+        measurements: [
           { id: 'axis-x', title: 'Axis - X', value: '0' },
           { id: 'axis-y', title: 'Axis - Y', value: '0' },
           { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
@@ -60,7 +60,7 @@ export const barges = [
       { id: 'gen-124', 
         title: 'Gen No.124 YUCHAI 380KVA', 
         status: "running",
-        measuremnets: [
+        measurements: [
           { id: 'axis-x', title: 'Axis - X', value: '0' },
           { id: 'axis-y', title: 'Axis - Y', value: '0' },
           { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
@@ -72,7 +72,7 @@ export const barges = [
       { id: 'gen-109', 
         title: 'Gen No.109 YUCHAI 100KVA', 
         status: "standby",
-        measuremnets: [
+        measurements: [
           { id: 'axis-x', title: 'Axis - X', value: '0' },
           { id: 'axis-y', title: 'Axis - Y', value: '0' },
           { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
@@ -84,7 +84,7 @@ export const barges = [
       { id: 'gen-130', 
         title: 'Gen No.130 YUCHAI 100KVA', 
         status: "standby-maintenance",
-        measuremnets: [
+        measurements: [
           { id: 'axis-x', title: 'Axis - X', value: '0' },
           { id: 'axis-y', title: 'Axis - Y', value: '0' },
           { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
@@ -96,7 +96,7 @@ export const barges = [
       { id: 'gen-119', 
         title: 'Gen No.119 WEICHAI 37KVA', 
         status: "warning",
-        measuremnets: [
+        measurements: [
           { id: 'axis-x', title: 'Axis - X', value: '0' },
           { id: 'axis-y', title: 'Axis - Y', value: '0' },
           { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
@@ -108,7 +108,7 @@ export const barges = [
       { id: 'gen-120',
         title: 'Gen No.120 WEICHAI 37KVA',
         status: "running-maintenance",
-        measuremnets: [
+        measurements: [
           { id: 'axis-x', title: 'Axis - X', value: '0' },
           { id: 'axis-y', title: 'Axis - Y', value: '0' },
           { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
@@ -293,13 +293,20 @@ export const tugboats = [
     status: "Running",
     date: "",
     category: "River",
-    measuremnets: [
-      { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
-      { id: 'water-temp', title: 'Water Temperature', values: '0' },
-      { id: 'rpm', title: 'RPM', values: '0' },
-      { id: 'wind-speed', title: 'Wind Speed', values: '0' },
-      { id: 'battery', title: 'battery', values: '0' },
-    ]
+    // measuremnets: [
+    //   { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
+    //   { id: 'water-temp', title: 'Water Temperature', values: '0' },
+    //   { id: 'rpm', title: 'RPM', values: '0' },
+    //   { id: 'wind-speed', title: 'Wind Speed', values: '0' },
+    //   { id: 'battery', title: 'battery', values: '0' },
+    // ]
+    measurements: {
+      oilPressure: 6,
+      waterTemperature: 88,
+      rpm: 1950,
+      windSpeed: 20,
+      battery: 32,
+    }
   },
   {
     id: 'ket02',
@@ -309,13 +316,20 @@ export const tugboats = [
     status: "Maintenance",
     date: "12/01/2568",
     category: "River",
-    measuremnets: [
-      { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
-      { id: 'water-temp', title: 'Water Temperature', values: '0' },
-      { id: 'rpm', title: 'RPM', values: '0' },
-      { id: 'wind-speed', title: 'Wind Speed', values: '0' },
-      { id: 'battery', title: 'battery', values: '0' },
-    ]
+    // measuremnets: [
+    //   { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
+    //   { id: 'water-temp', title: 'Water Temperature', values: '0' },
+    //   { id: 'rpm', title: 'RPM', values: '0' },
+    //   { id: 'wind-speed', title: 'Wind Speed', values: '0' },
+    //   { id: 'battery', title: 'battery', values: '0' },
+    // ]
+    measurements: {
+      oilPressure: 3.2,
+      waterTemperature: 96,
+      rpm: 1901,
+      windSpeed: 12,
+      battery: 22
+    }
   },
   {
     id: 'ket04',
@@ -325,13 +339,20 @@ export const tugboats = [
     status: "Pending",
     date: "12/01/2568",
     category: "River",
-    measuremnets: [
-      { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
-      { id: 'water-temp', title: 'Water Temperature', values: '0' },
-      { id: 'rpm', title: 'RPM', values: '0' },
-      { id: 'wind-speed', title: 'ind Speed', values: '0' },
-      { id: 'battery', title: 'battery', values: '0' },
-    ]
+    // measuremnets: [
+    //   { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
+    //   { id: 'water-temp', title: 'Water Temperature', values: '0' },
+    //   { id: 'rpm', title: 'RPM', values: '0' },
+    //   { id: 'wind-speed', title: 'ind Speed', values: '0' },
+    //   { id: 'battery', title: 'battery', values: '0' },
+    // ]
+    measurements: {
+      oilPressure: 2.1,
+      waterTemperature: 85,
+      rpm: 1600,
+      windSpeed: 7,
+      battery: 26
+    }
   },
   {
     id: 'ket05',
@@ -577,3 +598,53 @@ export const reports = [
     nameThai: 'รายงานความเอียงทุ่น (แนวแกน X)',
   }
 ]
+
+export const measurementLimits_B = {
+  axisX: {
+    warning: { min: -3, max: 3, unit: 'degree'},
+    danger: { min: -5, max: 5, unit: 'degree'}
+  },
+  axisY: {
+    warning: { min: -3, max: 3, unit: 'degree'},
+    danger: { min: -5, max: 5, unit: 'degree'}
+  },
+  oilPressure: {
+    warning: { min: 1, max: 5, unit: 'bar' },
+    danger: { min: 0.5, max: 6, unit: 'bar' }
+  },
+  waterTemperature: {
+    warning: { min: 90, max: 95, unit: 'degree' },
+    danger: { min: 96, max: 100, unit: 'degree' }
+  },
+  rpm: {
+    warning: { min: 1800, max: 1850, unit: 'rpm' },
+    danger: { min: 1851, max: 1950, unit: 'rpm' }
+  },
+  battery: {
+    warning: { min: 20, max: 30, unit: 'volt' },
+    danger: { min: 18, max: 32, unit: 'volt' }
+  }
+};
+
+export const measurementLimits_T = {
+  oilPressure: {
+    warning: { min: 1, max: 5, unit: 'bar' },
+    danger: { min: 0.5, max: 6, unit: 'bar' }
+  },
+  waterTemperature: {
+    warning: { min: 90, max: 95, unit: 'degree' },
+    danger: { min: 96, max: 100, unit: 'degree' }
+  },
+  rpm: {
+    warning: { min: 1800, max: 1850, unit: 'rpm' },
+    danger: { min: 1851, max: 1950, unit: 'rpm' }
+  },
+  windSpeed: {
+    warning: { min: 10, max: 15, unit: 'm/s' },
+    danger: { min: 16, max: 20, unit: 'm/s' }
+  },
+  battery: {
+    warning: { min: 20, max: 30, unit: 'volt' },
+    danger: { min: 18, max: 32, unit: 'volt' }
+  }
+};

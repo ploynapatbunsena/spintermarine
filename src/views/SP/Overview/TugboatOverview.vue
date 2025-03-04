@@ -23,7 +23,7 @@
             sm="6"
             lg="4"
           >
-            <v-card class="h-100 rounded-lg" :to="{ name: 'Tugboat' }">
+            <v-card class="h-100 rounded-lg" :to="{ name: 'TugboatDetail', params: { id: tugboat.id } }">
               <v-row no-gutters >
                 <!-- Barge Image -->
                 <v-col cols="4">
@@ -42,9 +42,8 @@
                         <v-card-title class="px-0">{{ tugboat.name }}</v-card-title>
                         <v-card-subtitle class="px-0 thai-letters">{{ tugboat.nameThai }}</v-card-subtitle>
                       </div>
-                      <div class="alert-icon">
-                        <v-icon color="#DC2B2B" class="mr-1"><span class="material-symbols-rounded">notifications_active</span></v-icon>
-                        <v-icon color="#FAC12A"><span class="material-symbols-rounded">warning</span></v-icon>
+                      <div class="alert-icon mr-4">
+                        <AlertFunction :tugboat="tugboat" />
                       </div>
                     </div>
                     <div class="mt-6">
@@ -119,9 +118,8 @@
                         <v-card-title class="px-0">{{ tugboat.name }}</v-card-title>
                         <v-card-subtitle class="px-0 thai-letters">{{ tugboat.nameThai }}</v-card-subtitle>
                       </div>
-                      <div class="alert-icon">
-                        <v-icon color="#DC2B2B" class="mr-1"><span class="material-symbols-rounded">notifications_active</span></v-icon>
-                        <v-icon color="#FAC12A"><span class="material-symbols-rounded">warning</span></v-icon>
+                      <div class="alert-icon mr-4">
+                        <AlertFunction :tugboat="tugboat" />
                       </div>
                     </div>
                     <div class="mt-6">
@@ -165,6 +163,7 @@
 <script>
 import NavigationBar from "@/components/NavigationBar.vue"
 import SpaceBar from '@/components/SpaceBar.vue';
+import AlertFunction from "@/components/AlertFunction.vue";
 import { tugboats } from "@/data/config";
 
 export default {
@@ -172,6 +171,7 @@ export default {
   components: {
     NavigationBar,
     SpaceBar,
+    AlertFunction,
   },
   data: () => ({
     tugboats
@@ -228,7 +228,7 @@ export default {
 
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 
 .title {
   display: flex;

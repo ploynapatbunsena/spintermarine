@@ -1,9 +1,7 @@
 <template>
   <v-container>
     <div class="container">
-      <h1>
-        <p style="color: var(--dark-gray);">{{ title }}</p>
-      </h1>
+      <p class="gauge-title">{{ title }}</p>
       <vue-gauge
         :refid="'_' + Math.random().toString(36).substr(2, 9)"
         :class="'meticsGauge'"
@@ -86,6 +84,11 @@ export default {
   justify-content: center;
   flex-direction: column;
   align-items: center;
+}
+
+.gauge-title {
+  font-weight: 500;
+  color: var(--dark-gray)
 }
 
 .gauge-wrapper {

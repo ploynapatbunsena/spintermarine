@@ -4,11 +4,11 @@
     <div class="tank-container">
       <div class="tank">
         <div class="oil" :style="{ height: oilPercentage + '%' }"></div>
-        <div class="percentage">{{ oilPercentage }} %</div>
+        <div class="percentage">{{ oilPercentage }}%</div>
       </div>
       <div class="details">
-        <p>ปริมาณน้ำมันคงเหลือ: {{ remainingVolume }} Lt.</p>
-        <p>ปริมาณน้ำมันสุทธิ: {{ totalCapacity }} Lt.</p>
+        <p>ปริมาณน้ำมันคงเหลือ: {{ remainingVolume }} L</p>
+        <p>ปริมาณน้ำมันสุทธิ: {{ totalCapacity }} L</p>
       </div>
     </div>
   </div>
@@ -19,8 +19,8 @@ export default {
   name: "GasolineTank",
   data() {
     return {
-      remainingVolume: 12000, // ปริมาณน้ำมันคงเหลือ (Lt.)
-      totalCapacity: 14000,  // ปริมาตรสุทธิ (Lt.)
+      remainingVolume: 12000, // ปริมาณน้ำมันคงเหลือ (L)
+      totalCapacity: 14000,  // ปริมาตรสุทธิ (L)
     };
   },
   computed: {
@@ -32,7 +32,7 @@ export default {
 };
 </script>
   
-<style lang="scss">
+<style lang="scss" scoped>
 .gasolineTank {
   width: 100%;
   height: 100%;

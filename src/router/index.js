@@ -43,7 +43,19 @@ const routes = [
     path: "/NotificationReport",
     name: "NotificationReport",
     component: () => import("../views/SP/Report/NotificationReport.vue"),
-    // props: true
+    props: true
+  },
+  {
+    path: "/Tugboat/:id",
+    name: "TugboatDetail",
+    component: () => import("../views/SP/TugboatDetails.vue"),
+    props: true,
+  },
+  {
+    path: "/Tugboat/:id/GPS",
+    name: "GPS_Tracker",
+    component: () => import("../views/SP/GPSVessel.vue"),
+    props: true,
   },
   {
     path: "/:catchAll(.*)", // 404 Not found
