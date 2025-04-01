@@ -13,12 +13,13 @@ export default {
 
 <style>
 #app {
-  font-family: Poppins, sans-serif;
+  font-family: Inter, sans-serif;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   background-color: #F7F9FC !important;
   overflow: hidden;
+  overflow-x: visible;;
 }
 </style>
 

@@ -1,117 +1,96 @@
 <template>
   <v-app>
-    <v-img
-      :src="require('@/assets/Images/Picture1.png')"
-      class="pa-0 ma-0"
-      position="relative"
-    >
-    <div style="position: absolute; width: 3840px; height: 2160px;">
-      <v-row>
-        <v-col cols="4" class="column-setting" style="margin-top: 200px;" >คอลัมน์ที่ 1</v-col>
-        <v-col cols="4" class="column-setting" style="margin-top: 200px;">คอลัมน์ที่ 2</v-col>
-        <v-col cols="4" style="margin-top: 200px; padding-left: 270px;">
-          <v-card style="width: 950px; height: 563px; display: flex; align-items: center; justify-content: center;">
-            <div class="box-left">
-              <!-- แสดงค่าเปอร์เซ็นต์ -->
-              <div class="box-percent">
-                <p class="text-percent">{{ sensorValue }}%</p>
-              </div>  
-              <div class="box-grey"></div>
-              <div class="box-chart" :style="{ width: computedChartWidth + 'px' }"></div>
-              <div class="line-chart"></div>
-              <div class="box-grey"></div>
-            </div>
-          </v-card>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col cols="4" class="column-setting">คอลัมน์ที่ 4</v-col>
-        <v-col cols="4" class="column-setting">คอลัมน์ที่ 5</v-col>
-        <v-col cols="4" class="right-box">คอลัมน์ที่ 6</v-col>
-      </v-row>
-      <v-row>
-        <v-col cols="4" class="left-box">คอลัมน์ที่ 7</v-col>
-        <v-col cols="4" class="column-setting">คอลัมน์ที่ 8</v-col>
-        <v-col cols="4" class="right-box">คอลัมน์ที่ 9</v-col>
-      </v-row>
-    </div>
-      
-    </v-img>
+    <div class="dashboard-background"></div>
+    <v-row style="z-index: 1; padding: 64px;">
+      <!-- Left Side -->
+      <v-col cols="4" class="d-flex flex-column justify-end">
+        <v-card class="left-side" elevation="0">
+          <BuildingMeasurement
+            :totalPeople="totalPeople"
+            :totalEnergy="totalEnergy"
+            :totalThermal="totalThermal"
+            :totalCO2="totalCO2"
+            :totalPM25="totalPM25"
+            :totalTVOCS="totalTVOCS"
+          />
+        </v-card>
+      </v-col>
+
+      <v-col cols="4"></v-col>
+      <!-- Right Side -->
+      <v-col cols="4" class="d-flex flex-column align-end" >
+        <v-row>
+          <v-col cols="12" style="padding: 0px;">
+            <CandleStick @update-total="updateTotal"/>
+          </v-col>
+        </v-row>
+      </v-col>
+    </v-row>
   </v-app>
 </template>
 
 <script>
+import CandleStick from '@/components/ArchDashboard/CandleStick.vue';
+import BuildingMeasurement from '@/components/ArchDashboard/BuildingMeasurement.vue';
+
 export default {
+  name: "ArchDashboard",
+  components: {
+    CandleStick,
+    BuildingMeasurement
+  },
+
   data() {
     return {
-      sensorValuesMock: [10, 25, 50, 75, 90, 100],
-      sensorValue: 0,
-      maxWidth: 700,
-      index: 0,
+      totalPeople: 0,
+      totalEnergy: 0,
+      totalThermal: 0,
+      totalCO2: 0,
+      totalPM25: 0,
+      totalTVOCS: 0,
     };
   },
-  computed: {
-    computedChartWidth() {
-      return (this.sensorValue / 100) * this.maxWidth;
-    },
+
+  methods: {
+    updateTotal(data) {
+      this.totalPeople = data.totalPeople;
+      this.totalEnergy = data.totalEnergy;
+      this.totalThermal = data.totalThermal;
+      this.totalCO2 = data.totalCO2;
+      this.totalPM25 = data.totalPM25;
+      this.totalTVOCS = data.totalTVOCS;
+    }
   },
-  mounted() {
-    setInterval(() => {
-      this.sensorValue = this.sensorValuesMock[this.index];
-      this.index = (this.index + 1) % this.sensorValuesMock.length;
-    }, 2000);
-  }
 };
 </script>
 
-<style>
-.left-box {
+<style scoped>
+* {
+  font-family: 'Segoe UI', sans-serif;
+  overflow: hidden;
+}
+
+.dashboard-background {
+  background-image: url('../../assets/Images/Dashboard_Background.png');
+  background-size: cover;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.left-side {
   width: 1200px;
-  height: 750px;
-  padding: 0;
+  height: 1300px;
+  background-color: transparent;
 }
 
-.right-box {
+.right-side {
   width: 950px;
-  height: 563px;
+  height: 450px;
+  background-color: transparent;
 }
-
-.box-left {
-  display: flex;
-  align-items: center;
-  margin-top: 107px;
-}
-
-/* กล่องแสดงเปอร์เซ็นต์ */
-.box-percent {
-  width: 120px;
-  height: 120px;
-  background-color: #ecbd00;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 48px;
-}
-
-/* จุดเริ่มต้นของกราฟ */
-.box-grey {
-  width: 24px;
-  height: 24px;
-  background-color: #b4b4b4;
-  margin-left: 10px;
-}
-
-/* แท่งกราฟที่ยาวออกทางขวาตามเปอร์เซ็นต์ */
-.box-chart {
-  height: 40px;
-  background-color: #ecbd00;
-  transition: width 0.5s ease-in-out; /* ทำให้การเปลี่ยนแปลงดูสมูท */
-}
-
-.line-chart {
-  flex-grow: 1;
-  height: 2px;
-  background-color: #b4b4b4;
-}
-
 </style>

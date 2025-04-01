@@ -5,8 +5,12 @@
     <v-container>
       <v-row v-if="barge && item">
         <!-- Title อยู่ตรงกลางหน้า -->
-        <v-col cols="12">
-          <div class="title">{{ item.title }}</div>
+        <v-col cols="12" class="position-relative d-flex align-center">
+          <div style="width: 80px;"></div>
+          <div class="title flex-grow-1 text-center">{{ item.title }}</div>
+          <div style="width: 80px;">
+            <AlertFunction :item="item"/>
+          </div>
         </v-col>
 
         <!-- คอลัมน์แรก: 4 Gauge 2x2 -->
@@ -137,6 +141,7 @@ import GagueChart from '@/components/GeneratorDetails/GagueChart.vue';
 import GeneralInfo from '@/components/GeneratorDetails/GeneralInfo.vue';
 import GeneratorImage from '@/components/GeneratorDetails/GeneratorImage.vue';
 import NoticeTable from '@/components/GeneratorDetails/NoticeTable.vue';
+import AlertFunction from '@/components/BargeDetails/AlertFunction.vue';
 
 export default {
   props: ['id', 'itemId'],
@@ -147,6 +152,7 @@ export default {
     GeneralInfo,
     GeneratorImage,
     NoticeTable,
+    AlertFunction
   },
   computed: {
     barge() {

@@ -19,7 +19,7 @@
                 label="Vehicle"
                 @update:model-value="onVehicleChange"
                 variant="outlined"
-                density="comfortable"
+                density="compact"
               ></v-select>
             </v-col>
             
@@ -32,7 +32,7 @@
                 item-value="id"
                 label="Device"
                 variant="outlined"
-                density="comfortable"
+                density="compact"
                 :disabled="!selectedVehicle"
                 @update:model-value="onDeviceChange"
               ></v-select>
@@ -47,7 +47,7 @@
                 item-value="id"
                 label="Measurement"
                 variant="outlined"
-                density="comfortable"
+                density="compact"
                 :disabled="!selectedDevice"
               ></v-select>
             </v-col>
@@ -61,7 +61,7 @@
                 item-value="value"
                 label="Status"
                 variant="outlined"
-                density="comfortable"
+                density="compact"
               ></v-select>
             </v-col>
             
@@ -72,7 +72,7 @@
                 label="Start Date"
                 type="date"
                 variant="outlined"
-                density="comfortable"
+                density="compact"
               ></v-text-field>
             </v-col>
             
@@ -82,7 +82,7 @@
                 label="End Date"
                 type="date"
                 variant="outlined"
-                density="comfortable"
+                density="compact"
               ></v-text-field>
             </v-col>
           </v-row>
@@ -154,7 +154,7 @@
           <v-card-text>
             <v-row>
               <v-col cols="6" md="6">
-                <div class="">
+                <div>
                   <p class="title-field">Date</p>
                   <div class="default-field">
                     <p>{{ formatDate(editedItem.date) }}</p>
@@ -162,7 +162,7 @@
                 </div>
               </v-col>
               <v-col cols="6" md="6">
-                <div class="">
+                <div>
                   <p class="title-field">Device Name</p>
                   <div class="default-field">
                     <p>{{ editedItem.deviceName }}</p>
@@ -170,7 +170,7 @@
                 </div>
               </v-col>
               <v-col cols="6" md="6">
-                <div class="">
+                <div>
                   <p class="title-field">Measuremnet</p>
                   <div class="default-field">
                     <p>{{ editedItem.measurement }}</p>
@@ -178,7 +178,7 @@
                 </div>
               </v-col>
               <v-col cols="6" md="6">
-                <div class="">
+                <div>
                   <p class="title-field-thai">เลขใบแจ้งซ่อม</p>
                     <v-text-field
                       v-model="editedItem.ticketNumber"
@@ -188,8 +188,7 @@
                         width: 362px;
                         border-radius: 10px;
                         color: var(--grey-02);
-                        font-family: 'Poppins', sans-serif;
-                      "
+                        font-family: 'Poppins', sans-serif;"
                     ></v-text-field>
                 </div>
               </v-col>
@@ -627,19 +626,19 @@ export default {
 .cancel-btn {
   background-color: var(--red);
   color: var(--white);
-  border-radius: 14px;
+  border-radius: 10px;
 }
 
 .search-btn {
   background-color: var(--light-blue);
   color: var(--white);
-  border-radius: 14px;  
+  border-radius: 10px;  
 }
 
 .download-btn {
   background-color: var(--yellow);
   color: var(--white);
-  border-radius: 14px;  
+  border-radius: 10px;  
 }
 
 .card-dialog {

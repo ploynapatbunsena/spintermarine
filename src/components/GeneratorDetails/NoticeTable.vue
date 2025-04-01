@@ -2,7 +2,7 @@
   <v-container>
     <div class="d-flex justify-space-between align-center mb-4">
       <p class="header">Notification</p>
-      <router-link :to="{ name: 'NotificationReport', params: { id: 'id' } }">
+      <router-link :to="{ name: 'NotificationReport' }">
         <v-icon icon="mdi-pencil-outline" class="edit"></v-icon>
       </router-link>
     </div>
@@ -60,28 +60,27 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-/* เพิ่ม Scrollbar Styling */
 .custom-scroll :deep(.v-table__wrapper) {
   overflow-y: auto;
 }
 
 /* Scrollbar สำหรับ Chrome, Edge, Safari */
 .custom-scroll :deep(.v-table__wrapper)::-webkit-scrollbar {
-  width: 8px; /* ความกว้างของ scrollbar */
+  width: 8px;
 }
 
 .custom-scroll :deep(.v-table__wrapper)::-webkit-scrollbar-track {
-  background: #f0f0f0; /* สีพื้นหลังของ track */
+  background: #f0f0f0;
   border-radius: 10px;
 }
 
 .custom-scroll :deep(.v-table__wrapper)::-webkit-scrollbar-thumb {
-  background: #888; /* สีของ scrollbar */
+  background: #888;
   border-radius: 10px;
 }
 
 .custom-scroll :deep(.v-table__wrapper)::-webkit-scrollbar-thumb:hover {
-  background: #555; /* สี scrollbar เมื่อ hover */
+  background: #555;
 }
 
 .striped-table :deep(tbody tr:nth-child(odd)) {

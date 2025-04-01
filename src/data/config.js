@@ -15,7 +15,7 @@ export const barges = [
         measurements: {
           a_xis_x: -5,
           a_xis_y: 3,
-          oilPressure: 6,
+          oilPressure: 4,
           waterTemperature: 88,
           rpm: 1950,
           battery: 32,
@@ -24,62 +24,62 @@ export const barges = [
       { id: 'gen-107', 
         title: 'Gen No.107 CUMMINS K 38 M', 
         status: "warning",
-        measurements: [
-          { id: 'axis-x', title: 'Axis - X', value: '0' },
-          { id: 'axis-y', title: 'Axis - Y', value: '0' },
-          { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
-          { id: 'water-temp', title: 'Water Temperature', values: '0' },
-          { id: 'rpm', title: 'RPM', values: '0' },
-          { id: 'battery', title: 'battery', values: '0' },
-        ]
+        measurements: {
+          a_xis_x: -5,
+          a_xis_y: 3,
+          oilPressure: 6,
+          waterTemperature: 88,
+          rpm: 1950,
+          battery: 32,
+        }
        },
       { id: 'gen-104', 
         title: 'Gen No.104 CUMMINS KTA38', 
         status: "danger",
-        measurements: [
-          { id: 'axisX', title: 'Axis - X', value: '0' },
-          { id: 'axisY', title: 'Axis - Y', value: '0' },
-          { id: 'oilPressure', title: 'Oil Pressure', value: '0' },
-          { id: 'waterTemp', title: 'Water Temperature', values: '0' },
-          { id: 'rpm', title: 'RPM', values: '0' },
-          { id: 'battery', title: 'battery', values: '0' },
-        ]
+        measurements: {
+          a_xis_x: -5,
+          a_xis_y: 3,
+          oilPressure: 6,
+          waterTemperature: 88,
+          rpm: 1950,
+          battery: 32,
+        }
       },
       { id: 'gen-127', 
         title: 'Gen No.127 WEICHAI BM21G385',
         status: "down",
-        measurements: [
-          { id: 'axis-x', title: 'Axis - X', value: '0' },
-          { id: 'axis-y', title: 'Axis - Y', value: '0' },
-          { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
-          { id: 'water-temp', title: 'Water Temperature', values: '0' },
-          { id: 'rpm', title: 'RPM', values: '0' },
-          { id: 'battery', title: 'battery', values: '0' },
-        ]
+        measurements: {
+          a_xis_x: -5,
+          a_xis_y: 3,
+          oilPressure: 6,
+          waterTemperature: 67,
+          rpm: 2000,
+          battery: 40,
+        }
       },
       { id: 'gen-124', 
         title: 'Gen No.124 YUCHAI 380KVA', 
         status: "running",
-        measurements: [
-          { id: 'axis-x', title: 'Axis - X', value: '0' },
-          { id: 'axis-y', title: 'Axis - Y', value: '0' },
-          { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
-          { id: 'water-temp', title: 'Water Temperature', values: '0' },
-          { id: 'rpm', title: 'RPM', values: '0' },
-          { id: 'battery', title: 'battery', values: '0' },
-        ]
+        measurements: {
+          a_xis_x: 0,
+          a_xis_y: 0,
+          oilPressure: 6,
+          waterTemperature: 88,
+          rpm: 1000,
+          battery: 24,
+        }
       },
       { id: 'gen-109', 
         title: 'Gen No.109 YUCHAI 100KVA', 
         status: "standby",
-        measurements: [
-          { id: 'axis-x', title: 'Axis - X', value: '0' },
-          { id: 'axis-y', title: 'Axis - Y', value: '0' },
-          { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
-          { id: 'water-temp', title: 'Water Temperature', values: '0' },
-          { id: 'rpm', title: 'RPM', values: '0' },
-          { id: 'battery', title: 'battery', values: '0' },
-        ]
+        measurements: {
+          a_xis_x: 5,
+          a_xis_y: 5,
+          oilPressure: 6,
+          waterTemperature: 100,
+          rpm: 1065,
+          battery: 12,
+        }
       },
       { id: 'gen-130', 
         title: 'Gen No.130 YUCHAI 100KVA', 
@@ -135,7 +135,7 @@ export const barges = [
     maintenance: 3,
     items: [
       { id: 'gen-125', title: 'Gen No.125 CUMMINS K 50', status: "running-maintenance" },
-      { id: 'gen-108', title: 'Gen No.108 CUMMINS K 38 DMT)', status: "running-maintenance" },
+      { id: 'gen-108', title: 'Gen No.108 CUMMINS K 38 DMT', status: "running-maintenance" },
       { id: 'gen-53', title: 'Gen No.53 CAT3412 850KVA', status: "down" },
       { id: 'gen-153', title: 'Gen No.153 YUCHAI375 375KVA', status: "warning" },
       { id: 'gen-154', title: 'Gen No.154 YUCHAI375 375KVA', status: "standby-maintenance" },
@@ -293,20 +293,42 @@ export const tugboats = [
     status: "Running",
     date: "",
     category: "River",
-    // measuremnets: [
-    //   { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
-    //   { id: 'water-temp', title: 'Water Temperature', values: '0' },
-    //   { id: 'rpm', title: 'RPM', values: '0' },
-    //   { id: 'wind-speed', title: 'Wind Speed', values: '0' },
-    //   { id: 'battery', title: 'battery', values: '0' },
-    // ]
     measurements: {
       oilPressure: 6,
       waterTemperature: 88,
       rpm: 1950,
       windSpeed: 20,
       battery: 32,
-    }
+    },
+    data: [
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. SMOOTH SEA',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. SMOOTH SEA',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. VENETIA',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      }
+    ]
   },
   {
     id: 'ket02',
@@ -316,20 +338,42 @@ export const tugboats = [
     status: "Maintenance",
     date: "12/01/2568",
     category: "River",
-    // measuremnets: [
-    //   { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
-    //   { id: 'water-temp', title: 'Water Temperature', values: '0' },
-    //   { id: 'rpm', title: 'RPM', values: '0' },
-    //   { id: 'wind-speed', title: 'Wind Speed', values: '0' },
-    //   { id: 'battery', title: 'battery', values: '0' },
-    // ]
     measurements: {
       oilPressure: 3.2,
       waterTemperature: 96,
       rpm: 1901,
       windSpeed: 12,
       battery: 22
-    }
+    },
+    data: [
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. GOLDEN FLAVOR GROUP',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. GOLDEN FLAVOR GROUP',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. ALIKI FORCE',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      }
+    ]
   },
   {
     id: 'ket04',
@@ -339,20 +383,43 @@ export const tugboats = [
     status: "Pending",
     date: "12/01/2568",
     category: "River",
-    // measuremnets: [
-    //   { id: 'oil-pressure', title: 'Oil Pressure', value: '0' },
-    //   { id: 'water-temp', title: 'Water Temperature', values: '0' },
-    //   { id: 'rpm', title: 'RPM', values: '0' },
-    //   { id: 'wind-speed', title: 'ind Speed', values: '0' },
-    //   { id: 'battery', title: 'battery', values: '0' },
-    // ]
     measurements: {
       oilPressure: 2.1,
       waterTemperature: 85,
       rpm: 1600,
       windSpeed: 7,
       battery: 26
-    }
+    },
+    data: [
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. VENETIA',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. GOLDEN FLAVOR GROUP',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      }
+      ,
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. ALIKI FORCE',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      }
+    ]
   },
   {
     id: 'ket05',
@@ -362,6 +429,60 @@ export const tugboats = [
     status: "Maintenance",
     date: "12/01/2568",
     category: "River",
+    measurements: {
+      oilPressure: 2.1,
+      waterTemperature: 85,
+      rpm: 1600,
+      windSpeed: 7,
+      battery: 26
+    },
+    data: [
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. VENETIA',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. GOLDEN FLAVOR GROUP',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. ALIKI FORCE',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. SMOOTH SEA',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. SMOOTH SEA',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+    ]
   },
   {
     id: 'ket06',
@@ -370,7 +491,7 @@ export const tugboats = [
     image: require('@/assets/Images/overview_barge.jpg'),
     status: "Maintenance",
     date: "12/01/2568",
-    category: "River",
+    category: "River Going",
   },
   {
     id: 'ket08',
@@ -379,7 +500,7 @@ export const tugboats = [
     image: require('@/assets/Images/overview_barge.jpg'),
     status: "Running",
     date: "",
-    category: "River",
+    category: "River Going",
   },
   {
     id: 'ket10',
@@ -388,7 +509,52 @@ export const tugboats = [
     image: require('@/assets/Images/overview_barge.jpg'),
     status: "Maintenance",
     date: "12/01/2568",
-    category: "River",
+    category: "River Going",
+    measurements: {
+      oilPressure: 2.1,
+      waterTemperature: 85,
+      rpm: 1600,
+      windSpeed: 7,
+      battery: 26
+    },
+    data: [
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. VENETIA',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. GOLDEN FLAVOR GROUP',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. ALIKI FORCE',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. SMOOTH SEA',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+    ]
   },
   {
     id: 'ket11',
@@ -427,6 +593,51 @@ export const tugboats = [
     status: "Running",
     date: "",
     category: "Sea",
+    measurements: {
+      oilPressure: 2.1,
+      waterTemperature: 85,
+      rpm: 1600,
+      windSpeed: 7,
+      battery: 26
+    },
+    data: [
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. VENETIA',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. GOLDEN FLAVOR GROUP',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. ALIKI FORCE',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. SMOOTH SEA',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+    ]
   },
   {
     id: 'ket12',
@@ -480,7 +691,42 @@ export const tugboats = [
     image: require('@/assets/Images/overview_barge.jpg'),
     status: "Maintenance",
     date: "12/01/2568",
-    category: "Sea",
+    category: "Sea",measurements: {
+      oilPressure: 2.1,
+      waterTemperature: 85,
+      rpm: 1600,
+      windSpeed: 7,
+      battery: 26
+    },
+    data: [
+      {
+        bargeName: 'SPI61',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. SMOOTH SEA',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. GOLDEN FLAVOR GROUP',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'J33',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. VENETIA',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+    ]
   },
   {
     id: 'wat01',
@@ -517,6 +763,42 @@ export const tugboats = [
     status: "Running",
     date: "",
     category: "Sea",
+    measurements: {
+      oilPressure: 2.1,
+      waterTemperature: 85,
+      rpm: 1600,
+      windSpeed: 7,
+      battery: 26
+    },
+    data: [
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. GOLDEN FLAVOR GROUP',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. ALIKI FORCE',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. VENETIA',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+    ]
   },
   {
     id: 'wat05',
@@ -553,6 +835,51 @@ export const tugboats = [
     status: "Maintenance",
     date: "12/01/2568",
     category: "Sea",
+    measurements: {
+      oilPressure: 2.1,
+      waterTemperature: 85,
+      rpm: 1600,
+      windSpeed: 7,
+      battery: 26
+    },
+    data: [
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. SMOOTH SEA',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. GOLDEN FLAVOR GROUP',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. ALIKI FORCE',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+      {
+        bargeName: 'SPI56',
+        origin: 'Koh Sichang',
+        destination: 'Laem Chabang',
+        vessel: 'MV. VENETIA',
+        jobOrder: 'RTM241067-1',
+        cargo: 'กากถั่ว',
+        eta: '12/01/2568 08:00',
+      },
+    ]
   },
 ]
 
@@ -569,28 +896,28 @@ export const reports = [
   },
   {
     id: 'report03',
-    name: 'Report on Daily Fuel Consumption for the Barge',
-    nameThai: 'รายงานการบริโภคน้ำมันรายวันของทุ่น',
+    name: 'Report on RPM and Speed and %Throttle Affected by Wind Speed of Tugboat',
+    nameThai: 'รายงาน RPM และ ความเร็ว และ %คันเร่ง ที่ถูกกระทบด้วยความเร็วลมของเรือยนต์ ',
   },
   {
     id: 'report04',
-    name: 'Report on RPM and Speed and %Throttle Affected by Wind Speed of Tugboat',
-    nameThai: 'รายงาน RPM, ความเร็ว และ %คันเร่ง ที่ถูกกระทบด้วยความเร็วลมของเรือยนต์ ',
-  },
-  {
-    id: 'report05',
     name: 'Report on Tugboats Encountering Storms',
     nameThai: 'รายงานเรือยนต์ที่เจอพายุ',
   },
   {
-    id: 'report06',
+    id: 'report05',
     name: 'Report on Fuel Rate per RPM for Evaluating Engine Efficiency of Motor Barge',
     nameThai: 'รายงานอัตราการใช้ชื้อเพลิง ต่อ RPM เพื่อดูประสิทธิภาพเครื่องยนต์ของทุ่น',
   },
   {
-    id: 'report07',
+    id: 'report06',
     name: 'Report on %Throttle vs. RPM vs. Fuel Rate',
     nameThai: 'รายงาน %คันเร่ง ต่อ RPM ต่อ อัตราการใช้ชื้อเพลิง สำหรับเรือยนต์',
+  },
+  {
+    id: 'report07',
+    name: 'Report on Daily Fuel Consumption for the Barge',
+    nameThai: 'รายงานการบริโภคน้ำมันรายวันของทุ่น',
   },
   {
     id: 'report08',

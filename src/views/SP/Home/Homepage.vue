@@ -2,27 +2,25 @@
   <v-app>
     <NavigationBar />
     <SpaceBar />
-    <v-container class="ma-0">
-      <v-row :gutter="32" class="ml-6">
-        <v-col cols="auto">
+    <v-container>
+      <v-row>
+        <v-col cols="12" sm="4" lg="3">
           <v-sheet class="pa-2 ma-2">
             <v-card
-              class="mx-auto rounded-lg"
+              class="rounded-lg"
               max-width="300"
               max-height="300"
             >
               <v-img
-                class=" text-white"
-                height="300"
-                width="300"
+                class="text-white"
                 :src="require('@/assets/Images/profile_barge.jpg')"
                 cover
               >
                 <div class="pa-4 align-start">
                   <v-img
                     :src="require('@/assets/Icons/sp_logo.svg')"
-                    width="100"
-                    height="44"
+                    max-width="100"
+                    max-height="44"
                     position="relative"
                   ></v-img>
                 </div>
@@ -37,25 +35,23 @@
             </v-card>
           </v-sheet>
         </v-col>
-        <v-col cols="auto">
+        <v-col cols="12" sm="4" lg="3">
           <v-sheet class="pa-2 ma-2">
             <v-card
-              class="mx-auto rounded-lg"
+              class="rounded-lg"
               max-width="300"
               max-height="300"
             >
               <v-img
                 class="text-white"
-                height="300"
-                width="300"
                 :src="require('@/assets/Images/profile_tugboat.jpg')"
                 cover
               >
                 <div class="pa-4 align-start">
                   <v-img
                     :src="require('@/assets/Icons/sp_logo.svg')"
-                    width="100"
-                    height="44"
+                    max-width="100"
+                    max-height="44"
                     position="relative"
                   ></v-img>
                 </div>
@@ -70,7 +66,6 @@
             </v-card>
           </v-sheet>
         </v-col>
-        <v-spacer></v-spacer>
       </v-row>
     </v-container>
   </v-app>

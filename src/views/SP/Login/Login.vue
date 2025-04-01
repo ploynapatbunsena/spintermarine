@@ -1,89 +1,106 @@
 <template>
   <v-app>
     <v-main>
-      <v-row>
-        <v-col cols="6">
-          <v-img 
-            :src="require('@/assets/Images/bg_login.jpg')"
-            height="100vh"
-            cover
-            position="relative"
-          >
-            <div class="pa-12">
-              <v-img
-                :src="require('@/assets/Images/logo_miiot.png')"
-                width="16rem"
-                height="3rem"
-              >
-              </v-img>
-            </div>
-          </v-img>
-        </v-col>
-        <v-col cols="6" class="d-flex justify-center align-center"> 
-          <div class="card-box">
-            <p>Login to your accout</p>
-            <form @submit.prevent="handleLogin">
-              <div class="form-control">
-                <label for="email">Email</label>
-                <input 
-                  type="email"
-                  v-model="email"
-                  placeholder="Enter your email"
-                  :class="{ 'error-input' : errors.email}"
+      <v-container class="pa-0 ma-0" fluid>
+        <v-row no-gutters>
+          <!-- Background Image Section -->
+          <v-col cols="12" md="6" class="background-section">
+            <v-img 
+              :src="require('@/assets/Images/bg_login.jpg')"
+              height="100vh"
+              cover
+              position="relative"
+            >
+              <div class="pa-6 pa-sm-12">
+                <v-img
+                  :src="require('@/assets/Images/logo_miiot.png')"
+                  width="12rem"
+                  max-width="16rem"
+                  height="3rem"
+                  contain
                 >
-                <span class="error-text" v-if="errors.email">{{ errors.email }}</span>
+                </v-img>
               </div>
-              <div class="form-control">
-                <label for="password">Password</label>
-                <div class="password-wrapper">
-                  <input 
-                    :type="showPassword ? 'text' : 'password'"
-                    v-model="password"
-                    placeholder="Enter your password"
-                    :class="{ 'error-input' : errors.password}"
-                  >
-                  <v-icon
-                    @click="togglePassword"
-                    :icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-                    class="password-toggle"  
-                  >
-                  </v-icon>
-                </div>
-                <span class="error-text" v-if="errors.password">{{ errors.password }}</span>
-              </div>
-              <div class="login">
-                <button type="submit" :disabled="isLoading">
-                  <v-progress-circular
-                    v-if="isLoading"
-                    indeterminate
-                    size="20"
-                    width="2"
-                    color="white"
-                    class="mr-2"
-                  ></v-progress-circular>
-                  {{ isLoading ? 'Loading...' : 'Login Now' }}
-                </button>
-              </div>
-            </form>
-          </div>
-        </v-col>
-      </v-row>
+            </v-img>
+          </v-col>
+          
+          <!-- Login Form Section -->
+          <v-col cols="12" md="6" class="d-flex justify-center align-center login-section"> 
+            <v-card
+              class="login-card"
+              max-width="450"
+              width="85%"
+              elevation="5"
+              rounded="xl"
+            >
+              <v-card-text class="pa-6 pa-sm-12">
+                <p class="login-title">Login to your account</p>
+                <form @submit.prevent="handleLogin">
+                  <div class="form-control">
+                    <label for="email">Email</label>
+                    <input 
+                      type="email"
+                      v-model="email"
+                      placeholder="Enter your email"
+                      :class="{ 'error-input' : errors.email}"
+                    >
+                    <span class="error-text" v-if="errors.email">{{ errors.email }}</span>
+                  </div>
+                  <div class="form-control">
+                    <label for="password">Password</label>
+                    <div class="password-wrapper">
+                      <input 
+                        :type="showPassword ? 'text' : 'password'"
+                        v-model="password"
+                        placeholder="Enter your password"
+                        :class="{ 'error-input' : errors.password}"
+                      >
+                      <v-icon
+                        @click="togglePassword"
+                        :icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                        class="password-toggle"  
+                      >
+                      </v-icon>
+                    </div>
+                    <span class="error-text" v-if="errors.password">{{ errors.password }}</span>
+                  </div>
+                  <div class="login">
+                    <button type="submit" :disabled="isLoading">
+                      <v-progress-circular
+                        v-if="isLoading"
+                        indeterminate
+                        size="20"
+                        width="2"
+                        color="white"
+                        class="mr-2"
+                      ></v-progress-circular>
+                      {{ isLoading ? 'Loading...' : 'Login Now' }}
+                    </button>
+                  </div>
+                </form>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
     </v-main>
   </v-app>
 </template>
 
 <script setup>
 import router from '@/router'
+import { inject } from 'vue'
 import { ref, reactive } from 'vue'
 
-const email = ref('')
-const password = ref('')
-const showPassword = ref(false)
-const isLoading = ref(false)
+const $api = inject('$api');
+const email = ref('');
+const password = ref('');
+const showPassword = ref(false);
+const isLoading = ref(false);
 const errors = reactive({
   email: '',
   password: ''
-})
+});
 
 const validateForm = () => {
   let isValid = true
@@ -102,59 +119,94 @@ const validateForm = () => {
     errors.password = 'Password is required'
     isValid = false
   }
-
   return isValid
-}
+};
 
 const togglePassword = () => {
-  showPassword.value = !showPassword.value
-}
+  showPassword.value = !showPassword.value;
+};
 
 const handleLogin = async () => {
   if (!validateForm()) return
-
-  isLoading.value = true
+  isLoading.value = true;
   try {
-    // Add your login logic here
-    await new Promise(resolve => setTimeout(resolve, 1500)) // Simulating API call
-    console.log('Login attempt:', {
-      email: email.value,
-      password: password.value
-    })
+    const loginData = {
+      MemberEmail: email.value,
+      MemberPassword: password.value,
+    };
 
-    // Navigate to /Homepage after login
-    router.push('/Homepage')
+    const response = await $api.post('/Member/login', loginData);
+    const { accessToken, member } = response.data;
 
+    localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('member', JSON.stringify(member));
+
+    console.log('Login successful');
+
+    router.push('/Homepage');
   } catch (error) {
-    console.error('Login failed:', error)
+    console.error('Login failed:', error);
+    if (error.response) {
+      if (error.response.status === 401) {
+        errors.password = 'Email or password is incorrect';
+      } else {
+        errors.password = 'Login failed, please try again';
+      }
+    } else {
+      errors.password = 'Cannot connect to server';
+    }
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 </script>
 
 <style lang="scss">
-.card-box  {
-  width: 450px;
-  box-shadow: 40px 40px 60px 0px rgba(228, 230, 234, 0.75);
-  padding: 48px;
-  border-radius: 20px;
+.background-section {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 0;
 
-  & p {
-    font-size: 24px;
-    margin-bottom: 32px;
+  @media (min-width: 960px) {
+    position: relative;
+    width: 50%;
+  }
+}
+
+.login-section {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+
+}
+
+.login-card {
+  margin: 16px;
+  
+  .login-title {
+    font-size: 20px;
+    margin-bottom: 24px;
     font-weight: 600;
+
+    @media (min-width: 600px) {
+      font-size: 24px;
+      margin-bottom: 32px;
+    }
   }
 
-  & .form-control {
+  .form-control {
     margin-bottom: 16px;
 
-    & label {
+    label {
       font-size: 14px;
       margin-bottom: 6px;
+      display: block;
     }
 
-    & input {
+    input {
       width: 100%;
       margin-top: 6px;
       padding: 8px;
@@ -163,7 +215,7 @@ const handleLogin = async () => {
       border-radius: 8px;
     }
 
-    & input:focus {
+    input:focus {
       border-color: #D1E9FF;
       box-shadow: 0 0 0 2px #D1E9FF;
       outline: none;
@@ -198,8 +250,8 @@ const handleLogin = async () => {
     }
   }
 
-  & .login {
-    & button {
+  .login {
+    button {
       width: 100%;
       padding: 8px;
       margin-top: 16px;
@@ -209,10 +261,18 @@ const handleLogin = async () => {
       border: none;
       border-radius: 8px;
       cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
-    & button:hover {
+    button:hover {
       background-color: #0d5cb6;
+    }
+
+    button:disabled {
+      background-color: #84CAFF;
+      cursor: not-allowed;
     }
   }
 }

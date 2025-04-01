@@ -1,30 +1,53 @@
-import { barges } from '@/data/config';
 <template>
   <nav>
-    <v-app-bar
-      color="#080F25"
-      absolute
-    >
+    <v-app-bar color="#080F25" absolute>
       <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-      <v-toolbar-title>
-        <v-img
-          :src="require('@/assets/Images/logo_navbar.png')"
-          class="pa-0 ma-0"
-          width="16rem"
-          height="auto"
-        >
-        </v-img> 
-      </v-toolbar-title>
-      <v-spacer></v-spacer>
+        <v-row>
+          <v-col cols="8" sm="8" lg="2">
+            <v-img
+              :src="require('@/assets/Images/logo_navbar.png')"
+              class="navbar-logo"
+              max-width="256"
+            >
+            </v-img>
+          </v-col>
+          <v-col>
+
+          </v-col>
+        </v-row>
       <template v-if="$vuetify.display.mdAndUp">
         <v-btn icon variant="text">
           <i class="bi bi-person-circle icon"></i>
         </v-btn>
-        <p class="pr-6" style="font-size: 14px;">Username</p>
-        <v-btn icon variant="text" @click="logout">
+        <p class="pr-6" style="font-size: 14px;">{{ memberName }}</p>
+        <v-btn icon variant="text" @click="logout" :to="{ name: 'Login'}">
           <span class="material-symbols-rounded icon">logout</span>
         </v-btn>
         <p class="pr-6" style="font-size: 14px;">Logout</p>
+      </template>
+      <template v-else>
+        <v-menu>
+          <template v-slot:activator="{ props }">
+            <v-btn icon variant="text" v-bind="props">
+              <v-icon>mdi-dots-vertical</v-icon>
+            </v-btn>
+          </template>
+
+          <v-list>
+            <v-list-item>
+              <v-list-item-title>
+                <v-icon start>mdi-account</v-icon>
+                {{ memberName }}
+              </v-list-item-title>
+            </v-list-item>
+            <v-list-item @click="logout">
+              <v-list-item-title>
+                <v-icon start>mdi-logout</v-icon>
+                Logout
+              </v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
       </template>
     </v-app-bar>
 
@@ -45,9 +68,13 @@ import { barges } from '@/data/config';
               v-bind="props"
               prepend-icon="mdi-anchor"
               title="Barge"
-              :to="{ name: 'Barge' }"
             ></v-list-item>
           </template>
+          <v-list-item 
+            prepend-icon="mdi-format-list-bulleted" 
+            title="Overview"
+            :to="{ name: 'Barge'}"  
+          ></v-list-item>
           <v-list-group
             v-for="barge in barges"
             :key="barge.id"
@@ -58,15 +85,22 @@ import { barges } from '@/data/config';
                 v-bind="props"
                 prepend-icon="mdi-ship-wheel"
                 :title="barge.name"
-                :to="{ name: 'BargeDetail', params: { id: barge.id } }"
               ></v-list-item>
             </template>
+            
+            <!-- ลิงก์ไปยัง Barge Detail -->
+            <v-list-item
+              :title="barge.name + ' Detail'"
+              :to="{ name: 'BargeDetail', params: { id: barge.id } }"
+            ></v-list-item>
+            
+            <!-- รายการอุปกรณ์ในเรือ Barge -->
             <v-list-item
               v-for="item in barge.items"
               :key="item.id"
               :title="item.title"
               :value="item.id"
-              :to="{ name: ''}"
+              :to="{ name: 'GeneratorDetails', params: { id: barge.id, itemId: item.id }}"
             ></v-list-item>
           </v-list-group>
         </v-list-group>
@@ -82,30 +116,18 @@ import { barges } from '@/data/config';
           </template>
           <v-list-item 
             prepend-icon="mdi-format-list-bulleted" 
-            title="Overview">
-          </v-list-item>
-          <v-list-group 
-            v-for="category in groupedTugboats" 
-            :key="category.name" 
-            :value="category.name"
-          >
-            <template v-slot:activator="{ props }">
-              <v-list-item 
-                v-bind="props" 
-                prepend-icon="mdi-ferry" 
-                :title="category.name"
-              ></v-list-item>
-            </template>
+            title="Overview"
+            :to="{ name: 'Tugboat'}"  
+          ></v-list-item>
+          <!-- TypeVehicle -->
+          <v-list-group>
             <v-list-item
-              v-for="tugboat in category.tugboats"
-              :key="tugboat.id"
-              :title="tugboat.name"
-              :value="tugboat.id"
+              prepend-icon="mdi-ferry"
             ></v-list-item>
           </v-list-group>
         </v-list-group>
         
-        <v-list-item prepend-icon="mdi-map-marker-radius" title="GPS Tracker"></v-list-item>
+        <v-list-item prepend-icon="mdi-map-marker-radius" title="GPS Tracker" :to="{ name: 'GPS_Tracker' }"></v-list-item>
 
         <!-- Report Group -->
         <v-list-group>
@@ -116,69 +138,69 @@ import { barges } from '@/data/config';
               title="Report"
             ></v-list-item>
           </template>
-            <v-list-item
-              v-for="report in reports"
-              :key="report.id"
-              :title="report.name"
-              :value="report.id"
-          ></v-list-item>
+          <v-list-item title="Notification Report" :to="{ name: 'NotificationReport' }"></v-list-item>
+          <v-list-item title="ChartHistorical Report" :to="{ name: 'ChartHistorical' }"></v-list-item>
+          <v-list-item title="Report on RPM and Speed and %Throttle Affected by Wind Speed of Tugboat" :to="{ name: 'WindSpeedImpactReport' }"></v-list-item>
+          <v-list-item title="Report on Tugboats Encountering Storms" :to="{ name: 'EncounteringStormsReport' }"></v-list-item>
+          <v-list-item title="Report on Fuel Rate per RPM for Evaluating Engine Efficiency of Motor Barge" :to="{ name: 'FuelRatePerRPMReport' }"></v-list-item>
+          <v-list-item title="Report on %Throttle vs. RPM vs. Fuel Rate" :to="{ name: 'ThrottleRPMFuelRateReport' }"></v-list-item>
+          <v-list-item title="Report on Daily Fuel Consumption for the Barge" :to="{ name: 'DailyFuelConsumtionReport' }"></v-list-item>
+          <v-list-item title="Report on Barge Tilt" :to="{ name: 'BargeTiltReport' }"></v-list-item>
         </v-list-group>
-
-        <v-list-item prepend-icon="mdi-account-cog" title="Management"></v-list-item>
+        <v-list-item 
+          prepend-icon="mdi-account-cog" 
+          title="Management"
+          :to="{ name: 'Management' }"
+        ></v-list-item>
       </v-list>
     </v-navigation-drawer>
   </nav>
 </template>
 
-<script>
-import { barges, tugboats, reports } from '@/data/config';
+<script setup>
+import { onMounted, ref, watch } from 'vue';
+import { barges } from '@/data/config';
+import router from '@/router';
 
-export default {
-  name: 'MenuBar',
-  data: () => ({
-    drawer: false,
-    group: null,
-    open: ['Users'],
-    barges,
-    tugboats,
-    reports,
-  }),
+const drawer = ref(false);
+const group = ref(null);
+const open = ref(['Tugboats']);
+const memberName = ref('Username')
 
-  watch: {
-    group() {
-      this.drawer = false;
-    },
-  },
+watch(group, () => {
+  drawer.value = false;
+});
 
-  computed: {
-    // จัดกลุ่ม tugboats ตาม category
-    groupedTugboats() {
-      const grouped = { 'River Going': [], 'Sea Going': [] };
-      
-      this.tugboats.forEach(tugboat => {
-        if (tugboat.category === 'River') {
-          grouped['River Going'].push(tugboat);
-        } else if (tugboat.category === 'Sea') {
-          grouped['Sea Going'].push(tugboat);
-        }
-      });
-      
-      return [
-        { name: 'River Going', tugboats: grouped['River Going'] },
-        { name: 'Sea Going', tugboats: grouped['Sea Going'] }
-      ];
-    }
-  },
+const accountName = async () => {
+  const memberData = localStorage.getItem('member');
+  if (memberData) {
+    const member = JSON.parse(memberData);
+    memberName.value = `${member.MemberFirstnameEng} ${member.MemberLastnameEng}`;
+  }
+}
 
-  methods: {
-    logout() {
-      console.log("Logging out...");
-    },
-  },
+const logout = () => {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('member');
+  router.push({ name: 'Login' })
+    .then(() => {
+      console.log('Logged out successfully');
+    })
+    .catch(err => {
+      console.error('Logout redirect error:', err);
+    });
 };
+
+onMounted(() => {
+  accountName()
+})
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+.navbar-logo {
+  margin: 0 auto;
+}
+
 .icon {
   font-size: 24px;
   color: #FFFFFF;

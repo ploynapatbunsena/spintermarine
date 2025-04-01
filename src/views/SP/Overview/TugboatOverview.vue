@@ -163,7 +163,7 @@
 <script>
 import NavigationBar from "@/components/NavigationBar.vue"
 import SpaceBar from '@/components/SpaceBar.vue';
-import AlertFunction from "@/components/AlertFunction.vue";
+import AlertFunction from "@/components/TugboatDetails/AlertFunction.vue";
 import { tugboats } from "@/data/config";
 
 export default {

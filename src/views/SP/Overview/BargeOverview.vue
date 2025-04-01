@@ -69,21 +69,10 @@
   </v-app>
 </template>
 
-<script>
+<script setup>
 import NavigationBar from "@/components/NavigationBar.vue"
 import SpaceBar from '@/components/SpaceBar.vue';
 import { barges } from "@/data/config";
-
-export default {
-  name: "BargeOverview",
-  components: {
-    NavigationBar,
-    SpaceBar,
-  },
-  data: () => ({
-    barges
-  })
-}
 
 </script>
 

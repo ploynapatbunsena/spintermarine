@@ -15,7 +15,7 @@
           <v-row>
             <!-- Map --> 
             <v-col cols="3" class="d5-flex justify-center align-center">
-              <v-card class="card-map rounded-xl" elevation="1" :to="{ name: 'GPS_Tracker', params: 'id' }">
+              <v-card class="card-map rounded-xl" elevation="1" @click="navigateToGPSVessel(tugboat.id)">
                 <p class="card-title">ตำแหน่งเรือ</p>
                 <div id="mapContainer">
                   <v-img :src="require('@/assets/Icons/compass_map.svg')" style="z-index: 999; width: 130px; top: 32px;"></v-img>
@@ -129,7 +129,7 @@ import GagueChart from '@/components/GeneratorDetails/GagueChart.vue';
 import GeneralInfo from '@/components/TugboatDetails/GeneralInfo.vue';
 import FuelTank from '@/components/TugboatDetails/FuelTank.vue';
 import NoticeTable from '@/components/GeneratorDetails/NoticeTable.vue';
-import AlertFunction from '@/components/AlertFunction.vue';
+import AlertFunction from '@/components/TugboatDetails/AlertFunction.vue';
 
 export default {
   props: ['id'],
@@ -141,6 +141,15 @@ export default {
     FuelTank,
     NoticeTable,
     AlertFunction,
+  },
+
+  methods: {
+    navigateToGPSVessel(tugboatId) {
+      this.$router.push({ 
+        name: 'GPSVessel', 
+        query: { id: tugboatId } 
+      });
+    },
   },
 
   setup(props) {
@@ -214,7 +223,7 @@ export default {
         return tugboats.find(tugboat => tugboat.id === props.id) || null;
       })
     };
-  }
+  },
 }
 </script>
 
@@ -239,6 +248,7 @@ export default {
   font-weight: 500;
   color: var(--dark-gray);
   margin-bottom: 8px;
+  font-size: 16px;
 }
 
 #mapContainer {
