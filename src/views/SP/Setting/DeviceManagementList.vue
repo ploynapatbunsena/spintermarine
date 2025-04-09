@@ -10,8 +10,8 @@
       <v-app style="background-color: #F7F9FC;">
         <NavigationBar />
         <SpaceBar />
-        <v-container>
-          <div class="title">Management</div>
+        <v-container fluid class="px-10">
+          <div class="title">Device Management</div>
           <v-card class="mt-4">
             <v-card-text class="mx-6 my-6">
               <v-row>
@@ -64,13 +64,8 @@
                     <td>{{ item.DeviceLabel }}</td>
                     <td class="description">{{ item.Note }}</td>
                     <td class="action">{{ item.IsActive ? 'Active' : 'Inactive' }}</td>
-                    <td style="display: flex; justify-content: center; align-items: center;">
-                      <v-icon 
-                        v-if="permissions.IsWrite" 
-                        icon="mdi-pencil-outline" 
-                        class="edit"
-                        @click="editDevice(item.DeviceId)"
-                      ></v-icon>
+                    <td class="d-flex justify-center align-center">
+                      <v-icon v-if="permissions.IsWrite" icon="mdi-pencil-outline" class="edit" @click="editDevice(item.DeviceId)"></v-icon>
                     </td>
                   </tr>
                 </template>
@@ -98,12 +93,12 @@ const deviceList = ref([]);
 const filteredItems = ref([]);
 
 const headers = ref([
-  { title: 'Device ID', value: 'DeviceId', align: 'start' },
-  { title: 'Device Name', value: 'DeviceName', align: 'start' },
-  { title: 'Device Label', value: 'DeviceLabel', align: 'start' },
-  { title: 'Description', value: 'Note', align: 'start' },
-  { title: 'Action', value: 'IsActive', align: 'center', sortable: false },
-  { title: 'Edit', value: 'edit', align: 'center', sortable: false },
+  { title: 'Device ID', key: 'DeviceId', align: 'start' },
+  { title: 'Device Name', key: 'DeviceName', align: 'start' },
+  { title: 'Device Label', key: 'DeviceLabel', align: 'start' },
+  { title: 'Description', key: 'Note', align: 'start' },
+  { title: 'Action', key: 'IsActive', align: 'center', sortable: false },
+  { title: 'Edit', key: 'edit', align: 'center', sortable: false },
 ]);
 
 const fetchDeviceList = async () => {
@@ -155,7 +150,7 @@ const searchRecords = () => {
 };
 
 const editDevice = (deviceId) => {
-  router.push({ name: "ManagementForm", params: { deviceId }})
+  router.push({ name: "DeviceManagementForm", params: { deviceId }})
 }
 
 onMounted(() => {
@@ -164,16 +159,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-size: 1.2rem;
-}
-
 .title {
-  font-size: 20px;
+  font-size: 2vh;
   font-weight: 600;
 }
 

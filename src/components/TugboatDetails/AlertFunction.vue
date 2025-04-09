@@ -13,7 +13,7 @@
           v-show="dangerCount >= 0"
           v-bind="props"
         >
-          <v-icon size="24">mdi-bell-ring</v-icon>
+          <v-icon style="font-size: 2.5vh;">mdi-bell-ring</v-icon>
         </v-badge>
       </template>
 
@@ -56,7 +56,7 @@
           v-show="warningCount >= 0"
           v-bind="props"
         >
-          <v-icon size="24">mdi-alert</v-icon>
+          <v-icon style="font-size: 2.5vh;">mdi-alert</v-icon>
         </v-badge>
       </template>
 

@@ -1,29 +1,25 @@
 <template>
   <nav>
-    <v-app-bar color="#080F25" absolute>
-      <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-        <v-row>
-          <v-col cols="8" sm="8" lg="2">
-            <v-img
-              :src="require('@/assets/Images/logo_navbar.png')"
-              class="navbar-logo"
-              max-width="256"
-            >
-            </v-img>
-          </v-col>
-          <v-col>
-
-          </v-col>
-        </v-row>
+    <v-app-bar color="#080F25" :height="$vuetify.display.width > 2560 ? 120 : 64">
+      <v-app-bar-nav-icon class="nav-icon" variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
+      <v-row>
+        <v-col cols="8" sm="8" lg="2">
+          <v-img
+            :src="require('@/assets/Images/logo_navbar.png')"
+            class="navbar-logo"
+          >
+          </v-img>
+        </v-col>
+      </v-row>
       <template v-if="$vuetify.display.mdAndUp">
         <v-btn icon variant="text">
-          <i class="bi bi-person-circle icon"></i>
+          <span class="material-symbols-rounded icon">account_circle</span>
         </v-btn>
-        <p class="pr-6" style="font-size: 14px;">{{ memberName }}</p>
-        <v-btn icon variant="text" @click="logout" :to="{ name: 'Login'}">
+        <p class="text-bar">{{ memberName }}</p>
+        <v-btn icon variant="text" @click="logout" :to="{ name: 'Login' }">
           <span class="material-symbols-rounded icon">logout</span>
         </v-btn>
-        <p class="pr-6" style="font-size: 14px;">Logout</p>
+        <p class="text-bar">Logout</p>
       </template>
       <template v-else>
         <v-menu>
@@ -32,11 +28,10 @@
               <v-icon>mdi-dots-vertical</v-icon>
             </v-btn>
           </template>
-
           <v-list>
             <v-list-item>
               <v-list-item-title>
-                <v-icon start>mdi-account</v-icon>
+                <v-icon>mdi-account-circle</v-icon>
                 {{ memberName }}
               </v-list-item-title>
             </v-list-item>
@@ -50,85 +45,124 @@
         </v-menu>
       </template>
     </v-app-bar>
-
-    <!-- drawer sidebar -->
+    <!-- Drawer Sidebar -->
     <v-navigation-drawer
       v-model="drawer"
       location="left"
       temporary
       color="#080F25"
-      width="400"
+      :width="$vuetify.display.width > 2560 ? 800 : 400"
     >
       <v-list v-model:opened="open">
-        <v-list-item prepend-icon="mdi-home" title="Home" :to="{ name: 'Homepage' }"></v-list-item>
+        <v-list-item 
+          prepend-icon="mdi-home" 
+          title="Home" 
+          :to="{ name: 'Homepage' }"
+          class="nav-icon"
+          style="padding: 0vw 1vw;"
+        ></v-list-item>
         <!-- Barge Group -->
-        <v-list-group>
+        <v-list-group value="Barge">
           <template v-slot:activator="{ props }">
             <v-list-item
               v-bind="props"
               prepend-icon="mdi-anchor"
               title="Barge"
+              title-class="custom-title"
+              class="nav-icon"
+              style="padding: 0vw 1vw;"
             ></v-list-item>
           </template>
-          <v-list-item 
-            prepend-icon="mdi-format-list-bulleted" 
+          <v-list-item
+            prepend-icon="mdi-format-list-bulleted"
             title="Overview"
-            :to="{ name: 'Barge'}"  
+            :to="{ name: 'Barge' }"
+            class="nav-icon"
+            style="padding: 0vw 1vw;"
           ></v-list-item>
+          <!-- แสดง TypeDevicename ของ Barge -->
           <v-list-group
-            v-for="barge in barges"
-            :key="barge.id"
-            :value="barge.id"
+            v-for="(deviceGroup, typeDeviceName) in bargeDevices"
+            :key="typeDeviceName"
+            :value="typeDeviceName"
           >
             <template v-slot:activator="{ props }">
               <v-list-item
                 v-bind="props"
                 prepend-icon="mdi-ship-wheel"
-                :title="barge.name"
+                :title="typeDeviceName"
+                class="nav-icon"
+                style="padding: 0vw 1vw;"
               ></v-list-item>
             </template>
-            
-            <!-- ลิงก์ไปยัง Barge Detail -->
             <v-list-item
-              :title="barge.name + ' Detail'"
-              :to="{ name: 'BargeDetail', params: { id: barge.id } }"
+              :title="`${typeDeviceName} Detail`"
+              :to="{ name: 'BargeDetail', params: { typeDeviceName: typeDeviceName } }"
             ></v-list-item>
-            
-            <!-- รายการอุปกรณ์ในเรือ Barge -->
             <v-list-item
-              v-for="item in barge.items"
-              :key="item.id"
-              :title="item.title"
-              :value="item.id"
-              :to="{ name: 'GeneratorDetails', params: { id: barge.id, itemId: item.id }}"
+              v-for="device in deviceGroup"
+              :key="device.DeviceId"
+              :title="device.DeviceLabel"
+              :to="{ name: 'GeneratorDetails', params: { typeDeviceName: typeDeviceName, deviceId: device.DeviceId } }"
             ></v-list-item>
           </v-list-group>
         </v-list-group>
-
         <!-- Tugboat Group -->
-        <v-list-group>
+        <v-list-group value="Tugboat">
           <template v-slot:activator="{ props }">
             <v-list-item
               v-bind="props"
               prepend-icon="mdi-ferry"
               title="Tugboat"
+              class="nav-icon"
+              style="padding: 0vw 1vw;"
             ></v-list-item>
           </template>
-          <v-list-item 
-            prepend-icon="mdi-format-list-bulleted" 
+          <v-list-item
+            prepend-icon="mdi-format-list-bulleted"
             title="Overview"
-            :to="{ name: 'Tugboat'}"  
+            :to="{ name: 'Tugboat' }"
+            class="nav-icon"
+            style="padding: 0vw 1vw;"
           ></v-list-item>
-          <!-- TypeVehicle -->
-          <v-list-group>
+          <!-- Tugboat river going -->
+          <v-list-group value="Tugboat river going">
+            <template v-slot:activator="{ props }">
+              <v-list-item
+                v-bind="props"
+                prepend-icon="mdi-ferry"
+                title="Tugboat river going"
+                class="nav-icon"
+                style="padding: 0vw 1vw;"
+              ></v-list-item>
+            </template>
             <v-list-item
-              prepend-icon="mdi-ferry"
+              v-for="device in tugboatRiverDevices"
+              :key="device.DeviceId"
+              :title="device.DeviceLabel"
+              :to="{ name: 'TugboatDetail', params: { deviceId: device.DeviceId } }"
+            ></v-list-item>
+          </v-list-group>
+          <!-- Tugboat sea going -->
+          <v-list-group value="Tugboat sea going">
+            <template v-slot:activator="{ props }">
+              <v-list-item
+                v-bind="props"
+                prepend-icon="mdi-ferry"
+                title="Tugboat sea going"
+                class="nav-icon"
+                style="padding: 0vw 1vw;"
+              ></v-list-item>
+            </template>
+            <v-list-item
+              v-for="device in tugboatSeaDevices"
+              :key="device.DeviceId"
+              :title="device.DeviceLabel"
+              :to="{ name: 'TugboatDetail', params: { deviceId: device.DeviceId } }"
             ></v-list-item>
           </v-list-group>
         </v-list-group>
-        
-        <v-list-item prepend-icon="mdi-map-marker-radius" title="GPS Tracker" :to="{ name: 'GPS_Tracker' }"></v-list-item>
-
+        <v-list-item prepend-icon="mdi-map-marker-radius" title="GPS Tracker" class="nav-icon" style="padding: 0vw 1vw;" :to="{ name: 'GPS_Tracker' }"></v-list-item>
         <!-- Report Group -->
         <v-list-group>
           <template v-slot:activator="{ props }">
@@ -136,6 +170,8 @@
               v-bind="props"
               prepend-icon="mdi-chart-timeline-variant-shimmer"
               title="Report"
+              class="nav-icon"
+              style="padding: 0vw 1vw;"
             ></v-list-item>
           </template>
           <v-list-item title="Notification Report" :to="{ name: 'NotificationReport' }"></v-list-item>
@@ -147,29 +183,83 @@
           <v-list-item title="Report on Daily Fuel Consumption for the Barge" :to="{ name: 'DailyFuelConsumtionReport' }"></v-list-item>
           <v-list-item title="Report on Barge Tilt" :to="{ name: 'BargeTiltReport' }"></v-list-item>
         </v-list-group>
-        <v-list-item 
-          prepend-icon="mdi-account-cog" 
-          title="Management"
-          :to="{ name: 'Management' }"
-        ></v-list-item>
+        <!-- Setting Group -->
+        <v-list-group>
+          <template v-slot:activator="{ props }">
+            <v-list-item
+              v-bind="props"
+              prepend-icon="mdi-account-cog"
+              title="Setting"
+              class="nav-icon"
+              style="padding: 0vw 1vw;"
+            ></v-list-item>
+          </template>
+          <v-list-item title="Device Management" :to="{ name: 'DeviceManagementList' }"></v-list-item>
+          <v-list-item title="Member Management" :to="{ name: 'MemberManagementList' }"></v-list-item>
+        </v-list-group>
       </v-list>
     </v-navigation-drawer>
   </nav>
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from 'vue';
-import { barges } from '@/data/config';
-import router from '@/router';
+import { inject, onMounted, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 
+const $api = inject('$api');
+const router = useRouter();
 const drawer = ref(false);
-const group = ref(null);
-const open = ref(['Tugboats']);
-const memberName = ref('Username')
+const open = ref(['Barge', 'Tugboat']);
+const memberName = ref('Username');
+const devices = ref([]);
+const bargeDevices = ref({});
+const tugboatRiverDevices = ref([]);
+const tugboatSeaDevices = ref([]);
 
-watch(group, () => {
-  drawer.value = false;
-});
+const fetchDeviceList = async () => {
+  try {
+    const response = await $api.put('/device/GetDeviceListProfile', {
+      DeviceId: ''
+    });
+    devices.value = response.data;
+    groupDevicesByType();
+  } catch (error) {
+    console.error('Failed to fetch device list:', error);
+  }
+};
+
+const excludedDeviceNames = [
+  'Barge CRANE 1',
+  'Barge CRANE 2',
+  'Barge CRANE 3',
+  'Barge Master'
+];
+
+const groupDevicesByType = () => {
+  const bargeGrouped = {};
+  const tugboatRiver = [];
+  const tugboatSea = [];
+
+  devices.value.forEach(device => {
+    if (!excludedDeviceNames.includes(device.DeviceName)) {
+      if (device.TypeVehicle === 'Barge') {
+        const typeDeviceName = device.TypeDevicename || 'Unknown';
+        if (!bargeGrouped[typeDeviceName]) {
+          bargeGrouped[typeDeviceName] = [];
+        }
+        bargeGrouped[typeDeviceName].push(device);
+      } else if (device.TypeVehicle === 'Tugboat river going') {
+        tugboatRiver.push(device);
+      } else if (device.TypeVehicle === 'Tugboat sea going') {
+        tugboatSea.push(device);
+      }
+    }
+  });
+
+  bargeDevices.value = bargeGrouped;
+  tugboatRiverDevices.value = tugboatRiver;
+  tugboatSeaDevices.value = tugboatSea;
+};
 
 const accountName = async () => {
   const memberData = localStorage.getItem('member');
@@ -177,7 +267,7 @@ const accountName = async () => {
     const member = JSON.parse(memberData);
     memberName.value = `${member.MemberFirstnameEng} ${member.MemberLastnameEng}`;
   }
-}
+};
 
 const logout = () => {
   localStorage.removeItem('accessToken');
@@ -191,19 +281,38 @@ const logout = () => {
     });
 };
 
+watch(devices, () => {
+  drawer.value = false;
+});
+
 onMounted(() => {
-  accountName()
-})
+  accountName();
+  fetchDeviceList();
+});
 </script>
 
 <style lang="scss" scoped>
-.navbar-logo {
-  margin: 0 auto;
+.material-symbols-rounded {
+  font-variation-settings:
+  'FILL' 1,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24
 }
 
 .icon {
-  font-size: 24px;
+  font-size: 3vh;
   color: #FFFFFF;
+
+  @media(min-width: 2560px) {
+    margin-right: 1vw;
+  }
+
+}
+
+.text-bar {
+  font-size: 1.5vh;
+  padding-right: 2vw;
 }
 
 p {
@@ -225,4 +334,17 @@ p {
   display: none !important;
 }
 
+:deep(.v-list-item-title) {
+  @media(min-width: 2560px) {
+    font-size: 1.5vh !important;
+    padding: 1vh;
+  }
+}
+
+.nav-icon {
+  @media(min-width: 2560px) {
+    font-size: 1.5vh;
+    padding: 0vw 1.5vw;
+  }
+}
 </style>

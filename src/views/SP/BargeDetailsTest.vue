@@ -292,13 +292,13 @@ export default {
       };
     },
 
-    virtualNotices () {
+    /* virtualNotices () {
       return [...Array(10).keys()].map(i => {
         const notice = { ...this.notices[i % this.notices.length] }
         notice.name = `${notice.name} #${i}`
         return notice
       })
-    },
+    }, */
   },
 
   methods: {

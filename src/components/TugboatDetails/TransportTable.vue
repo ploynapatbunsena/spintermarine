@@ -63,7 +63,7 @@
                   </div>
                   <div class="text-side">
                     <p class="text-grey">RPM</p>
-                    <p class="text-value">1450 RPM</p>
+                    <p class="text-value">0 RPM</p>
                   </div>
                 </v-card>
               </v-col>
@@ -74,7 +74,7 @@
                   </div>
                   <div class="text-side">
                     <p class="text-grey">Speed</p>
-                    <p class="text-value">80 km/h</p>
+                    <p class="text-value">0 km/h</p>
                   </div>
                 </v-card>
               </v-col>
@@ -85,7 +85,7 @@
                   </div>
                   <div class="text-side">
                     <p class="text-grey">%Throttle</p>
-                    <p class="text-value">13%</p>
+                    <p class="text-value">0%</p>
                   </div>
                 </v-card>
               </v-col>
@@ -96,7 +96,7 @@
                   </div>
                   <div class="text-side">
                     <p class="text-grey">Wind Speed</p>
-                    <p class="text-value">9 km/h</p>
+                    <p class="text-value">0 km/h</p>
                   </div>
                 </v-card>
               </v-col>
@@ -160,10 +160,10 @@ export default {
         { title: 'Cargo', key: 'cargo' },
       ],
       vessels: [
-        "MV. SMOOTH SEA",
-        "MV. GOLDEN FLAVOR GROUP",
-        "MV. ALIKI FORCE",
-        "MV. VENETIA",
+        // "MV. SMOOTH SEA",
+        // "MV. GOLDEN FLAVOR GROUP",
+        // "MV. ALIKI FORCE",
+        // "MV. VENETIA",
       ],
       vesselData: {
         "MV. SMOOTH SEA": [

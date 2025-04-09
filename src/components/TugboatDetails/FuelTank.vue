@@ -1,16 +1,17 @@
 <template>
   <v-container>
     <v-row>
+      <!-- Main Tank -->
       <v-col>
         <div class="gasolineTank">
           <p class="gasoline-title">Main Tank</p>
           <div class="tank-container">
             <div class="tank">
-              <div class="oil" :style="{ height: oilPercentage + '%' }"></div>
-              <div class="percentage">{{ oilPercentage }}%</div>
+              <div class="oil" :style="{ height: mainTank.oilPercentage + '%' }"></div>
+              <div class="percentage">{{ mainTank.oilPercentage }}%</div>
             </div>
             <div class="details">
-              <p>ปริมาณน้ำมัน: {{ remainingVolume }}/{{totalCapacity}}L</p>
+              <p>ปริมาณน้ำมัน: {{ mainTank.remainingVolume }}/{{ mainTank.totalCapacity }}L</p>
             </div>
           </div>
         </div>
@@ -22,26 +23,27 @@
           <p class="gasoline-title">Feed Tank</p>
           <div class="tank-container">
             <div class="tank">
-              <div class="oil" :style="{ height: oilPercentage + '%' }"></div>
-              <div class="percentage">{{ oilPercentage }}%</div>
+              <div class="oil" :style="{ height: feedTank.oilPercentage + '%' }"></div>
+              <div class="percentage">{{ feedTank.oilPercentage }}%</div>
             </div>
             <div class="details">
-              <p>ปริมาณน้ำมัน: {{ remainingVolume }}/{{totalCapacity}}L</p>
+              <p>ปริมาณน้ำมัน: {{ feedTank.remainingVolume }}/{{ feedTank.totalCapacity }}L</p>
             </div>
           </div>
         </div>
       </v-col>
+
       <!-- Total Tank -->
       <v-col>
         <div class="gasolineTank">
           <p class="gasoline-title">Total Tank</p>
           <div class="tank-container">
             <div class="tank">
-              <div class="oil" :style="{ height: oilPercentage + '%' }"></div>
-              <div class="percentage">{{ oilPercentage }}%</div>
+              <div class="oil" :style="{ height: totalTank.oilPercentage + '%' }"></div>
+              <div class="percentage">{{ totalTank.oilPercentage }}%</div>
             </div>
             <div class="details">
-              <p>ปริมาณน้ำมัน: {{ remainingVolume }}/{{totalCapacity}}L</p>
+              <p>ปริมาณน้ำมัน: {{ totalTank.remainingVolume }}/{{ totalTank.totalCapacity }}L</p>
             </div>
           </div>
         </div>
@@ -51,30 +53,73 @@
 </template>
 
 <script>
-import '@/assets/colors.scss'
+import '@/assets/colors.scss';
 
 export default {
   name: "FuelTank",
   data() {
     return {
-      remainingVolume: 13200, // ปริมาณน้ำมันคงเหลือ (Lt.)
-      totalCapacity: 14000,  // ปริมาตรสุทธิ (Lt.)
-
-      
+      mainTank: {
+        remainingVolume: 500, // ค่าเริ่มต้นตัวอย่าง (ลิตร)
+        totalCapacity: 1000,  // ค่าเริ่มต้นตัวอย่าง (ลิตร)
+      },
+      feedTank: {
+        remainingVolume: 200,
+        totalCapacity: 500,
+      },
+      totalTank: {
+        remainingVolume: 700,
+        totalCapacity: 1500,
+      },
     };
   },
-
   computed: {
-    // MainTank
-    oilPercentage() {
-      return ((this.remainingVolume / this.totalCapacity) * 100).toFixed(2);
+    mainTankOilPercentage() {
+      return this.calculatePercentage(this.mainTank.remainingVolume, this.mainTank.totalCapacity);
     },
-
-    // Feed Tank
-
-    // Total Tank
-  }
-}
+    feedTankOilPercentage() {
+      return this.calculatePercentage(this.feedTank.remainingVolume, this.feedTank.totalCapacity);
+    },
+    totalTankOilPercentage() {
+      return this.calculatePercentage(this.totalTank.remainingVolume, this.totalTank.totalCapacity);
+    },
+  },
+  methods: {
+    calculatePercentage(remaining, total) {
+      if (total === 0 || isNaN(remaining) || isNaN(total)) {
+        return 0; // ป้องกัน NaN หรือการหารด้วย 0
+      }
+      return ((remaining / total) * 100).toFixed(2);
+    },
+  },
+  created() {
+    // รวม computed properties เข้ากับ object ของแต่ละแท็งก์เพื่อให้ใช้งานใน template ได้ง่ายขึ้น
+    this.mainTank.oilPercentage = this.mainTankOilPercentage;
+    this.feedTank.oilPercentage = this.feedTankOilPercentage;
+    this.totalTank.oilPercentage = this.totalTankOilPercentage;
+  },
+  watch: {
+    // อัปเดต oilPercentage เมื่อข้อมูลเปลี่ยนแปลง
+    'mainTank.remainingVolume'() {
+      this.mainTank.oilPercentage = this.mainTankOilPercentage;
+    },
+    'mainTank.totalCapacity'() {
+      this.mainTank.oilPercentage = this.mainTankOilPercentage;
+    },
+    'feedTank.remainingVolume'() {
+      this.feedTank.oilPercentage = this.feedTankOilPercentage;
+    },
+    'feedTank.totalCapacity'() {
+      this.feedTank.oilPercentage = this.feedTankOilPercentage;
+    },
+    'totalTank.remainingVolume'() {
+      this.totalTank.oilPercentage = this.totalTankOilPercentage;
+    },
+    'totalTank.totalCapacity'() {
+      this.totalTank.oilPercentage = this.totalTankOilPercentage;
+    },
+  },
+};
 </script>
 
 <style lang="scss" scoped>
@@ -92,7 +137,8 @@ export default {
 .gasoline-title {
   font-weight: 500;
   text-align: center;
-  padding: 32px 0px;
+  padding: 2.5vh 0px;
+  font-size: 1.5vh;
 }
 
 .tank-container {
@@ -103,10 +149,10 @@ export default {
 
 .tank {
   position: relative;
-  width: 220px;
-  height: 120px;
+  width: 12vw;
+  height: 12vh;
   border: 12px solid var(--white);
-  border-radius: 64px;
+  border-radius: 6vh;
   background-color: var(--white);
   overflow: hidden;
   display: flex;
@@ -131,7 +177,7 @@ export default {
   left: 50%;
   transform: translateX(-50%);
   transform: translate(-50%, 50%);
-  font-size: 32px;
+  font-size: 3vh;
   font-weight: 600;
   color: #333;  
   display: flex;
@@ -148,7 +194,7 @@ export default {
 
   p {
     font-family: 'Sarabun', serif;
-    font-size: 16px;
+    font-size: 1.5vh;
     font-weight: 500;
   }
 }

@@ -2,7 +2,7 @@
   <v-app style="background-color: #F7F9FC;">
     <NavigationBar />
     <SpaceBar />
-    <v-container>
+    <v-container fluid class="px-10">
       <div class="title">{{ report.name }}</div>
       <div class="title-thai">{{ report.nameThai }}</div>
       <v-card class="mt-4">
@@ -285,13 +285,13 @@ const chartOptions = ref({
 
 <style scoped>
 .title {
-  font-size: 20px;
+  font-size: 2vh;
   font-weight: 600;
 }
 
 .title-thai {
   font-family: 'Sarabun', sans-serif;
-  font-size: 16px;
+  font-size: 1.5vh;
   font-weight: 400;
 }
 

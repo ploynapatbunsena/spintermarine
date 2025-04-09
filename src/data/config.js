@@ -91,7 +91,7 @@ export const barges = [
           { id: 'water-temp', title: 'Water Temperature', values: '0' },
           { id: 'rpm', title: 'RPM', values: '0' },
           { id: 'battery', title: 'battery', values: '0' },
-        ]
+        ] 
       },
       { id: 'gen-119', 
         title: 'Gen No.119 WEICHAI 37KVA', 

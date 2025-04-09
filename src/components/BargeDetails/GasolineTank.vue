@@ -1,6 +1,6 @@
 <template>
   <div class="gasolineTank">
-    <p class="gasoline-title mt-6">Gasoline Tank</p>
+    <p class="gasoline-title">Gasoline Tank</p>
     <div class="tank-container">
       <div class="tank">
         <div class="oil" :style="{ height: oilPercentage + '%' }"></div>
@@ -13,23 +13,39 @@
     </div>
   </div>
 </template>
-  
-<script>
-export default {
-  name: "GasolineTank",
-  data() {
-    return {
-      remainingVolume: 12000, // ปริมาณน้ำมันคงเหลือ (L)
-      totalCapacity: 14000,  // ปริมาตรสุทธิ (L)
-    };
-  },
-  computed: {
-    oilPercentage() {
-      // คำนวณเปอร์เซ็นต์น้ำมันคงเหลือ
-      return ((this.remainingVolume / this.totalCapacity) * 100).toFixed(2);
-    },
-  },
+
+<script setup>
+import { computed, ref, onMounted } from 'vue';
+
+// const $api = inject('$api');
+// const deviceData = ref(null);
+// const fuelConsumed = ref(0);
+const totalCapacity = ref(3000); // กำหนดค่าเอง เช่น 1500 L
+const remainingVolume = ref(2300); // กำหนดค่าเอง เช่น 800 L
+
+const oilPercentage = computed(() => {
+  if (totalCapacity.value === 0) return 0;
+  const percentage = (remainingVolume.value / totalCapacity.value) * 100;
+  return Math.max(0, Math.min(100, percentage)).toFixed(1);
+});
+
+// ฟังก์ชันดึงข้อมูลจาก API (รองรับอนาคต)
+const fetchDeviceData = async () => {
+  try {
+    // ตัวอย่างการเรียก API (ยังไม่ใช้งานจริง)
+    // const response = await $api.get('/device/fuel-data');
+    // deviceData.value = response.data;
+    // totalCapacity.value = deviceData.value.totalCapacity || 1500; // ค่า default หาก API ไม่มีข้อมูล
+    // remainingVolume.value = deviceData.value.remainingVolume || 800; // ค่า default หาก API ไม่มีข้อมูล
+  } catch (error) {
+    console.error('Failed to fetch fuel data:', error);
+    // คงค่าเริ่มต้นที่กำหนดไว้ใน ref หาก API ล้มเหลว
+  }
 };
+
+onMounted(() => {
+  fetchDeviceData();
+});
 </script>
   
 <style lang="scss" scoped>
@@ -43,24 +59,23 @@ export default {
 }
 
 .gasoline-title {
-  font-size: 32px;
-  font-weight: 500;
+  font-size: 2vh;
+  font-weight: 600;
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 1vh;
 }
 
 .tank-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
 }
 
 .tank {
   position: relative;
-  width: 800px;
-  height: 320px;
-  border: 24px solid #ffffff;
+  width: 20vw;
+  height: 14vh;
+  border: 1vh solid #ffffff;
   border-radius: 200px;
   background-color: #ffffff;
   overflow: hidden;
@@ -86,7 +101,7 @@ export default {
   left: 50%;
   transform: translateX(-50%);
   transform: translate(-50%, 50%);
-  font-size: 96px;
+  font-size: 3vw;
   font-weight: 600;
   color: #333;  
   display: flex;
@@ -99,14 +114,15 @@ export default {
   text-align: center;
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 2vh;
 
   p {
     font-family: 'Sarabun', serif;
-    font-size: 32px;
-    font-weight: 500;
+    font-size: 1.5vh;
+    font-weight: 600;
     margin: 8px 0;
   }
 }
 
 </style>
+

@@ -1,27 +1,27 @@
 <template>
-  <v-container >
-    <v-row class="ga-10 justify-center">
-      <v-col cols="auto" class="d-flex align-center card">
+  <v-container>
+    <v-row class="gap-10">
+      <v-col cols="12" sm="6" lg="6" class="d-flex align-center card">
         <div class="icon engine-state">
           <span class="material-symbols-rounded">vital_signs</span>
         </div>
         <div class="text-side">
           <p class="text-grey">Engine State</p>
-          <p class="text-value">Running</p>
+          <p class="text-value">N/A</p>
         </div>
       </v-col>
-      <v-col cols="auto" class="d-flex align-center card">
+      <v-col cols="12" sm="6" lg="6" class="d-flex align-center card">
         <div class="icon running-hour">
           <span class="material-symbols-rounded">schedule</span>
         </div>
         <div class="text-side">
           <p class="text-grey">Running Hour</p>
-          <p class="text-value">526 hour</p>
+          <p class="text-value">0 hour</p>
         </div>
       </v-col>
     </v-row>
-    <v-row class="ga-10 justify-center">
-      <v-col cols="auto" class="d-flex align-center card">
+    <v-row>
+      <v-col cols="12" sm="6" lg="6" class="d-flex align-center card">
         <div class="icon battery-volts">
           <span class="material-symbols-rounded">charger</span>
         </div>
@@ -30,53 +30,53 @@
           <p class="text-value">24 V</p>
         </div>
       </v-col>
-      <v-col cols="auto" class="d-flex align-center card">
+      <v-col cols="12" sm="6" lg="6" class="d-flex align-center card">
         <div class="icon act-power">
           <span class="material-symbols-rounded">speed</span>
         </div>
         <div class="text-side">
           <p class="text-grey">Act Power</p>
-          <p class="text-value">190 kW</p>
+          <p class="text-value">0 kW</p>
         </div>
       </v-col>
     </v-row>
-    <v-row class="ga-10 justify-center">
-      <v-col cols="auto" class="d-flex align-center card">
+    <v-row>
+      <v-col cols="12" sm="6" lg="6" class="d-flex align-center card">
         <div class="icon oil-pressure">
           <span class="material-symbols-rounded">speed</span>
         </div>
         <div class="text-side">
           <p class="text-grey">Oil Pressure</p>
-          <p class="text-value">1 bar</p>
+          <p class="text-value">0 bar</p>
         </div>
       </v-col>
-      <v-col cols="auto" class="d-flex align-center card">
+      <v-col cols="12" sm="6" lg="6" class="d-flex align-center card">
         <div class="icon water-temp">
           <span class="material-symbols-rounded">device_thermostat</span>
         </div>
         <div class="text-side">
           <p class="text-grey">Water Temperature</p>
-          <p class="text-value">80 °C</p>
+          <p class="text-value">0 °C</p>
         </div>
       </v-col>
     </v-row>
-    <v-row class="ga-10 justify-center">
-      <v-col cols="auto" class="d-flex align-center card">
+    <v-row>
+      <v-col cols="12" sm="6" lg="6" class="d-flex align-center card">
         <div class="icon fuel-consumption">
           <span class="material-symbols-rounded">oil_barrel</span>
         </div>
         <div class="text-side">
           <p class="text-grey">Total Fuel Consumptions</p>
-          <p class="text-value">73000 l</p>
+          <p class="text-value">0 l</p>
         </div>
       </v-col>
-      <v-col cols="auto" class="d-flex align-center card">
+      <v-col cols="12" sm="6" lg="6" class="d-flex align-center card">
         <div class="icon rpm">
           <span class="material-symbols-rounded">speed</span>
         </div>
         <div class="text-side">
           <p class="text-grey">RPM</p>
-          <p class="text-value">1550 RPM</p>
+          <p class="text-value">0 RPM</p>
         </div>
       </v-col>
     </v-row>
@@ -94,23 +94,23 @@ export default {
 
 <style lang="scss" scoped>
 .material-symbols-rounded {
-  font-size: 52px;
+  font-size: 5vh;
 }
 
 .text-side {
   display: flex;
   flex-direction: column;
-  margin-left: 24px;
+  margin-left: 2vh;
 }
 
 .text-grey {
   color: var(--gray);
-  font-size: 16px;
+  font-size: 1.5vh;
 }
 
 .text-value {
   color: var(--black);
-  font-size: 24px;
+  font-size: 2.5vh;
   font-weight: 600;
 }
 
@@ -118,9 +118,9 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 64px;
-  border-radius: 1rem;
+  width: 6vh;
+  height: 6vh;
+  border-radius: 1.5vh;
 }
 
 .engine-state {
@@ -165,8 +165,7 @@ export default {
 
 .card {
   border: 1px solid var(--bg-soline);
-  border-radius: 20px;
-  margin-top: 8px;
-  width: 346px;
+  border-radius: 2vh;
+  margin-top: 2vh;
 }
 </style>

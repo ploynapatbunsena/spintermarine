@@ -4,11 +4,11 @@
       <!-- Running Hour6 -->
       <v-col class="d-flex align-center card">
         <div class="icon running-hour">
-          <v-icon size="52" icon="mdi-clock-outline"></v-icon>
+          <v-icon style="font-size: 5vh;" icon="mdi-clock-outline"></v-icon>
         </div>
         <div class="text-side">
           <p class="text-grey">Running Hour</p>
-          <p class="text-value">526 hour</p>
+          <p class="text-value">0 hour</p>
         </div>
       </v-col>
       <!-- Battery -->
@@ -18,17 +18,17 @@
         </div>
         <div class="text-side">
           <p class="text-grey">Battery Volts</p>
-          <p class="text-value">24 V</p>
+          <p class="text-value">0 V</p>
         </div>
       </v-col>
       <!-- Wind Speed -->
       <v-col class="d-flex align-center card">
         <div class="icon wind-speed">
-          <v-icon size="52" icon="mdi-weather-windy"></v-icon>
+          <v-icon style="font-size: 5vh;" icon="mdi-weather-windy"></v-icon>
         </div>
         <div class="text-side">
           <p class="text-grey">Wind Speed</p>
-          <p class="text-value">9 km/hr</p>
+          <p class="text-value">0 km/hr</p>
         </div>
       </v-col>
     </v-row>
@@ -41,7 +41,7 @@
         </div>
         <div class="text-side">
           <p class="text-grey">%Throttle</p>
-          <p class="text-value">13%</p>
+          <p class="text-value">0%</p>
         </div>
       </v-col>
       <!-- Total Fuel Consumption -->
@@ -51,7 +51,7 @@
         </div>
         <div class="text-side">
           <p class="text-grey">Total Fuel Consumption</p>
-          <p class="text-value">11.06 L</p>
+          <p class="text-value">0 L</p>
         </div>
       </v-col>
       <!-- Fuel Rate -->
@@ -87,13 +87,13 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 64px;
-  border-radius: 1rem;
+  width: 6vh;
+  height: 6vh;
+  border-radius: 1.5vh;
 }
 
 .material-symbols-rounded {
-  font-size: 52px;
+  font-size: 5vh;
 }
 
 .running-hour {
@@ -134,14 +134,13 @@ export default {
 
 .text-grey {
   color: var(--gray);
-  font-size: 16px;
+  font-size: 1.5vh;
 }
 
 .text-value {
   color: var(--black);
-  font-size: 24px;
+  font-size: 2.5vh;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
 }
 
 </style>

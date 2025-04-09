@@ -1,23 +1,31 @@
 <template>
   <v-container>
     <v-row>
-      <v-col cols="6">
-        <div class="data-item">
-          <p class="header">Total Flow</p>
-          <div class="value-unit">
-            <p class="value">11.06</p>
-            <p class="unit">m³</p>
-          </div>
-        </div>
-        <div class="data-item">
-          <p class="header">Fuel Rate</p>
-          <div class="value-unit">
+      <v-col cols="12" sm="6" lg="6">
+        <v-row>
+          <v-col cols="12">
+            <p class="header">Total Flow</p>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col cols="6" class="d-flex align-center">
             <p class="value">0</p>
-            <p class="unit">m³/h</p>
-          </div>
-        </div>
+            <p class="unit">m³</p>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col cols="12">
+            <p class="header">Fuel Rate</p>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col cols="6" class="d-flex align-center">
+            <p class="value">0</p>
+            <p class="unit">m³</p>
+          </v-col>
+        </v-row>
       </v-col>
-      <v-col cols="6">
+      <v-col cols="12" sm="6" lg="6">
         <v-img
           :src="require('@/assets/Images/generator_green.png')"
           class="generator-image"
@@ -48,26 +56,27 @@ export default {
 }
 
 .generator-image {
-  width: 100%;
-  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .header {
-  font-size: 20px;
+  font-size: 2vh;
   color: var(--white);
 }
 
 .value {
   font-family: 'Inter', sans-serif;
-  font-size: 64px;
+  font-size: 6vh;
   font-weight: 600;
+  margin-right: 2vw;
   color: var(--text-gen);
 }
 
 .unit {
-  font-size: 56px;
+  font-size: 4vh;
   font-weight: 300;
-  margin-left: 24px;
+  // margin-left: 24px;
   color: var(--white);
 }
 </style>

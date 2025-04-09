@@ -6,6 +6,7 @@
         :refid="'_' + Math.random().toString(36).substr(2, 9)"
         :class="'meticsGauge'"
         :options="gaugeOptions"
+        :key="chartWidthVw"
       />
       <div class="central-label">{{ centralLabel }}</div>
     </div>
@@ -56,9 +57,15 @@ export default {
       default: "#355F2E",
     },
   },
+  data() {
+    return {
+      chartWidthVw: 15, // ขนาดเริ่มต้นเป็น vw (viewport width)
+    };
+  },
   computed: {
     gaugeOptions() {
       const needlePercentage = (this.value / this.maxValue) * 100;
+      const chartWidth = (this.chartWidthVw / 100) * window.innerWidth;
 
       return {
         needleValue: needlePercentage,
@@ -69,10 +76,21 @@ export default {
         rangeLabelFontSize: 16,
         arcLabelFontSize: 10,
         arcOverEffect: true,
-        chartWidth: 300, // ปรับขนาดความกว้างของ Gauge ตรงนี้
+        chartWidth: chartWidth, // ใช้ chartWidth ที่คำนวณจากขนาดหน้าจอ
         rangeLabel: this.rangeLabel,
         hasNeedle: true,
       };
+    },
+  },
+  mounted() {
+    window.addEventListener("resize", this.updateChartWidth);
+  },
+  beforeUnmount() {
+    window.removeEventListener("resize", this.updateChartWidth);
+  },
+  methods: {
+    updateChartWidth() {
+      this.$forceUpdate(); // บังคับให้ Vue อัปเดต UI เมื่อขนาดหน้าจอเปลี่ยน
     },
   },
 };
@@ -87,6 +105,7 @@ export default {
 }
 
 .gauge-title {
+  font-size: 1.5vh;
   font-weight: 500;
   color: var(--dark-gray)
 }
@@ -101,13 +120,12 @@ export default {
   bottom: 5%;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 24px;
+  font-size: 3vh;
   font-weight: bold;
 }
 
 :deep(text) {
-  font-family: 'Inter', sans-serif;
-  font-size: 10px;
+  font-size: 1vh;
 }
 </style>
 

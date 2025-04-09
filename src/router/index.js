@@ -1,24 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-const NotificationReport = () => import('@/views/SP/Report/NotificationReport.vue');
-const ChartHistorical = () => import('@/views/SP/Report/ChartHistorical.vue');
-const Report03 = () => import('@/views/SP/Report/Report03.vue');
-const Report04 = () => import('@/views/SP/Report/Report04.vue');
-const Report05 = () => import('@/views/SP/Report/Report05.vue');
-const Report06 = () => import('@/views/SP/Report/Report06.vue');
-const Report07 = () => import('@/views/SP/Report/Report07.vue');
-const Report08 = () => import('@/views/SP/Report/Report08.vue');
-
 const routes = [
-  { path: '/report/report01', name: 'NotificationReport', component: NotificationReport },
-  { path: '/report/report02', name: 'ChartHistorical', component: ChartHistorical },
-  { path: '/report/report03', name: 'Report03', component: Report03 },
-  { path: '/report/report04', name: 'Report04', component: Report04 },
-  { path: '/report/report05', name: 'Report05', component: Report05 },
-  { path: '/report/report06', name: 'Report06', component: Report06 },
-  { path: '/report/report07', name: 'Report07', component: Report07 },
-  { path: '/report/report08', name: 'Report08', component: Report08 },
-  
   // SP
   {
     path: "/",
@@ -36,36 +18,37 @@ const routes = [
     component: () => import("../views/SP/Overview/BargeOverview.vue"),
   },
   {
-    path: "/Tugboat",
-    name: "Tugboat",
-    component: () => import("../views/SP/Overview/TugboatOverview.vue"),
-  },
-  {
-    path: "/Barge/:id",
+    path: "/Barge/:typeDeviceName",
     name: "BargeDetail",
     component: () => import("../views/SP/BargeDetails.vue"),
     props: true,
   },
   {
-    path: "/Barge/:id/:itemId",
+    // path: "/Barge/:typeDeviceName/:id",
+    path: "/Barge/:typeDeviceName/Generator/:deviceId",
     name: 'GeneratorDetails',
     component: () => import("../views/SP/GeneratorDetails.vue"),
     props: true
   },
   {
-    path: "/Barge/:id/EditForm",
+    path: "/Barge/:typeDeviceName/StatusEdit",
     name: "StatusEditForm",
     component: () => import("../views/SP/StatusEditForm.vue"),
     props: true
   },
   {
-    path: "/Tugboat/:id",
+    path: "/Tugboat",
+    name: "Tugboat",
+    component: () => import("../views/SP/Overview/TugboatOverview.vue"),
+  },
+  {
+    path: "/Tugboat/:deviceId",
     name: "TugboatDetail",
     component: () => import("../views/SP/TugboatDetails.vue"),
     props: true,
   },
   {
-    path: "/Tugboat/:id/GPS",
+    path: "/Tugboat/:deviceId/GPS",
     name: "GPSVessel",
     component: () => import("../views/SP/GPSVessel.vue"),
     props: true,
@@ -116,19 +99,29 @@ const routes = [
     component: () => import("../views/SP/Report/Report08.vue"),
   },
   {
-    path: "/Management",
-    name: "Management",
-    component: () => import("../views/SP/Setting/ManagementTable.vue"),
+    path: "/DeviceManagement",
+    name: "DeviceManagementList",
+    component: () => import("../views/SP/Setting/DeviceManagementList.vue"),
   },
   {
-    // path: "/ManagementForm",
-    path: "/Management/:deviceId",
-    name: "ManagementForm",
-    component: () => import("../views/SP/Setting/ManagementForm.vue"),
+    path: "/DeviceManagement/:deviceId",
+    name: "DeviceManagementForm",
+    component: () => import("../views/SP/Setting/DeviceManagementForm.vue"),
     props: true,
   },
   {
-    path: "/:catchAll(.*)", // 404 Not found
+    path: "/MemberManagement",
+    name: "MemberManagementList",
+    component: () => import("../views/SP/Setting/MemberManagementList.vue"),
+  },
+  {
+    path: "/MemberManagement/:memberId",
+    name: "MemberManagementForm",
+    component: () => import("../views/SP/Setting/MemberManagementForm.vue"),
+    props: true,
+  },
+  {
+    path: "/:catchAll(.*)",
     name: "Not Found",
     component: () => import("../views/NotFound.vue"),
     meta: { title: "Page Not Found" }

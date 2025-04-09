@@ -3,38 +3,39 @@
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="d-flex align-center justify-center fill-height"> 
-      <v-row v-if="barge">
+      <v-row>
         <v-col cols="12" class="position-relative d-flex align-center">
           <div style="width: 10vh;"></div>
-          <div class="title my-8 flex-grow-1 text-center">{{ barge.name }}</div>
-          <div class="alert-icon" style="width: 10vh;">
-            <v-icon color="#DC2B2B" class="mr-10"><span class="material-symbols-rounded">notifications_active</span></v-icon>
-            <v-icon color="#FAC12A"><span class="material-symbols-rounded">warning</span></v-icon>
+          <div class="title flex-grow-1 text-center">{{ typeDeviceName }}</div>
+          <div style="width: 10vh;">
+            <AlertFunction />
           </div>
         </v-col>
-        <v-col cols="12" class="d-flex justify-center">
-          <v-card elevation="0" >
+
+        <v-col cols="12">
+          <v-card elevation="0" class="pa-4">
             <v-row>
               <v-col md="8" sm="8" cols="12">
+                <!-- Row ที่ 1 ของ Generator -->
                 <v-row>
                   <v-col
-                    v-for="item in barge.items.slice(0, 5)" 
-                    :key="item.id"
-                    class="d-flex justify-center"
+                    v-for="device in filteredDevices.slice(0, 5)"
+                    :key="device.deviceid"
+                    class="mx-auto"
                     cols="auto"
                   >
                     <v-card
-                      class="gen-card pa-0 d-flex flex-column align-center" 
-                      @click="goToItemDetail(item.id)"
+                      class="gen-card pa-0 d-flex flex-column align-center"
+                      @click="goToGeneratorDetails(device.deviceid)"
                     >
-                      <div class="gen-status" :class="getStatusClass(item.status)">
+                      <div class="gen-status" :class="getStatusClass(device)">
                         <span 
                           class="material-symbols-rounded status-icon" 
-                          :class="getStatusClass(item.status)"
+                          :class="getStatusClass(device)"
                         >
-                          {{ getStatusIcon(item.status) }}
+                          {{ getStatusIcon(device) }}
                         </span>
-                        <p class="gen-name">{{ item.title }}</p>
+                        <p class="gen-name">{{ device.devicelabel }}</p>
                       </div>
                       <v-img
                         :src="require('@/assets/Images/generator.png')"
@@ -43,186 +44,284 @@
                       <div class="gen-details">
                         <v-row no-gutters class="column-detail" style="background-color: #F9F9FA;">
                           <v-col cols="8">Act Power</v-col>
-                          <v-col cols="4">270</v-col>
+                          <v-col cols="4">{{ getMeasurementValue(device, 'Actual Power') || 'N/A' }} kW</v-col>
                         </v-row>
                         <v-row no-gutters class="column-detail">
                           <v-col cols="8">RPM</v-col>
-                          <v-col cols="4">2098</v-col>
+                          <v-col cols="4">{{ getMeasurementValue(device, 'RPM') || 'N/A' }}</v-col>
                         </v-row>
                         <v-row no-gutters class="column-detail" style="background-color: #F9F9FA;">
                           <v-col cols="8">Coolant temp</v-col>
-                          <v-col cols="4">65°C</v-col>
+                          <v-col cols="4">{{ getMeasurementValue(device, 'Water Temp') || 'N/A' }}°C</v-col>
                         </v-row>
                         <v-row no-gutters class="column-detail">
                           <v-col cols="8">Oil Pressure</v-col>
-                          <v-col cols="4">0.8 bar</v-col>
+                          <v-col cols="4">{{ getMeasurementValue(device, 'Oil Pressure') || 'N/A' }} bar</v-col>
                         </v-row>
                         <v-row no-gutters class="column-detail" style="background-color: #F9F9FA;">
                           <v-col cols="8">Fuel Consumption/hr</v-col>
-                          <v-col cols="4">3.7 Lt.</v-col>
+                          <v-col cols="4">{{ getMeasurementValue(device, 'Fuel Rate') || 'N/A' }} Lt.</v-col>
                         </v-row>
                       </div>
                     </v-card>  
                   </v-col>
                 </v-row>
               </v-col>
+              <!-- <v-col md="4" sm="4" cols="12">
+                <v-row>
+                  <v-col class="d-flex justify-center" cols="auto">
+                    <v-card class="crane-card" elevation="0">
+                      <div class="d-flex justify-space-between align-center pb-2">
+                        <h2 class="text-h6 text-lg-h6 text-xxl-h4" style="font-family: 'Inter', sans-serif;">Crane</h2>
+                        <router-link :to="{ name: 'StatusEditForm', params: { typeDeviceName: typeDeviceName } }">
+                          <v-icon icon="mdi-pencil-outline" class="edit"></v-icon>
+                        </router-link>
+                      </div>
+                      <v-row class="mx-2">
+                        <v-col
+                          v-for="crane in craneDevices" 
+                          :key="crane.DeviceId" 
+                          cols="4"
+                        >
+                          <v-card class="d-flex flex-column align-center rounded-lg ">
+                            <div class="crane-title" :class="getStatusClass(crane)">
+                              {{ crane.DeviceLabel }}
+                            </div>
+                            <v-img
+                              width="8vh"
+                              height="10vh"
+                              :src="require('@/assets/Images/crane.png')"
+                              class="crane-img"
+                              cover
+                            ></v-img>
+                          </v-card>
+                        </v-col>
+                      </v-row>
+                      <v-row class="mx-2">
+                        <v-col cols="4">
+                          <v-card>
+                            <div class="d-flex justify-space-between align-center mx-4 my-2">
+                              <p class="text-status">Standby</p>
+                              <span class="text-blue">{{ craneStatusCounts.standby }}</span>
+                            </div>
+                            <div class="bottom-line-blue"></div>
+                          </v-card>
+                        </v-col>
+                        <v-col cols="4">
+                          <v-card>
+                            <div class="d-flex justify-space-between align-center mx-4 my-2">
+                              <p class="text-status">Running</p>
+                              <span class="text-green">{{ craneStatusCounts.running }}</span>
+                            </div>
+                            <div class="bottom-line-green"></div>
+                          </v-card>
+                        </v-col>
+                        <v-col cols="4">
+                          <v-card>
+                            <div class="d-flex justify-space-between align-center mx-4 my-2">
+                              <p class="text-status">Maintenance</p>
+                              <span class="text-black">{{ craneStatusCounts.maintenance }}</span>
+                            </div>
+                            <div class="bottom-line-black"></div>
+                          </v-card>
+                        </v-col>
+                      </v-row>
+                    </v-card>
+                  </v-col>
+                </v-row>
+              </v-col> -->
               <v-col md="4" sm="4" cols="12">
                 <v-row>
                   <v-col class="d-flex justify-center" cols="auto">
-                <v-card class="crane-card" elevation="0">
-                  <div class="d-flex justify-space-between align-center">
-                    <h1>Crane</h1>
-                    <router-link :to="{ name: 'StatusEditForm', params: { id: barge.id } }">
-                      <v-icon icon="mdi-pencil-outline" class="edit"></v-icon>
-                    </router-link>
-                  </div>
-                  <v-row class="mx-2">
-                    <v-col
-                      v-for="crane in barge.cranes"
-                      :key="crane.id"
-                      cols="4">
-                      <!-- Card - Crane -->
-                      <v-card class="d-flex flex-column align-center rounded-lg">
-                        <div
-                          class="crane-title"
-                          :class="getStatusClass(crane.status)"
-                        >{{ crane.title }}</div>
-                      <v-img   width="8vh"  height="10vh"
-                          :src="require('@/assets/Images/crane.png')"
-                          class="crane-img"
-                          cover
-                        ></v-img>
-                      </v-card>
-                      <v-card>
-                        <div class="d-flex justify-space-between align-center mx-4 my-2">
-                          <p class="text-status">Standby</p>
-                          <span class="text-blue">{{ craneStatusCount.standby }}</span>
-                        </div>
-                        <div class="bottom-line-blue"></div>
-                      </v-card>
-                    </v-col>
-                  </v-row>
-                </v-card>
-              </v-col>
+                    <v-card class="crane-card" elevation="0">
+                      <div class="d-flex justify-space-between align-center pb-2">
+                        <h2 class="text-h6 text-lg-h6 text-xxl-h4" style="font-family: 'Inter', sans-serif;">Crane</h2>
+                        <router-link :to="{ name: 'StatusEditForm', params: { typeDeviceName: 'Barge Bunga' } }">
+                          <v-icon icon="mdi-pencil-outline" class="edit"></v-icon>
+                        </router-link>
+                      </div>
+                      <v-row class="mx-2">
+                        <v-col v-for="crane in craneDevices" :key="crane.deviceid" cols="4">
+                          <v-card class="d-flex flex-column align-center rounded-lg">
+                            <div class="crane-title" :class="getStatusClassCrane(crane)">
+                              {{ crane.devicelabel }}
+                            </div>
+                            <v-img
+                              width="8vh"
+                              height="10vh"
+                              :src="require('@/assets/Images/crane.png')"
+                              class="crane-img"
+                              cover
+                            ></v-img>
+                          </v-card>
+                        </v-col>
+                      </v-row>
+                      <v-row class="mx-2">
+                        <v-col cols="4">
+                          <v-card>
+                            <div class="d-flex justify-space-between align-center mx-4 my-2">
+                              <p class="text-status">Standby</p>
+                              <span class="text-blue">{{ craneStatusCounts.standby }}</span>
+                            </div>
+                            <div class="bottom-line-blue"></div>
+                          </v-card>
+                        </v-col>
+                        <v-col cols="4">
+                          <v-card>
+                            <div class="d-flex justify-space-between align-center mx-4 my-2">
+                              <p class="text-status">Running</p>
+                              <span class="text-green">{{ craneStatusCounts.running }}</span>
+                            </div>
+                            <div class="bottom-line-green"></div>
+                          </v-card>
+                        </v-col>
+                        <v-col cols="4">
+                          <v-card>
+                            <div class="d-flex justify-space-between align-center mx-4 my-2">
+                              <p class="text-status">Maintenance</p>
+                              <span class="text-black">{{ craneStatusCounts.maintenance }}</span>
+                            </div>
+                            <div class="bottom-line-black"></div>
+                          </v-card>
+                        </v-col>
+                      </v-row>
+                    </v-card>
+                  </v-col>
                 </v-row>
               </v-col>
             </v-row>
-
+            <!-- Row ที่ 2 ของ Generator -->
             <v-row>
               <v-col md="8" sm="8" cols="12">
                 <v-row>
+                  <!-- รายการ Generator ที่ 6-10 -->
                   <v-col
-                v-for="item in barge.items.slice(5, 10)"
-                :key="item.id"
-                class="d-flex justify-center"
-                cols="auto"
-              >
-                <v-card 
-                  class="gen-card pa-0 d-flex flex-column align-center" 
-                  @click="goToItemDetail(item.id)"
-                >
-                <!-- สีกรอบแสดงสี status -->
-                  <div class="gen-status" :class="getStatusClass(item.status)">
-                    <span 
-                      class="material-symbols-rounded status-icon" 
-                      :class="getStatusClass(item.status)"
+                    v-for="device in filteredDevices.slice(5, 10)"
+                    :key="device.deviceid"
+                    class="mx-auto"
+                    cols="auto"
+                  >
+                    <v-card
+                      class="gen-card pa-0 d-flex flex-column align-center"
+                      @click="goToGeneratorDetails(device.deviceid)"
                     >
-                      {{ getStatusIcon(item.status) }}
-                    </span>
-                    <p class="gen-name">{{ item.title }}</p>
-                  </div>
-                  <v-img
-                    :src="require('@/assets/Images/generator.png')"
-                    class="gen-img"
-                  />
-                  <div class="gen-details">
-                    <v-row no-gutters class="column-detail" style="background-color: #F9F9FA;">
-                      <v-col cols="8">Act Power</v-col>
-                      <v-col cols="4">270</v-col>
-                    </v-row>
-                    <v-row no-gutters class="column-detail">
-                      <v-col cols="8">RPM</v-col>
-                      <v-col cols="4">2098</v-col>
-                    </v-row>
-                    <v-row no-gutters class="column-detail" style="background-color: #F9F9FA;">
-                      <v-col cols="8">Coolant temp</v-col>
-                      <v-col cols="4">65°C</v-col>
-                    </v-row>
-                    <v-row no-gutters class="column-detail">
-                      <v-col cols="8">Oil Pressure</v-col>
-                      <v-col cols="4">0.8 bar</v-col>
-                    </v-row>
-                    <v-row no-gutters class="column-detail" style="background-color: #F9F9FA;">
-                      <v-col cols="8">Fuel Consumption/hr</v-col>
-                      <v-col cols="4">3.7 Lt.</v-col>
-                    </v-row>
-                  </div>
-                </v-card>
-              </v-col>
-               <!-- เพิ่มคอลัมน์เปล่าเมื่อมี items น้อยกว่า 10 -->
-              <template v-if="barge.items.length < 10">
-                <v-col
-                  v-for="i in 10 - barge.items.length"
-                  :key="`empty-${i}`"
-                  class="d-flex justify-center"
-                  cols="auto"
-                >
-                  <v-card class="gen-card pa-0 d-flex flex-column align-center" style="visibility: hidden;">
-                    <!-- คอลัมน์เปล่า -->
-                  </v-card>
-                </v-col>
-              </template>
+                      <div class="gen-status" :class="getStatusClass(device)">
+                        <span 
+                          class="material-symbols-rounded status-icon" 
+                          :class="getStatusClass(device)"
+                        >
+                          {{ getStatusIcon(device) }}
+                        </span>
+                        <p class="gen-name">{{ device.devicelabel }}</p>
+                      </div>
+                      <v-img
+                        :src="require('@/assets/Images/generator.png')"
+                        class="gen-img"
+                      />
+                      <div class="gen-details">
+                        <v-row no-gutters class="column-detail" style="background-color: #F9F9FA;">
+                          <v-col cols="8">Act Power</v-col>
+                          <v-col cols="4">{{ getMeasurementValue(device, 'Actual Power') || 'N/A' }} kW</v-col>
+                        </v-row>
+                        <v-row no-gutters class="column-detail">
+                          <v-col cols="8">RPM</v-col>
+                          <v-col cols="4">{{ getMeasurementValue(device, 'RPM') || 'N/A' }}</v-col>
+                        </v-row>
+                        <v-row no-gutters class="column-detail" style="background-color: #F9F9FA;">
+                          <v-col cols="8">Coolant temp</v-col>
+                          <v-col cols="4">{{ getMeasurementValue(device, 'Water Temp') || 'N/A' }}°C</v-col>
+                        </v-row>
+                        <v-row no-gutters class="column-detail">
+                          <v-col cols="8">Oil Pressure</v-col>
+                          <v-col cols="4">{{ getMeasurementValue(device, 'Oil Pressure') || 'N/A' }} bar</v-col>
+                        </v-row>
+                        <v-row no-gutters class="column-detail" style="background-color: #F9F9FA;">
+                          <v-col cols="8">Fuel Consumption/hr</v-col>
+                          <v-col cols="4">{{ getMeasurementValue(device, 'Fuel Rate') || 'N/A' }} Lt.</v-col>
+                        </v-row>
+                      </div>
+                    </v-card>  
+                  </v-col>
+                  
+                  <!-- เพิ่มคอลัมน์เปล่าเมื่อมี devices น้อยกว่า 10 -->
+                  <template v-if="filteredDevices.length < 10">
+                    <v-col
+                      v-for="i in 10 - filteredDevices.length"
+                      :key="`empty-${i}`"
+                      class="mx-auto"
+                      cols="auto"
+                    >
+                      <v-card 
+                        class="gen-card pa-0 d-flex flex-column align-center" 
+                        style="visibility: hidden;"
+                      >
+                        <!-- คอลัมน์เปล่า -->
+                      </v-card>
+                    </v-col>
+                  </template>
                 </v-row>
-            </v-col> 
-            <v-col md="4" sm="4" cols="12">
-              <v-row>
+              </v-col>
+              
+              <!-- Gasoline Tank -->
+              <v-col md="4" sm="4" cols="12" class="">
                 <v-card class="gasoline-card" elevation="0">
-                <GasolineTank />
+                  <GasolineTank />
                 </v-card>
-              </v-row>
-            </v-col>    
+              </v-col>    
             </v-row> 
             <!-- Row ที่สามของ Generator -->
             <v-row>
               <!-- Tilt Barge -->
-              <v-col  md="4" sm="4" cols="12">
-                <v-card class="pa-4 rounded-xl" hight='30vh'>
-                  <h2 class="d-flex align-center justify-center fill-height">ระดับความเอียงทุ่น</h2>
+              <v-col md="4" sm="4" cols="12">
+                <v-card class="pa-4 rounded-xl">
+                  <h2 class="d-flex align-center justify-center fill-height pb-2 text-h6 text-lg-h6 text-xxl-h4" style="font-family: 'Sarabun', sans-serif;">ระดับความเอียงทุ่น</h2>
                   <!-- Barge Img -->
                   <v-row>
-                    <v-col>
-                      <v-img class="bg_barge" :src="require('@/assets/Images/bg_barge_tilt.png')">
-                        <v-img class="barge-img" :src="require('@/assets/Images/barge_front.png')"></v-img>
-                      </v-img>
+                    <v-col cols="12" lg="6" >
+                      <div class="barge-container">
+                        <v-img class="bg_barge" :src="require('@/assets/Images/bg_barge_tilt.png')"></v-img>
+                        <v-img
+                          class="barge-img"
+                          :src="require('@/assets/Images/barge_front.png')"
+                          :style="{ transform: `translate(-50%, -50%) rotate(${xRotation}deg) scale(1.2)` }"
+                        ></v-img>
+                      </div>
                     </v-col>
-                    <v-col>
-                      <v-img class="bg_barge" :src="require('@/assets/Images/bg_barge_tilt.png')">
-                        <v-img class="barge-img" :src="require('@/assets/Images/barge_side.png')"></v-img>
-                      </v-img>
+                    <v-col cols="12" lg="6">
+                      <div class="barge-container">
+                        <v-img class="bg_barge" :src="require('@/assets/Images/bg_barge_tilt.png')"></v-img>
+                        <v-img
+                          class="barge-img"
+                          :src="require('@/assets/Images/barge_side.png')"
+                          :style="{ transform: `translate(-50%, -50%) rotate(${yRotation}deg) scale(1.2)` }"
+                        ></v-img>
+                      </div>
                     </v-col>
                   </v-row>
                   <!-- Gauge Chart -->
                   <v-row>
-                    <v-col class="gauge-chart">
-                      <GaugeTiltLevel label="X" :value="2" />
+                    <v-col class="gauge-chart" >
+                      <GaugeTiltLevel label="X" :value="xValue" />
                     </v-col>
                     <v-col class="gauge-chart">
-                      <GaugeTiltLevel label="Y" :value="2" />
+                      <GaugeTiltLevel label="Y" :value="yValue" />
                     </v-col>
                   </v-row>
                 </v-card>
               </v-col>
-               <!-- Map -->
-              <v-col  md="4" sm="4" cols="12">
-                <v-card class="pa-4 rounded-xl" hight='30vh'>
+              
+              <!-- Map -->
+              <v-col md="4" sm="4" cols="12">
+                <v-card class="pa-2 rounded-xl h-100">
                   <MapOfBarge />
                 </v-card>
               </v-col>
+              
               <!-- Notification Table-->
-              <v-col  md="4" sm="4" cols="12">
-                <v-card class="pa-4 rounded-xl h-100">
-                  <div class="d-flex justify-space-between align-center">
-                    <p class="header ml-4">Notification</p>
+              <v-col md="4" sm="4" cols="12">
+                <v-card class=" rounded-xl h-100">
+                  <div class="notification-header">
+                    <p class="text-h6 text-lg-h6 text-xxl-h4" style="font-family: 'Inter', sans-serif;">Notification</p>
                     <router-link :to="{ name: 'NotificationReport'}">
                       <v-icon icon="mdi-pencil-outline" class="edit"></v-icon>
                     </router-link>
@@ -231,7 +330,6 @@
                 </v-card>
               </v-col>
             </v-row>
-            
           </v-card>
         </v-col>
       </v-row>
@@ -240,89 +338,195 @@
   </v-app>
 </template>
 
-<script>
+<script setup>
 import NavigationBar from '@/components/NavigationBar.vue';
 import SpaceBar from '@/components/SpaceBar.vue';
 import GasolineTank from '@/components/BargeDetails/GasolineTank.vue';
 import GaugeTiltLevel from '@/components/BargeDetails/GaugeTiltLevel.vue';
 import MapOfBarge from '@/components/BargeDetails/MapOfBarge.vue';
 import NoticeTable from '@/components/NoticeTable.vue';
-import { barges } from '@/data/config';
 import '@/assets/colors.scss';
+import { computed, inject, onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { watch } from 'vue';
+import { mockStatus } from '@/data/mockValue';
 
-export default {
-  props: ['id'],
-  components: {
-    NavigationBar,
-    SpaceBar,
-    GasolineTank,
-    GaugeTiltLevel,
-    MapOfBarge,
-    NoticeTable
-  },
+const $api = inject('$api');
+const router = useRouter();
+const route = useRoute();
+const devices = ref([]);
+const typeDeviceName = ref(route.params.typeDeviceName);
+const devicesStatus = ref(mockStatus);
 
-  computed: {
-    barge() {
-      return barges.find(barge => barge.id === this.id) || null;
-    },
-    craneStatusCount() {
-      if (!this.barge || !this.barge.cranes) return { standby: 0, running: 0, maintenance: 0 };
+const xValue = ref(0); 
+const yValue = ref(0);
 
-      return {
-        standby: this.barge.cranes.filter(crane => crane.status === 'standby').length,
-        running: this.barge.cranes.filter(crane => crane.status === 'running').length,
-        maintenance: this.barge.cranes.filter(crane => crane.status === 'maintenance').length,
-      };
-    },
+const getRandomValue = () => {
+  return Math.floor(Math.random() * 11) - 5; // สุ่มจาก 0-10 แล้วลบ 5 ได้ -5 ถึง 5
+};
 
-    virtualNotices () {
-      return [...Array(10).keys()].map(i => {
-        const notice = { ...this.notices[i % this.notices.length] }
-        notice.name = `${notice.name} #${i}`
-        return notice
-      })
-    },
-  },
+onMounted(() => {
+  xValue.value = getRandomValue();
+  yValue.value = getRandomValue();
+  
+  setInterval(() => {
+    xValue.value = getRandomValue();
+    yValue.value = getRandomValue();
+  }, 10000);
+});
 
-  methods: {
-    goToItemDetail(itemId) {
-      this.$router.push(`/Barge/${this.id}/${itemId}`);
-    },
+const xRotation = computed(() => (xValue.value / 6) * 10);
+const yRotation = computed(() => (yValue.value / 6) * 10);
 
-    getStatusClass(status) {
-      switch (status) {
-        case 'standby':
-          return 'status-standby'
-        case 'running':
-          return 'status-running';
-        case 'standby-maintenance':
-          return 'status-standby-maintenance'
-        case 'running-maintenance':
-          return 'status-running-maintenance'
-        case 'down':
-        case 'maintenance': 
-          return 'status-down';
-        case 'warning':
-          return 'status-warning';
-        case 'danger':
-          return 'status-danger';
-        default:
-          return '';
+/* const excludedDeviceNames = [
+  'Barge CRANE 1',
+  'Barge CRANE 2',
+  'Barge CRANE 3',
+  'Barge Master'
+]; */
+
+/* const filteredDevices = computed(() => {
+  return devices.value
+    .filter(device => 
+      device.TypeVehicle === 'Barge' && 
+      device.TypeDevicename === typeDeviceName.value && 
+      !excludedDeviceNames.includes(device.DeviceName)
+    );
+}); */
+
+const filteredDevices = computed(() => {
+  return devicesStatus.value.filter(device => 
+    device.typevehicle === 'Barge' && 
+    device.typedevicename === 'Barge Bunga' && 
+    device.devicename.includes('GEN')
+  );
+});
+
+const getStatusClass = (crane) => {
+  const status = crane.data[0]?.Data[0]?.data;
+  switch (status) {
+    case 1: return 'status-standby';
+    case 2: return 'status-running';
+    case 3: return 'status-standby-maintenance';
+    case 4: return 'status-running-maintenance';
+    case 5: return 'status-down';
+    case 0: default: return 'status-unknown';
+  }
+};
+
+const craneDevices = computed(() => {
+  return devicesStatus.value.filter(device => 
+    device.typevehicle === 'Barge' && 
+    device.typedevicename === 'Barge Bunga' && 
+    device.devicename.includes('CRANE')
+  );
+});
+
+const getStatusClassCrane = (crane) => {
+  const status = crane.data[0]?.Data[0]?.data;
+  switch (status) {
+    case 1: return 'status-standby';
+    case 2: return 'status-running';
+    case 3: return 'status-down';
+    case 0: default: return 'status-unknown';
+  }
+};
+
+const craneStatusCounts = computed(() => {
+  const counts = { standby: 0, running: 0, maintenance: 0 };
+  craneDevices.value.forEach(crane => {
+    const status = crane.data[0]?.Data[0]?.data;
+    if (status === 1) counts.standby++;
+    else if (status === 2) counts.running++;
+    else if (status === 3) counts.maintenance++;
+  });
+  return counts;
+});
+
+/* const craneStatusCounts = computed(() => {
+  const counts = { standby: 0, running: 0, maintenance: 0 };
+  craneDevices.value.forEach(device => {
+    const status = device.Measurement?.find(m => m.MeasurementLabel === 'Status')?.MeasurementUnit || 'standby';
+    if (status === 'standby') counts.standby++;
+    else if (status === 'running') counts.running++;
+    else if (status === 'maintenance') counts.maintenance++;
+  });
+  return counts;
+});
+
+const craneDevices = computed(() => {
+  return devices.value.filter(device => 
+    device.TypeVehicle === 'Barge' && 
+    device.TypeDevicename === typeDeviceName.value && 
+    excludedDeviceNames.includes(device.DeviceName) &&
+    device.DeviceName.startsWith('Barge CRANE')
+  );
+}); */
+
+/* const getStatusClass = (device) => {
+  const status = device.Measurement?.find(m => m.MeasurementLabel === 'Status')?.MeasurementUnit || 'standby';
+  switch (status) {
+    case 'standby': return 'status-standby';
+    case 'running': return 'status-running';
+    case 'standby-maintenance': return 'status-standby-maintenance'
+    case 'running-maintenance': return 'status-running-maintenance'
+    case 'down': case 'maintenance': return 'status-down';
+    case 'warning': return 'status-warning';
+    case 'danger': return 'status-danger';
+    default: return 'status-standby';
+  }
+}; */
+
+const getStatusIcon = (status) => {
+  switch (status) {
+    case "running-maintenance": return "construction";
+    case "standby-maintenance": return "construction";
+    default: return "";
+  }
+};
+
+const getMeasurementValue = (device, label) => {
+  const measurement = device.Measurement?.find(m => m.MeasurementLabel === label);
+  return measurement ? measurement.Value || 'N/A' : 'N/A';
+};
+
+// Fetch devices
+const fetchDevices = async () => {
+  try {
+    const response = await $api.put('/device/GetDeviceListProfile', {
+      DeviceId: ''
+    });
+    devices.value = response.data;
+  } catch (error) {
+    console.error('Failed to fetch devices:', error);
+  }
+};
+
+// Navigate to GeneratorDetails
+const goToGeneratorDetails = (deviceId) => {
+  if (deviceId) {
+    router.push({ 
+      name: 'GeneratorDetails', 
+      params: { 
+        typeDeviceName: typeDeviceName.value, 
+        deviceId: deviceId 
       }
-    },
+    });
+  } else {
+    console.error('Device ID is undefined');
+  }
+};
 
-    getStatusIcon(status) {
-      switch (status) {
-        case "running-maintenance":
-          return "construction";
-        case "standby-maintenance":
-          return "construction";
-        default:
-          return "";
-      }
-    },
-  },
-}
+onMounted(() => {
+  fetchDevices();
+});
+
+watch(() => route.params.typeDeviceName, (newVal) => {
+  if (newVal !== typeDeviceName.value) {
+    typeDeviceName.value = newVal;
+    fetchDevices(newVal);
+  }
+});
 </script>
 
 <style lang="scss" scoped>
@@ -333,8 +537,12 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2vw;
+  font-size: 3vh;
   font-weight: 600;
+
+  @media(min-width: 2560px) {
+    margin: 2vh 0px;
+  }
 }
 
 .background {
@@ -344,10 +552,9 @@ export default {
 }
 
 .gen-card {
-  width: 12vw;
+  width: 11.5vw;
   height: 25vh;
-  background: white;
-  border-radius: 8px;
+  background: #FFFFFF;
 }
 
 .gen-img {
@@ -390,10 +597,8 @@ export default {
 }
 
 .crane-card {
-  margin-left: 1vw;
-  width: 30vw;
+  width: 35vw;
   height: 25vh;
-  border-radius: 1vw;
 }
 
 .crane-title {
@@ -402,14 +607,16 @@ export default {
   align-items: center;
   font-size: 1vh;
   width: 100%;
-  height: 3vh;
+  height: 2vh;
   color: #FFFFFF;
 }
 
 .crane-img {
-  width: 50%;
-  height: 10vh;
-  margin: 1vw 0;
+  @media (min-width: 2560px) {
+    width: 50%;
+    height: 10vh;
+    margin: 1vw 0;
+  }
 }
 
 .crane-status {
@@ -425,9 +632,8 @@ export default {
 }
 
 .gasoline-card {
-  width: 52vh;
-  height: 25vh;
-  margin-left: 1vw;
+  width: 100%;
+  height: 100%;
   background: #F0F0F0;
   border-radius: 1vw; 
 }
@@ -445,7 +651,7 @@ export default {
 }
 
 .status-running-maintenance {
-  background-color: var(--light-green);
+  background-color: #8DEB51;
 }
 
 .status-down {
@@ -460,14 +666,18 @@ export default {
   background-color: var(--red);
 }
 
+.status-unknown {
+  background-color: #d8d8d8;
+}
+
 .material-symbols-rounded {
-  font-size: 2vh;
+  font-size: 3vh;
 
   font-variation-settings:
   'FILL' 1,
   'wght' 400,
   'GRAD' 0,
-  'opsz' 24
+  'opsz' 2
 }
 
 .text-blue {
@@ -514,8 +724,8 @@ export default {
 .edit {
   width: 2vw;
   height: 2vh;
-  border-radius: 24px;
-  font-size: 1vh;
+  border-radius: 2vh;
+  font-size: 2vh;
   color: var(--symbol-blue);
   background-color: var(--bg-light-tugboat);
 }
@@ -527,40 +737,43 @@ export default {
   text-align: center;
 }
 
-.barge-img {
+.barge-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
   justify-content: center;
   align-items: center;
-  width: 12vw;
-  height: 10vh;
 }
 
 .bg_barge {
+  width: 100%;
+  height: auto;
+}
+
+.barge-img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   width: 12vw;
-  height: 12vh;
-  border-radius: 16px;
+  height: 10vh;
 }
 
 .gauge-chart {
   width: 14vw;
-  height: 15vh;
+  height: 12vh;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.wind-speed-card {
-  width: 12vw;
-  height: 10vh;
-  background-color: var(--light-sky);
-  padding: 1vh;
-  box-sizing: border-box;
-}
-
-.noti-report {
-  width: 52vh;
-  height: 30vh;
+.notification-header {
+  padding: 1vh 1vh 0 1vh;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 </style>

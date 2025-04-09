@@ -2,7 +2,7 @@
   <v-app style="background-color: #F7F9FC;">
     <NavigationBar />
     <SpaceBar />
-    <v-container>
+    <v-container fluid class="px-10">
       <div class="title">Notification Report</div>
       
       <!-- Filter Form -->
@@ -619,7 +619,7 @@ export default {
 }
 
 .title {
-  font-size: 20px;
+  font-size: 2vh;
   font-weight: 600;
 }
 

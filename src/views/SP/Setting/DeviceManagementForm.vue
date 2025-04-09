@@ -10,8 +10,8 @@
       <v-app style="background-color: #F7F9FC;">
         <NavigationBar />
         <SpaceBar />
-        <v-container>
-          <div class="title">Management</div>
+        <v-container fluid class="px-10">
+          <div class="title">Device Management</div>
           <!-- Alert สำหรับแจ้งผลการบันทึก -->
           <v-alert
             v-model="showAlert"
@@ -154,7 +154,7 @@
               </v-row>
               <v-row>
                 <v-col cols="12" md="12" class="button-section">
-                  <v-btn class="cancel-btn" @click芯="resetForm" elevation="0"> Cancel </v-btn>
+                  <v-btn class="cancel-btn" @click="resetForm" elevation="0"> Cancel </v-btn>
                   <v-btn class="save-btn" @click="saveRecord" elevation="0" :disabled="!permissions.IsWrite"> Save </v-btn>
                 </v-col>
               </v-row>
@@ -177,7 +177,7 @@
                   <td class="text-end">{{ item.ThresholdMinDanger }}</td>
                   <td class="text-end">{{ item.ThresholdMaxDanger }}</td>
                   <td class="action">{{ item.IsActive }}</td>
-                  <td style="display: flex; justify-content: center; align-items: center;">
+                  <td>
                     <v-icon 
                       v-if="permissions.IsWrite" 
                       icon="mdi-pencil-outline" 
@@ -218,8 +218,8 @@ const selectedMeasurement = ref({
   ThresholdMaxDanger: 0
 });
 const dropzoneFile = ref(null);
-const originalDeviceData = ref({}); // เก็บข้อมูลดั้งเดิมเพื่อใช้เปรียบเทียบ
-// สถานะสำหรับ Alert
+const originalDeviceData = ref({}); // เก็บข้อมูลเดิมเพื่อใช้เปรียบเทียบ
+const initialDeviceData = ref({});
 const showAlert = ref(false);
 const alertType = ref('success');
 const alertMessage = ref('');
@@ -242,7 +242,13 @@ const fetchDeviceData = async () => {
       DeviceId: deviceId.value
     });
 
-    originalDeviceData.value = { ...response.data }; // เก็บข้อมูลดั้งเดิม
+    originalDeviceData.value = { ...response.data };
+    initialDeviceData.value = { // เก็บข้อมูลเริ่มต้นสำหรับรีเซ็ต
+      DeviceId: response.data.DeviceId,
+      DeviceName: response.data.DeviceName,
+      DeviceLabel: response.data.DeviceLabel,
+      Note: response.data.Note
+    };
     deviceData.value = {
       DeviceId: response.data.DeviceId,
       DeviceName: response.data.DeviceName,
@@ -279,6 +285,8 @@ const loadMeasurementData = (measurementId) => {
 };
 
 const resetForm = () => {
+  // รีเซ็ต deviceData กลับไปเป็นค่าเริ่มต้น
+  deviceData.value = { ...initialDeviceData.value };
   selectedMeasurementId.value = null;
   selectedMeasurement.value = {
     ValueMin: 0,
@@ -292,9 +300,8 @@ const resetForm = () => {
 
 const saveRecord = async () => {
   try {
-    // ดึง MemberId จาก localStorage
-    const memberData = JSON.parse(localStorage.getItem('member') || '{}');
-    const memberId = memberData.MemberId || 'unknown';
+    const memberData = JSON.parse(localStorage.getItem('member'));
+    const memberId = memberData.MemberId;
     const modifiedDatetime = new Date().toISOString();
 
     // อัปเดตข้อมูลใน measurementAll เฉพาะที่เลือก
@@ -313,16 +320,14 @@ const saveRecord = async () => {
       };
     }
 
-    // สร้าง payload โดยคงข้อมูลดั้งเดิมไว้และอัปเดตเฉพาะฟิลด์ที่แก้ไขได้
     const payload = {
-      ...originalDeviceData.value, // คงข้อมูลดั้งเดิมทั้งหมด
-      DeviceLabel: deviceData.value.DeviceLabel, // อัปเดตเฉพาะฟิลด์ที่แก้ไขได้
+      ...originalDeviceData.value,
+      DeviceLabel: deviceData.value.DeviceLabel,
       Note: deviceData.value.Note,
       ModifiedBy: memberId,
       ModifiedDatetime: modifiedDatetime,
       Measurement: measurementAll.value.map(m => ({
         ...m,
-        // อัปเดตเฉพาะฟิลด์ที่แก้ไขได้ใน Measurement
         ValueMin: m.ValueMin,
         ValueMax: m.ValueMax,
         ThresholdMinWarning: m.ThresholdMinWarning,
@@ -334,7 +339,6 @@ const saveRecord = async () => {
       }))
     };
 
-    
     await $api.put('/Device/Update', payload);
     
     showAlert.value = true;
@@ -343,9 +347,10 @@ const saveRecord = async () => {
     setTimeout(() => {
       showAlert.value = false;
     }, 1000);
-    // รีเฟรชข้อมูลหลังบันทึก
+
     await fetchDeviceData();
     resetForm();
+
   } catch (error) {
     console.error('Failed to save device data:', error);
     showAlert.value = true;
@@ -368,7 +373,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .title {
-  font-size: 20px;
+  font-size: 2vh;
   font-weight: 600;
 }
 

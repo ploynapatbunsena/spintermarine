@@ -1,9 +1,10 @@
 <template>
-  <div class="gauge-container">
+  <div class="gauge-container" >
     <vue-gauge
       :refid="'_' + Math.random().toString(36).substr(2, 9)"
       :class="'metricsGauge'"
       :options="gaugeOptions"
+      :key="value"
     />
     <div class="central-label">{{ label }}: {{ value }}</div>
   </div>
@@ -25,40 +26,51 @@ export default {
       default: 0,
     },
   },
+  data() {
+    return {
+      chartWidthVw: 10,
+    };
+  },
   computed: {
     gaugeOptions() {
-      const needlePercentage = (this.value / 8) * 100;
+      const needlePercentage = ((this.value + 6) / 12) * 100;
 
       const delimiters = [
-        (1 / 8) * 100,
-        (2 / 8) * 100,
-        (6 / 8) * 100,
-        (7 / 8) * 100,
+        (1 / 12) * 100, // -5
+        (3 / 12) * 100, // -3
+        (9 / 12) * 100, // 3
+        (11 / 12) * 100, // 5
       ];
 
-      const colors = [
-        "#DC2B2B",
-        "#FFC107",
-        "#28A745",
-        "#FFC107",
-        "#DC2B2B",
-      ];
+      const colors = ["#DC2B2B", "#FFC107", "#28A745", "#FFC107", "#DC2B2B"];
+      const labels = ["-5", "-3", "3", "5"];
 
-      const labels = ["-3", "-2", "2", "3"];
+      const chartWidth = (this.chartWidthVw / 100) * window.innerWidth;
 
       return {
         needleValue: needlePercentage,
-        needleColor: "#355F2E", // สีของเข็ม
+        needleColor: "#355F2E",
         arcDelimiters: delimiters,
-        arcColors: colors, // กำหนดสีของแต่ละช่วง
+        arcColors: colors,
         arcLabels: labels,
         rangeLabelFontSize: 16,
-        arcLabelFontSize: 14, // ขนาดตัวอักษร
+        arcLabelFontSize: 14,
         arcOverEffect: true,
-        chartWidth: 400, // ปรับความกว้างของ Gauge
-        rangeLabel: ["-4", "4"], // ช่วงค่าของเกจ
+        chartWidth: chartWidth,
+        rangeLabel: ["-6", "6"],
         hasNeedle: true,
       };
+    },
+  },
+  mounted() {
+    window.addEventListener("resize", this.updateChartWidth);
+  },
+  beforeUnmount() {
+    window.removeEventListener("resize", this.updateChartWidth);
+  },
+  methods: {
+    updateChartWidth() {
+      this.$forceUpdate();
     },
   },
 };
@@ -67,8 +79,6 @@ export default {
 <style lang="scss" scoped>
 .gauge-container {
   position: relative;
-  width: 350px;
-  height: 150px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -76,15 +86,15 @@ export default {
 
 .central-label {
   position: absolute;
-  top: 90%;
+  top: 9vh;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 32px; // ปรับขนาดตัวอักษรให้เล็กลง
+  font-size: 2vh;
   font-weight: bold;
   color: #333;
 }
 
 :deep(text) {
-  font-size: 16px; // ปรับขนาดตัวอักษรของ label
+  font-size: 16px;
 }
 </style>

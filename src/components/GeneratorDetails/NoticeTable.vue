@@ -1,7 +1,7 @@
 <template>
-  <v-container>
+  <v-container >
     <div class="d-flex justify-space-between align-center mb-4">
-      <p class="header">Notification</p>
+      <p class="text-h6 text-lg-h6 text-xxl-h4" style="font-family: 'Inter', sans-serif;">Notification</p>
       <router-link :to="{ name: 'NotificationReport' }">
         <v-icon icon="mdi-pencil-outline" class="edit"></v-icon>
       </router-link>
@@ -14,14 +14,14 @@
           item-value="name"
           class="elevation-0 striped-table custom-table custom-scroll"
           hide-default-footer
-          fixed-header
-          height="250px"
+          :items-per-page="5" 
+          style="font-size: 1.2vh;"
         >
           <template v-slot:item="{ item }">
             <tr>
-              <td>{{ item.date }}</td>
-              <td>{{ item.name }}</td>
-              <td>{{ item.measuremnet }}</td>
+              <td style="font-size: 1.2vh;">{{ item.date }}</td>
+              <td style="font-size: 1.2vh;">{{ item.name }}</td>
+              <td style="font-size: 1.2vh;">{{ item.measuremnet }}</td>
               <td class="details">{{ item.details }}</td>
               <td>
                 <v-chip class="notice-status">
@@ -47,41 +47,42 @@ export default {
         { title: 'Details', key: 'details' },
         { title: 'Status', key: 'status' },
       ],
-      notices: [
+      /* notices: [
         { date: '2023-10-01', name: 'Gen No.116 WEICHAI 37KVA', measuremnet: 'Oil Pressure', details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
         { date: '2023-10-02', name: 'Gen No.116 WEICHAI 37KVA', measuremnet: 'Oil Pressure', details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
         { date: '2023-10-03', name: 'Gen No.116 WEICHAI 37KVA', measuremnet: 'Oil Pressure', details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
         { date: '2023-10-04', name: 'Gen No.116 WEICHAI 37KVA', measuremnet: 'Oil Pressure', details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
         { date: '2023-10-06', name: 'Gen No.118 PERKINS 75KVA', measuremnet: 'Oil Pressure', details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
-      ],
+        { date: '2023-10-06', name: 'Gen No.118 PERKINS 75KVA', measuremnet: 'Oil Pressure', details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
+      ], */
     };
   },
 };
 </script>
 
 <style lang="scss" scoped>
-.custom-scroll :deep(.v-table__wrapper) {
-  overflow-y: auto;
-}
+// .custom-scroll :deep(.v-table__wrapper) {
+//   overflow-y: auto;
+// }
 
 /* Scrollbar สำหรับ Chrome, Edge, Safari */
-.custom-scroll :deep(.v-table__wrapper)::-webkit-scrollbar {
-  width: 8px;
-}
+// .custom-scroll :deep(.v-table__wrapper)::-webkit-scrollbar {
+//   width: 8px;
+// }
 
-.custom-scroll :deep(.v-table__wrapper)::-webkit-scrollbar-track {
-  background: #f0f0f0;
-  border-radius: 10px;
-}
+// .custom-scroll :deep(.v-table__wrapper)::-webkit-scrollbar-track {
+//   background: #f0f0f0;
+//   border-radius: 10px;
+// }
 
-.custom-scroll :deep(.v-table__wrapper)::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 10px;
-}
+// .custom-scroll :deep(.v-table__wrapper)::-webkit-scrollbar-thumb {
+//   background: #888;
+//   border-radius: 10px;
+// }
 
-.custom-scroll :deep(.v-table__wrapper)::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
+// .custom-scroll :deep(.v-table__wrapper)::-webkit-scrollbar-thumb:hover {
+//   background: #555;
+// }
 
 .striped-table :deep(tbody tr:nth-child(odd)) {
   background-color: var(--bg-row);
@@ -91,24 +92,24 @@ export default {
   background-color: #ffffff;
 }
 
-.custom-table :deep(thead th) {
-  color: var(--black);
-  font-weight: bold;
-  font-size: 16px;
-}
+// .custom-table :deep(thead th) {
+//   color: var(--black);
+//   font-weight: bold;
+//   font-size: 16px;
+// }
 
-.custom-table :deep(tbody td) {
-  color: var(--dark-gray);
-  font-size: 16px;
-}
+// .custom-table :deep(tbody td) {
+//   color: var(--dark-gray);
+//   font-size: 16px;
+// }
 
-.custom-table :deep(tbody tr:hover td) {
-  color: var(--black);
-}
+// .custom-table :deep(tbody tr:hover td) {
+//   color: var(--black);
+// }
 
-.custom-table :deep(tbody tr:hover) {
-  background-color: #f0f0f0;
-}
+// .custom-table :deep(tbody tr:hover) {
+//   background-color: #f0f0f0;
+// }
 
 .v-card-text {
   padding: 0;
@@ -126,16 +127,16 @@ export default {
 }
 
 .edit {
-  width: 34px;
-  height: 24px;
-  border-radius: 24px;
-  font-size: 20px;
-  color: #1570EF;
-  background-color: #E3F2FD;
+  width: 2vw;
+  height: 2vh;
+  border-radius: 2vh;
+  font-size: 2vh;
+  color: var(--symbol-blue);
+  background-color: var(--bg-light-tugboat);
 }
 
 .header {
-  font-size: 20px;
+  font-size: 1.5vh;
   font-weight: 600;
   color: var(--dark-gray);
 }

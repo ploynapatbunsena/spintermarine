@@ -2,15 +2,11 @@
   <v-app>
     <NavigationBar />
     <SpaceBar />
-    <v-container>
+    <v-container fluid class="px-10">
       <v-row>
-        <v-col cols="12" sm="4" lg="3">
+        <v-col cols="6" sm="4" lg="2">
           <v-sheet class="pa-2 ma-2">
-            <v-card
-              class="rounded-lg"
-              max-width="300"
-              max-height="300"
-            >
+            <v-card class="rounded-lg" >
               <v-img
                 class="text-white"
                 :src="require('@/assets/Images/profile_barge.jpg')"
@@ -19,9 +15,7 @@
                 <div class="pa-4 align-start">
                   <v-img
                     :src="require('@/assets/Icons/sp_logo.svg')"
-                    max-width="100"
-                    max-height="44"
-                    position="relative"
+                    style="width: 5vw; position: relative;"
                   ></v-img>
                 </div>
                 <div class="text-bottom">
@@ -35,13 +29,9 @@
             </v-card>
           </v-sheet>
         </v-col>
-        <v-col cols="12" sm="4" lg="3">
+        <v-col cols="6" sm="4" lg="2">
           <v-sheet class="pa-2 ma-2">
-            <v-card
-              class="rounded-lg"
-              max-width="300"
-              max-height="300"
-            >
+            <v-card class="rounded-lg" >
               <v-img
                 class="text-white"
                 :src="require('@/assets/Images/profile_tugboat.jpg')"
@@ -50,9 +40,7 @@
                 <div class="pa-4 align-start">
                   <v-img
                     :src="require('@/assets/Icons/sp_logo.svg')"
-                    max-width="100"
-                    max-height="44"
-                    position="relative"
+                    style="width: 5vw; position: relative;"
                   ></v-img>
                 </div>
                 <div class="text-bottom">
@@ -84,10 +72,9 @@ export default {
 };
 </script>
 
-<style lang="scss">
-
+<style scoped lang="scss">
 .icon-size {
-  font-size: 16px;
+  font-size: 1vh;
 }
 
 .text-bottom {
@@ -96,14 +83,13 @@ export default {
 }
 
 .card-title {
-  font-size: 32px; 
+  font-size: 3vh; 
   font-weight: 500;
   padding-bottom: 0;
 }
 
 .card-text {
-  font-size: 14px;
-  margin-bottom: 10px;
+  font-size: 1vh;
 }
 
 .text-decoration-none {

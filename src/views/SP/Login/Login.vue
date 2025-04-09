@@ -3,38 +3,29 @@
     <v-main>
       <v-container class="pa-0 ma-0" fluid>
         <v-row no-gutters>
-          <!-- Background Image Section -->
           <v-col cols="12" md="6" class="background-section">
             <v-img 
               :src="require('@/assets/Images/bg_login.jpg')"
               height="100vh"
               cover
-              position="relative"
+              class="pa-16"
             >
-              <div class="pa-6 pa-sm-12">
-                <v-img
-                  :src="require('@/assets/Images/logo_miiot.png')"
-                  width="12rem"
-                  max-width="16rem"
-                  height="3rem"
-                  contain
-                >
-                </v-img>
-              </div>
+              <v-img
+                :src="require('@/assets/Images/logo_miiot.png')"
+                width="30vh"
+                height="5vh"
+              >
+              </v-img>
             </v-img>
           </v-col>
-          
-          <!-- Login Form Section -->
-          <v-col cols="12" md="6" class="d-flex justify-center align-center login-section"> 
+          <v-col cols="12" md="6" class="login-section"> 
             <v-card
               class="login-card"
-              max-width="450"
-              width="85%"
-              elevation="5"
               rounded="xl"
+              elevation="0"
             >
-              <v-card-text class="pa-6 pa-sm-12">
-                <p class="login-title">Login to your account</p>
+              <v-card-text class="pa-6">
+                <p class="login-title">LOGIN</p>
                 <form @submit.prevent="handleLogin">
                   <div class="form-control">
                     <label for="email">Email</label>
@@ -57,7 +48,7 @@
                       >
                       <v-icon
                         @click="togglePassword"
-                        :icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                        :icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                         class="password-toggle"  
                       >
                       </v-icon>
@@ -164,8 +155,6 @@ const handleLogin = async () => {
 <style lang="scss">
 .background-section {
   position: fixed;
-  top: 0;
-  left: 0;
   width: 100%;
   height: 100vh;
   z-index: 0;
@@ -180,39 +169,42 @@ const handleLogin = async () => {
   position: relative;
   z-index: 1;
   min-height: 100vh;
-
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .login-card {
   margin: 16px;
+  max-width: 450px;
+  width: 85%;
+
+  @media (min-width: 2560px) {
+    max-width: 1000px;
+    width: 85%;
+  }
   
   .login-title {
-    font-size: 20px;
-    margin-bottom: 24px;
-    font-weight: 600;
-
-    @media (min-width: 600px) {
-      font-size: 24px;
-      margin-bottom: 32px;
-    }
+    text-align: center;
+    font-size: 3vh;
+    margin-bottom: 3vh;
+    font-weight: 700;
   }
 
   .form-control {
-    margin-bottom: 16px;
+    margin-bottom: 2vh;
 
     label {
-      font-size: 14px;
-      margin-bottom: 6px;
-      display: block;
+      font-size: 1.5vh;
     }
 
     input {
       width: 100%;
-      margin-top: 6px;
-      padding: 8px;
-      font-size: 14px;
+      margin-top: 0.5vh;
+      padding: 1vh;
+      font-size: 2vh;
       border: 1px solid #e5e5e5;
-      border-radius: 8px;
+      border-radius: 1vh;
     }
 
     input:focus {
@@ -231,8 +223,8 @@ const handleLogin = async () => {
 
     .error-text {
       color: #F04438;
-      font-size: 12px;
-      margin-top: 4px;
+      font-size: 1.5vh;
+      margin-top: 0.5vh;
       display: block;
     }
 
@@ -241,11 +233,12 @@ const handleLogin = async () => {
 
       .password-toggle {
         position: absolute;
-        right: 12px;
-        top: 50%;
+        right: 1.5vw;
+        top: 55%;
         transform: translateY(-50%);
         cursor: pointer;
-        color: #667085;
+        color: #8d95a5;
+        font-size: 2.5vh;
       }
     }
   }
@@ -253,13 +246,13 @@ const handleLogin = async () => {
   .login {
     button {
       width: 100%;
-      padding: 8px;
-      margin-top: 16px;
-      font-size: 16px;
+      padding: 1vh;
+      margin-top: 4vh;
+      font-size: 2vh;
       background-color: #1570EF;
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 1vh;
       cursor: pointer;
       display: flex;
       justify-content: center;

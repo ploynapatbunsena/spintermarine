@@ -3,21 +3,21 @@
     <v-card>
       <v-card-text>
         <v-data-table
-          :header="headers"
+          :headers="headers"
           :items="notices"
           item-value="name"
-          class="elevation-0 striped-table custom-table"
+          class="elevation-0 striped-table custom-table custom-scroll"
           hide-default-footer
-          style="width: 1040px; height: 100%;"
+          style="font-size: 1.2vh;"
         >
           <template v-slot:item="{ item }">
             <tr>
-              <td>{{ item.date }}</td>
-              <td>{{ item.name }}</td>
-              <td>{{ item.measuremnet }}</td>
-              <td class="details">{{ item.details }}</td>
+              <td style="font-size: 1.2vh;">{{ item.date }}</td>
+              <td style="font-size: 1.2vh;">{{ item.name }}</td>
+              <td style="font-size: 1.2vh;">{{ item.measuremnet }}</td>
+              <td style="font-size: 1.2vh;" class="details">{{ item.details }}</td>
               <td>
-                <v-chip class="notice-status">
+                <v-chip style="font-size: 1.2vh;" class="notice-status">
                   {{ item.status }}
                 </v-chip>
               </td>
@@ -40,12 +40,12 @@ export default {
         { title: 'Details', key: 'details' },
         { title: 'Status', key: 'status' },
       ],
-      notices: [
-        { date: '2023-10-01', name: 'Gen No.116 WEICHAI 37KVA', measuremnet: 'Oil Pressure',details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
-        { date: '2023-10-02', name: 'Gen No.116 WEICHAI 37KVA', measuremnet: 'Oil Pressure',details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
-        { date: '2023-10-03', name: 'Gen No.116 WEICHAI 37KVA', measuremnet: 'Oil Pressure',details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
-        { date: '2023-10-04', name: 'Gen No.116 WEICHAI 37KVA', measuremnet: 'Oil Pressure',details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
-      ],
+      // notices: [
+      //   { date: '2023-10-01', name: 'Gen No.116', measuremnet: 'Oil Pressure',details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
+      //   { date: '2023-10-02', name: 'Gen No.116', measuremnet: 'Oil Pressure',details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
+      //   { date: '2023-10-03', name: 'Gen No.116', measuremnet: 'Oil Pressure',details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
+      //   { date: '2023-10-04', name: 'Gen No.116', measuremnet: 'Oil Pressure',details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
+      // ],
     };
   },
 };
@@ -60,25 +60,25 @@ export default {
   background-color: #ffffff; /* สีสำหรับแถวคู่ */
 }
 
-/* เปลี่ยนสีตัวหนังสือของ header */
-.custom-table :deep(thead th) {
+/* .custom-table :deep(thead th) {
   color: var(--black);
   font-weight: bold;
-  font-size: 20px;
+  font-size: 1.5vh;
 }
 
-/* เปลี่ยนสีตัวหนังสือของ item */
 .custom-table :deep(tbody td) {
   color: var(--dark-gray);
-  font-size: 20px;
+  font-size: 1vh;
 }
 
-/* เปลี่ยนสีตัวหนังสือของแถวเมื่อ hover */
 .custom-table :deep(tbody tr:hover td) {
   color: var(--black);
+} */
+
+.custom-scroll :deep(.v-table__wrapper) {
+  overflow-y: auto;
 }
 
-/* เปลี่ยนสีพื้นหลังของแถวเมื่อ hover */
 .custom-table :deep(tbody tr:hover) {
   background-color: #f0f0f0; /* สีเทาอ่อน */
 }
@@ -89,13 +89,13 @@ export default {
 
 .details {
   font-family: 'Sarabun', serif;
+  font-size: 1vh;
 }
 
 .notice-status {
   font-family: 'Sarabun', serif;
   background-color: var(--light-red);
   color: var(--red);
-  font-size: 20px;
 }
 
 .edit {
