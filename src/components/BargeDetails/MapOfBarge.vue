@@ -22,7 +22,7 @@
               ></v-img>
             </v-col>
             <v-col cols="6">
-              <p class="detail">0 m/hr</p>
+              <p class="detail">{{ windSpeed }} {{ measurementUnit }}</p>
             </v-col>
           </v-row>
         </v-card>
@@ -53,112 +53,123 @@
   </v-container>
 </template>
 
-<script>
-import { ref, onMounted, computed } from 'vue';
+<script setup>
+import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-compass';
 import markerIconUrl from '@/assets/Images/ship_location.png';
-import "@/assets/colors.scss";
 
-export default {
-  setup() {
-    const currentBearing = ref(0);
-    const map = ref(null);
-    const compassControl = ref(null);
-
-    const currentDirection = computed(() => {
-      const angle = currentBearing.value;
-      if (angle >= 337.5 || angle < 22.5) return 'N';
-      else if (angle >= 22.5 && angle < 67.5) return 'NE';
-      else if (angle >= 67.5 && angle < 112.5) return 'E';
-      else if (angle >= 112.5 && angle < 157.5) return 'SE';
-      else if (angle >= 157.5 && angle < 202.5) return 'S';
-      else if (angle >= 202.5 && angle < 247.5) return 'SW';
-      else if (angle >= 247.5 && angle < 292.5) return 'W';
-      else if (angle >= 292.5 && angle < 337.5) return 'NW';
-      return 'N/A';
-    });
-
-    onMounted(() => {
-      const osmUrl = 'http://{s}.tile.osm.org/{z}/{x}/{y}.png';
-      const osmAttrib = '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a>';
-
-      // Initialize map
-      map.value = L.map('map').setView([13.142583, 100.806189], 13);
-
-      // Add tile layer
-      L.tileLayer(osmUrl, {
-        maxZoom: 20,
-        attribution: osmAttrib,
-      }).addTo(map.value);
-
-      // Add Leaflet compass
-      compassControl.value = L.control.compass({
-        autoActive: true,
-        showDigit: true,
-        position: 'topright',
-        textErr: "ไม่สามารถตรวจจับทิศทางได้",
-        onChange: (angle) => {
-          updateCompassDirection(angle);
-        }
-      }).addTo(map.value);
-
-      // Custom icon marker setup
-      const customIcon = L.icon({
-        iconUrl: markerIconUrl,
-        iconSize: [64, 64],
-      });
-
-      // Add from sensor
-      const markers = [
-        { position: [13.122581, 100.816189] },
-      ];
-
-      markers.forEach(marker => {
-        L.marker(marker.position, { icon: customIcon })
-          .addTo(map.value)
-          .bindPopup(marker.name);
-      });
-
-      // Function to update both compasses
-      function updateCompassDirection(angle) {
-        currentBearing.value = angle;
-
-        // Update Leaflet compass
-        const compassElem = document.querySelector('.leaflet-compass .compass-icon');
-        if (compassElem) {
-          compassElem.style.transform = `rotate(${angle}deg)`;
-        }
-
-        // Update digit display in Leaflet compass with direction
-        const digitElem = document.querySelector('.leaflet-compass .compass-digit');
-        if (digitElem) {
-          digitElem.textContent = `${currentDirection.value}${Math.round(angle)}°`;
-        }
-      }
-
-      const testInterval = setInterval(() => {
-        const randomBearing = Math.floor(Math.random() * 360);
-        updateCompassDirection(randomBearing);
-      }, 10000);
-
-      // Cleanup on component unmount
-      return () => {
-        if (testInterval) {
-          clearInterval(testInterval);
-        }
-        if (map.value) {
-          map.value.remove();
-        }
-      };
-    }); 
-    return {
-      currentBearing,
-      currentDirection,
-    };
+const props = defineProps({
+  position: {
+    type: Object,
+    default: () => ({ lat: 13.122581, lng: 100.816189 })
   },
+  windSpeed: {
+    type: Number,
+    default: 0
+  },
+  windDirection: {
+    type: Number,
+    default: 0
+  },
+  measurementUnit: {
+    type: String,
+    default: 'm/s'
+  }
+});
+
+// ตัวแปร reactive
+const currentBearing = ref(props.windDirection);
+const map = ref(null);
+const marker = ref(null);
+const compassControl = ref(null);
+
+// คำนวณทิศทางลมเป็นตัวอักษร (N, NE, E, etc.)
+const currentDirection = computed(() => {
+  const angle = currentBearing.value;
+  if (angle >= 337.5 || angle < 22.5) return 'N';
+  if (angle >= 22.5 && angle < 67.5) return 'NE';
+  if (angle >= 67.5 && angle < 112.5) return 'E';
+  if (angle >= 112.5 && angle < 157.5) return 'SE';
+  if (angle >= 157.5 && angle < 202.5) return 'S';
+  if (angle >= 202.5 && angle < 247.5) return 'SW';
+  if (angle >= 247.5 && angle < 292.5) return 'W';
+  if (angle >= 292.5 && angle < 337.5) return 'NW';
+  return 'N/A';
+});
+
+// ตั้งค่า map และ marker
+onMounted(() => {
+  map.value = L.map('map').setView([props.position.lat, props.position.lng], 13);
+  
+  L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+    maxZoom: 20,
+    attribution: '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(map.value);
+
+  // Custom icon
+  const customIcon = L.icon({
+    iconUrl: markerIconUrl,
+    iconSize: [52, 52],
+  });
+
+  marker.value = L.marker([props.position.lat, props.position.lng], { icon: customIcon })
+    .addTo(map.value)
+    .bindPopup('Barge Position');
+
+  // ตั้งค่า compass
+  compassControl.value = L.control.compass({
+    autoActive: true,
+    showDigit: true,
+    position: 'topright',
+    textErr: "ไม่สามารถตรวจจับทิศทางได้",
+    onChange: (angle) => {
+      updateCompassDirection(angle);
+    }
+  }).addTo(map.value);
+});
+
+const updateCompassDirection = (angle) => {
+  currentBearing.value = angle;
+
+  // อัพเดท rotation ของ compass ใน plugin
+  const compassElem = document.querySelector('.leaflet-compass .compass-icon');
+  if (compassElem) {
+    compassElem.style.transform = `rotate(${angle}deg)`;
+  }
+
+  const digitElem = document.querySelector('.leaflet-compass .compass-digit');
+  if (digitElem) {
+    digitElem.textContent = `${currentDirection.value} ${Math.round(angle)}°`;
+  }
 };
+
+// Watch เปลี่ยนค่าพิกัด
+watch(() => props.position, (newVal) => {
+  if (map.value && marker.value) {
+    map.value.setView([newVal.lat, newVal.lng]);
+    marker.value.setLatLng([newVal.lat, newVal.lng]);
+  }
+}, { deep: true });
+
+// Watch เปลี่ยนทิศทางลม
+watch(() => props.windDirection, (newVal) => {
+  updateCompassDirection(newVal);
+});
+
+// Cleanup
+onBeforeUnmount(() => {
+  if (map.value) {
+    map.value.remove();
+  }
+});
+
+// ส่งค่ากลับไปให้ template ใช้
+defineExpose({
+  currentDirection,
+  currentBearing
+});
 </script>
 
 <style scoped>
@@ -242,7 +253,7 @@ export default {
   box-shadow: none;
 
   @media screen and (max-width: 1920px) {
-    width: 50px; /* Adjust size for smaller screens */
+    width: 50px;
     height: 50px;
   }
 }
@@ -252,7 +263,7 @@ export default {
   height: 100px;
 
   @media screen and (max-width: 1920px) {
-    width: 50px; /* Adjust size for smaller screens */
+    width: 50px;
     height: 50px;
   }
 }
@@ -261,15 +272,16 @@ export default {
 :deep(.leaflet-compass .compass-digit) {
   position: absolute;
   margin-top: 2vh;
-  left: 55%;
+  left: 50%;
   transform: translateX(-50%);
-  font-weight: 700;
+  font-weight: bold;
   font-size: 1.5vh;
   color: var(--light-blue);
+  font-family: 'Inter', sans-serif;
 }
 
 :deep(.leaflet-compass .compass-alert) {
-  background-color: var(--white);
+  background-color: #FFFFFF;
   text-align: center;
   position: absolute;
   left: 50%;

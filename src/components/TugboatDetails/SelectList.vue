@@ -31,63 +31,51 @@
   </v-navigation-drawer>
 </template>
 
-<script>
-import { tugboats } from "@/data/config";
+<script setup>
+import { ref, watch } from 'vue';
+import { tugboats } from "@/config/config";
 
-export default {
-  name: "SelectList",
+const props = defineProps({
+  initialSelectedBoat: {
+    type: String,
+    default: null
+  }
+});
 
-  props: {
-    // เพิ่ม prop เพื่อรับค่าเรือที่ควรเลือกเริ่มต้น
-    initialSelectedBoat: {
-      type: String,
-      default: null
-    }
-  },
+const emit = defineEmits(['boat-selected']);
 
-  data: () => ({
-    open: true,
-    tugboats,
-    selectedBoats: null,
-  }),
+const open = ref(true);
+const selectedBoats = ref(null);
 
-  watch: {
-    initialSelectedBoat: {
-      immediate: true, // ทำงานทันทีเมื่อค่า initialSelectedBoat เปลี่ยนแปลง
-      handler(newVal) {
-        if (newVal) {
-          this.selectedBoats = newVal;
-          this.emitSelectedBoats();
-        }
-      }
-    }
-  },
-
-  methods: {
-    getStatusClass(status) {
-      switch (status) {
-        case "Running":
-          return "status-running";
-        case "Maintenance":
-          return "status-maintenance";
-        case "Pending":
-          return "status-pending";
-        default:
-          return "";
-      }
-    },
-
-    selectSingleBoat(boatId) {
-      // เปลี่ยนการเลือกเรือเมื่อมีการคลิก
-      this.selectedBoats = this.selectedBoats === boatId ? null : boatId;
-      this.emitSelectedBoats();
-    },
-    
-    emitSelectedBoats() {
-      this.$emit('boat-selected', this.selectedBoats);
-    }
+const getStatusClass = (status) => {
+  switch (status) {
+    case "Running":
+      return "status-running";
+    case "Maintenance":
+      return "status-maintenance";
+    case "Pending":
+      return "status-pending";
+    default:
+      return "";
   }
 };
+
+const selectSingleBoat = (boatId) => {
+  // เปลี่ยนการเลือกเรือเมื่อมีการคลิก
+  selectedBoats.value = selectedBoats.value === boatId ? null : boatId;
+  emitSelectedBoats();
+};
+
+const emitSelectedBoats = () => {
+  emit('boat-selected', selectedBoats.value);
+};
+
+watch(() => props.initialSelectedBoat, (newVal) => {
+  if (newVal) {
+    selectedBoats.value = newVal;
+    emitSelectedBoats();
+  }
+}, { immediate: true });
 </script>
 
 <style scoped>

@@ -1,79 +1,82 @@
 <template>
   <v-container>
     <v-row>
-      <!-- Running Hour6 -->
       <v-col class="d-flex align-center card">
         <div class="icon running-hour">
           <v-icon style="font-size: 5vh;" icon="mdi-clock-outline"></v-icon>
         </div>
         <div class="text-side">
           <p class="text-grey">Running Hour</p>
-          <p class="text-value">0 hour</p>
+          <p class="text-value">{{ measurements['Hour Meter'].value }} {{ measurements['Hour Meter'].unit }}</p>
         </div>
       </v-col>
-      <!-- Battery -->
       <v-col class="d-flex align-center card">
         <div class="icon battery-volts">
           <span class="material-symbols-rounded">charger</span>
         </div>
         <div class="text-side">
           <p class="text-grey">Battery Volts</p>
-          <p class="text-value">0 V</p>
+          <p class="text-value">{{ measurements['Battery Volts'].value }} {{ measurements['Battery Volts'].unit }}</p>
         </div>
       </v-col>
-      <!-- Wind Speed -->
       <v-col class="d-flex align-center card">
         <div class="icon wind-speed">
           <v-icon style="font-size: 5vh;" icon="mdi-weather-windy"></v-icon>
         </div>
         <div class="text-side">
           <p class="text-grey">Wind Speed</p>
-          <p class="text-value">0 km/hr</p>
+          <p class="text-value">{{ measurements['Wind-Speed'].value }} {{ measurements['Wind-Speed'].unit }}</p>
         </div>
       </v-col>
     </v-row>
-    <!-- roe 2 -->
     <v-row>
-      <!-- %Throttle -->
       <v-col class="d-flex align-center card">
         <div class="icon throttle">
           <span class="material-symbols-rounded">speed</span>
         </div>
         <div class="text-side">
           <p class="text-grey">%Throttle</p>
-          <p class="text-value">0%</p>
+          <p class="text-value">{{ measurements['%Throttle'].value }} {{ measurements['%Throttle'].unit }}</p>
         </div>
       </v-col>
-      <!-- Total Fuel Consumption -->
       <v-col class="d-flex align-center card">
         <div class="icon total-fuel">
           <span class="material-symbols-rounded">oil_barrel</span>
         </div>
         <div class="text-side">
           <p class="text-grey">Total Fuel Consumption</p>
-          <p class="text-value">0 L</p>
+          <p class="text-value">{{ measurements['Total Fuel Consumption'].value }} {{ measurements['Total Fuel Consumption'].unit }}</p>
         </div>
       </v-col>
-      <!-- Fuel Rate -->
       <v-col class="d-flex align-center card">
         <div class="icon fuel-rate">
           <span class="material-symbols-rounded">speed</span>
         </div>
         <div class="text-side">
           <p class="text-grey">Fuel Rate</p>
-          <p class="text-value">0 m³/h </p>
+          <p class="text-value">{{ measurements['Fuel Rate'].value }} {{ measurements['Fuel Rate'].unit }}</p>
         </div>
       </v-col>
     </v-row>
   </v-container>
 </template>
 
-<script>
+<script setup>
 import '@/assets/colors.scss'
 
-export default {
-  name: 'GeneralInfo',
-}
+const props = defineProps({
+  measurements: {
+    type: Object,
+    default: () => ({
+      'Hour Meter': { value: '0', unit: 'Hr' },
+      'Battery Volts': { value: '0', unit: 'V' },
+      'Wind-Speed': { value: '0', unit: 'km/hr' },
+      '%Throttle': { value: '0', unit: '' },
+      'Total Fuel Consumption': { value: '0', unit: 'L' },
+      'Fuel Rate': { value: '0', unit: 'L/hr' }
+    })
+  },
+});
 </script>
 
 <style lang="scss" scoped>

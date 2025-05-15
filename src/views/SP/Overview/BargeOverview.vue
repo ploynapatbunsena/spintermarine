@@ -1,19 +1,13 @@
 <template>
-  <PermissionCheck 
-    menu-id="0101010100"
-      :required-permissions="{
-      IsRead: true,
-    }"
-  >
-  <template #default="{ permissions }">
-    <v-app style="background-color: #F7F9FC;" v-if="permissions.IsRead">
-      <NavigationBar />
-      <SpaceBar />
-      <v-container fluid>
+  <v-app style="background-color: #F7F9FC;">
+    <NavigationBar />
+    <SpaceBar />
+    <v-container fluid class="px-10">
+      <v-row v-if="!isLoading">
         <v-col cols="12" class="title">Barge</v-col>
         <v-row class="mt-3">
           <v-col
-            v-for="device in bargeDevices"
+            v-for="device in devices"
             :key="device.TypeDevicename"
             cols="12" sm="6" lg="4"
           >
@@ -23,7 +17,6 @@
               hover
             >
               <v-row no-gutters>
-                <!-- Barge Image -->
                 <v-col cols="12" lg="4" style="padding: 1vh;">
                   <v-img
                     :src="require('@/assets/Images/overview_barge.jpg')"
@@ -31,11 +24,9 @@
                     class="rounded-lg"
                   ></v-img>
                 </v-col>
-                <!-- Barge Details -->
                 <v-col cols="12" lg="8">
                   <v-card-item>
                     <v-row class="pt-6">
-                      <!-- Barge Name -->
                       <v-col cols="8" lg="8">
                         <v-row>
                           <v-col cols="12" class="pb-0">
@@ -44,19 +35,18 @@
                         </v-row>
                         <v-row>
                           <v-col cols="12" class="pt-0">
-                            <p class="header-thai px-0">ทุ่น{{ device.Note }}</p>
+                            <p class="header-thai px-0">ทุ่น{{ device.Devices[0]?.Note ?? 'N/A' }}</p>
                           </v-col>
                         </v-row>
                       </v-col>
-                      <!-- Alert Icon -->
-                      <v-col cols="4" lg="4" class="text-center">
-                        <v-icon color="#DC2B2B" style="margin-right: 3vh;"><span class="material-symbols-rounded">notifications_active</span></v-icon>
-                        <v-icon color="#FAC12A"><span class="material-symbols-rounded">warning</span></v-icon>
+                      <v-col cols="4" lg="4">
+                        <AlertBadges
+                          :warningCount="device.AlertWarningTotalSum ?? 0"
+                          :dangerCount="device.AlertDangerTotalSum ?? 0"
+                        />
                       </v-col>
                     </v-row>
-                    <!-- Status Numbers -->
                     <v-row>
-                      <!-- Standby -->
                       <v-col cols="3">
                         <v-row>
                           <v-col cols="12" class="pb-0">
@@ -65,7 +55,7 @@
                         </v-row>
                         <v-row>
                           <v-col cols="12" class="pb-0">
-                            <p class="barge-value">9</p>
+                            <p class="barge-value">{{ device.TotalStatusSummary?.["Standby (ON)"] ?? 0 }}</p>
                           </v-col>
                         </v-row>
                         <v-row>
@@ -74,7 +64,6 @@
                           </v-col>
                         </v-row>
                       </v-col>
-                      <!-- Running -->
                       <v-col cols="3">
                         <v-row>
                           <v-col cols="12" class="pb-0">
@@ -83,7 +72,7 @@
                         </v-row>
                         <v-row>
                           <v-col cols="12" class="pb-0">
-                            <p class="barge-value">4</p>
+                            <p class="barge-value">{{ device.TotalStatusSummary?.["Running (ON)"] ?? 0 }}</p>
                           </v-col>
                         </v-row>
                         <v-row>
@@ -92,7 +81,6 @@
                           </v-col>
                         </v-row>
                       </v-col>
-                      <!-- Offline -->
                       <v-col cols="3">
                         <v-row>
                           <v-col cols="12" class="pb-0">
@@ -101,7 +89,7 @@
                         </v-row>
                         <v-row>
                           <v-col cols="12" class="pb-0">
-                            <p class="barge-value">1</p>
+                            <p class="barge-value">{{ calculateStatus(device.TotalStatusSummary, 'Offline') }}</p>
                           </v-col>
                         </v-row>
                         <v-row>
@@ -110,7 +98,6 @@
                           </v-col>
                         </v-row>
                       </v-col>
-                      <!-- Maintenance -->
                       <v-col cols="3">
                         <v-row>
                           <v-col cols="12" class="pb-0">
@@ -119,7 +106,7 @@
                         </v-row>
                         <v-row>
                           <v-col cols="12" class="pb-0">
-                            <p class="barge-value">3</p>
+                            <p class="barge-value">{{ calculateStatus(device.TotalStatusSummary, 'Maintenance') }}</p>
                           </v-col>
                         </v-row>
                         <v-row>
@@ -135,58 +122,98 @@
             </v-card>
           </v-col>
         </v-row>
-      </v-container>
-    </v-app>
-  </template>
-  </PermissionCheck>
+      </v-row>
+      <v-overlay
+        :model-value="isLoading"
+        class="align-center justify-center"
+        persistent
+      >
+        <div class="pa-6 d-flex flex-column align-center">
+          <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+          <div class="mt-4 text-h6" style="font-family: 'Inter', sans-serif;">Loading data...</div>
+        </div>
+      </v-overlay>
+    </v-container>
+  </v-app>
 </template>
 
 <script setup>
 import NavigationBar from "@/components/NavigationBar.vue";
 import SpaceBar from '@/components/SpaceBar.vue';
-import PermissionCheck from "@/components/PermissionCheck.vue";
+import AlertBadges from "@/components/BargeDetails/AlertBadges.vue";
 import { inject, onMounted, ref } from "vue";
 import { useRouter } from 'vue-router';
 
 const $api = inject('$api');
 const router = useRouter();
-const bargeDevices = ref([]);
+const devices = ref([]);
+const isLoading = ref(true);
 
-// ดึงข้อมูลจาก API และกรองเฉพาะ Barge
-const fetchDeviceList = async () => {
+const fetchDeviceBargesGrouped = async () => {
   try {
-    const response = await $api.put('/device/GetDeviceListProfile', {
-      DeviceId: ''
-    });
+    isLoading.value = true;
+
+    const response = await $api.get('/MachineStatus/GetDeviceBargesGrouped');
+    const rawData = response.data;
     
-    // กรองข้อมูลเฉพาะ TypeVehicle: "Barge" และจัดกลุ่มตาม TypeDevicename
-    const bargeData = response.data.filter(device => device.TypeVehicle === 'Barge');
-    const groupedByType = {};
-    bargeData.forEach(device => {
-      const typeDeviceName = device.TypeDevicename || 'Unknown';
-      if (!groupedByType[typeDeviceName]) {
-        groupedByType[typeDeviceName] = {
-          TypeDevicename: typeDeviceName,
-          Note: device.Note
-        };
-      }
-    });
-    bargeDevices.value = Object.values(groupedByType);
+    const processedData = rawData.map(processGroupData);
+    
+    devices.value = processedData;
+    console.log('Processed DeviceBargesGrouped:', devices.value);
   } catch (error) {
-    console.error('Failed to fetch device list:', error);
+    error.value = 'Failed to fetch DeviceBargesGrouped. Please try again later.';
+    console.error(error);
+  } finally {
+    isLoading.value = false;
   }
 };
 
+const calculateAlerts = (devices) => {
+  let totalWarning = 0;
+  let totalDanger = 0;
+
+  devices.forEach(device => {
+    device.MeasurementsAlertCount?.forEach(alert => {
+      totalWarning += alert.AlertWarningTotal || 0;
+      totalDanger += alert.AlertDangerTotal || 0;
+    });
+  });
+  return { totalWarning, totalDanger };
+};
+
+const processGroupData = (group) => {
+  const { totalWarning, totalDanger } = calculateAlerts(group.Devices);
+  return {
+    ...group,
+    AlertWarningTotalSum: totalWarning,
+    AlertDangerTotalSum: totalDanger,
+  };
+};
+
+const calculateStatus = (summary, type) => {
+  if (!summary) return 0;
+
+  if (type === 'Offline') {
+    return (summary.Down || 0) + (summary.Unknown || 0);
+  }
+
+  if (type === 'Maintenance') {
+    return (summary['Standby/Maintenance'] || 0) + (summary['Running/Maintenance'] || 0);
+  }
+
+  return 0;
+};
+
 const goToBargeDetails = (typeDeviceName) => {
-  router.push({ name: 'BargeDetail', params: { typeDeviceName } });
+  router.push({ name: 'BargeDetail', params: { typeDeviceName: typeDeviceName } });
 };
 
 onMounted(() => {
-  fetchDeviceList();
+  fetchDeviceBargesGrouped();
 });
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .v-card {
   border-radius: 1vh;
 }
@@ -260,5 +287,4 @@ onMounted(() => {
   font-weight: 400;
   color: #A0A0A0;
 }
-
 </style>

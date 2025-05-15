@@ -3,33 +3,30 @@
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
-      <div class="title">{{ report.name }}</div>
-      <div class="title-thai">{{ report.nameThai }}</div>
-
-      <!-- Filter Form -->
+      <div class="title">Report on Tugboats Encountering Storms</div>
+      <div class="title-thai">รายงานเรือยนต์ที่เจอพายุ</div>
       <v-card class="mt-4">
         <v-card-text class="mx-16 my-6">
           <v-row>
-            <!-- Tugboat Dropdown -->
             <v-col cols="12" md="3">
               <v-select
-                v-model="selectedTugboat"
-                :items="tugboatList"
-                item-title="title"
-                item-value="id"
+                v-model="selectedTugboats"
+                :items="tugboatOptions"
+                item-title="deviceName"
+                item-value="deviceId"
                 label="Device"
                 variant="outlined"
                 density="compact"
                 multiple
                 clearable
-                :menu-props="{ closeOnContentClick: false }"
-                @update:modelValue="handleSelection"
+                :error-messages="deviceError"
+                :error="!!deviceError"
               >
                 <template v-slot:prepend-item>
                   <v-list-item title="Select All" @click="toggleSelectAll">
                     <template v-slot:prepend>
                       <v-checkbox-btn
-                        :color="isPartialSelection ? '#FAC12A' : undefined"
+                        :color="isPartialSelection ? 'indigo-darken-4' : undefined"
                         :indeterminate="isPartialSelection"
                         :model-value="isAllSelected"
                       ></v-checkbox-btn>
@@ -37,75 +34,94 @@
                   </v-list-item>
                 </template>
                 <template v-slot:selection="{ index }">
-                  <span v-if="index === 0">{{ selectedTugboat.length }} selected</span>
+                  <span v-if="index === 0">{{ selectedTugboats.length }} selected</span>
+                </template>
+                <template v-slot:item="{ props, item }">
+                  <v-list-item v-bind="props">
+                    <template v-slot:prepend>
+                      <v-checkbox-btn :model-value="selectedTugboats.includes(item.raw.deviceId)"></v-checkbox-btn>
+                    </template>
+                  </v-list-item>
                 </template>
               </v-select>
-            </v-col>  
-            <!-- Start Date -->
+            </v-col>
             <v-col cols="12" md="3">
-              <v-text-field
+              <datePicker
                 v-model="startDate"
                 label="Start Date"
-                type="date"
-                variant="outlined"
-                density="compact"
-              ></v-text-field>
+                :max="endDate || null"
+                enable-seconds
+                teleport
+                format="yyyy-MM-dd HH:mm:ss"
+                placeholder="Select Start Date"
+                :class="{ 'error-border': startDateError }"
+              ></datePicker>
+              <div v-if="startDateError" class="error-message">{{ startDateError }}</div>
             </v-col>
-            <!-- End Date -->
             <v-col cols="12" md="3">
-              <v-text-field
+              <datePicker
                 v-model="endDate"
                 label="End Date"
-                type="date"
-                variant="outlined"
-                density="compact"
-              ></v-text-field>
+                :min="startDate || null"
+                enable-seconds
+                teleport
+                format="yyyy-MM-dd HH:mm:ss"
+                placeholder="Select End Date"
+                :class="{ 'error-border': endDateError }"
+              ></datePicker>
+              <div v-if="endDateError" class="error-message">{{ endDateError }}</div>
             </v-col>
-
-            <v-col cols="6" md="3">
+            <v-col cols="12" md="3">
               <v-row>
-                <v-col cols="6" md="4" class="px-0">
+                <v-col cols="6" md="3">
                   <v-btn
-                    prepend-icon="mdi-close"
-                    class="cancel-btn"
+                    class="cancel-btn elevation-0 text-none"
                     @click="resetFilters"
                   >
                     Cancel
                   </v-btn>
                 </v-col>
-                <v-col cols="6" md="4" class="px-0">
+                <v-col cols="6" md="3">
                   <v-btn
-                    prepend-icon="mdi-magnify"
-                    class="search-btn"
-                    @click="searchRecords"
+                    class="search-btn elevation-0 text-none"
+                    @click="validateAndSearch"
+                    :loading="searchLoading"
                   >
                     Search
                   </v-btn>
                 </v-col>
-                <v-col cols="6" md="4" class="px-0">
+                <!-- <v-col cols="6" md="4" class="px-0">
                   <v-btn
-                    prepend-icon="mdi-arrow-down"
                     class="download-btn"
                     @click="downloadReport"
+                    :disabled="!showResult"
                   >
                     Download
                   </v-btn>
-                </v-col>
+                </v-col> -->
               </v-row>
             </v-col>
           </v-row>
         </v-card-text>
 
-        <!-- Result -->
-        <v-card-text width="100%" v-if="showResult">
+        <v-card-text v-if="searchLoading" class="text-center">
+          <v-progress-circular indeterminate color="primary"></v-progress-circular>
+          <div>Loading data...</div>
+        </v-card-text>
+
+        <v-card-text v-if="error" class="text-center error--text">
+          Error loading data: {{ error }}
+        </v-card-text>
+
+        <v-card-text v-if="showResult && !searchLoading">
           <apexchart
-            type="bar"
+            type="line"
             height="680"
             :options="chartOptions"
             :series="series"
           ></apexchart>
         </v-card-text>
-      </v-card>
+      </v-card> 
     </v-container>
   </v-app>
 </template>
@@ -113,106 +129,192 @@
 <script setup>
 import NavigationBar from '@/components/NavigationBar.vue';
 import SpaceBar from '@/components/SpaceBar.vue';
-import { reports, tugboats } from '@/data/config';
-import { computed, ref, watch } from 'vue';
+import { computed, inject, onMounted, ref } from 'vue';
 import VueApexCharts from 'vue3-apexcharts';
+import VueDatePicker from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css'
+import '@/assets/colors.scss';
 
-const report = computed(() => reports.find(report => report.id === 'report04'))
-const selectedTugboat = ref([]);
-const showResult = ref(false);
-const sortedSeries = ref([]);
-const startDate = ref('');
-const endDate = ref('');
-
+const datePicker = VueDatePicker;
 const apexchart = ref(VueApexCharts);
+const $api = inject('$api');
+const showResult = ref(false);
+const searchLoading = ref(false);
+const error = ref(null);
+const series = ref([]);
+const tugboatDevices = ref([]);
+const selectedTugboats = ref([]);
+const startDate = ref(null);
+const endDate = ref(null);
 
-const tugboatList = computed(() => {
-  return tugboats.map((tugboat) => ({
-    id: tugboat.id,
-    title: tugboat.name
-  }))
-});
+// Validation errors
+const deviceError = ref('');
+const startDateError = ref('');
+const endDateError = ref('');
 
-//  Check ว่าเลือกทั้งหมดหรือไม่
-const isAllSelected = computed(() => {
-  return selectedTugboat.value?.length === tugboatList.value?.length;
-});
+const validateForm = () => {
+  let isValid = true;
+  deviceError.value = '';
+  startDateError.value = '';
+  endDateError.value = '';
+  
+  if (selectedTugboats.value.length === 0) {
+    deviceError.value = 'Device is required';
+    isValid = false;
+  }
+  
+  if (!startDate.value) {
+    startDateError.value = 'Start date is required';
+    isValid = false;
+  }
+  
+  if (!endDate.value) {
+    endDateError.value = 'End date is required';
+    isValid = false;
+  }
+  
+  return isValid;
+};
 
-// Check ว่าเลือกบางส่วนหรือไม่
-const isPartialSelection = computed(() => {
-  return selectedTugboat.value?.length > 0 && !isAllSelected.value;
-});
-
-const toggleSelectAll = () => {
-  if (isAllSelected.value) {
-    selectedTugboat.value = [];
-  } else {
-    selectedTugboat.value = tugboatList.value.map((item) => item.id);
+const validateAndSearch = () => {
+  if (validateForm()) {
+    searchRecords();
   }
 };
 
-const handleSelection = () => {
-  if (selectedTugboat.value.length === tugboatList.value.length) {
-    selectedTugboat.value = tugboatList.value.map((item) => item.id);
+const fetchTugboatData = async () => {
+  try {
+    error.value = null;
+
+    const [riverResponse, seaResponse] = await Promise.all([
+      $api.get('/MachineStatus/GetTugboatRiver'),
+      $api.get('/MachineStatus/GetTugboatSea')
+    ]);
+
+    tugboatDevices.value = [...riverResponse.data, ...seaResponse.data];
+  } catch (err) {
+    console.error('Failed to fetch tugboat data:', err);
+    error.value = 'Failed to load device list. Please try again.';
+  }
+};
+
+// Create dropdown options
+const tugboatOptions = computed(() => {
+  return tugboatDevices.value.flatMap(group => 
+    group.Devices.map(device => ({
+      deviceId: device.DeviceId,
+      deviceName: device.DeviceName,
+      type: group.TypeDevicename
+    }))
+  );
+});
+
+// Check if all devices are selected
+const isAllSelected = computed(() => {
+  return selectedTugboats.value.length === tugboatOptions.value.length;
+});
+
+// Check if partial selection exists
+const isPartialSelection = computed(() => {
+  return selectedTugboats.value.length > 0 && !isAllSelected.value;
+});
+
+// Toggle select all devices
+const toggleSelectAll = () => {
+  if (isAllSelected.value) {
+    selectedTugboats.value = [];
+  } else {
+    selectedTugboats.value = tugboatOptions.value.map(option => option.deviceId);
   }
 };
 
 const resetFilters = () => {
-  selectedTugboat.value = [];
-  startDate.value = '';
-  endDate.value = '';
+  selectedTugboats.value = [];
+  startDate.value = null;
+  endDate.value = null;
   showResult.value = false;
+  error.value = null;
+  deviceError.value = '';
+  startDateError.value = '';
+  endDateError.value = '';
 };
 
-const searchRecords = () => {
-  // ดึงชื่อ tugboat ตาม id ที่เลือก
-  const selectedTugboatNames = selectedTugboat.value.map((id) => {
-    const found = tugboatList.value.find((tugboat) => tugboat.id === id);
-    return found ? found.title : id;
-  });
+const formatDate = (date) => {
+  if (!date) return '';
+  const pad = n => n.toString().padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+};
 
-  // ข้อมูลจาก series.data
-  let data = series.value[0].data.slice(0, selectedTugboatNames.length);
-
-  // สร้าง array ของ objects เพื่อเชื่อมโยง data กับ categories
-  let combined = selectedTugboatNames.map((name, index) => ({
-    name: name,
-    value: data[index] || 0, // หากไม่มีข้อมูลให้ใช้ 0
+const processChartData = (devices) => {
+  const deviceData = devices.map(device => ({
+    name: device.DeviceName,
+    stormTotal: device.MeasurementAlertCount?.[0]?.StormTotal ?? 0
   }));
 
-  // เรียงจากมากไปน้อยตาม value
-  combined.sort((a, b) => b.value - a.value);
+  deviceData.sort((a, b) => b.stormTotal - a.stormTotal);
+  
+  const categories = deviceData.map(device => device.name);
+  const seriesData = [
+    { 
+      name: 'Count Of Alert (Wind Speed)', 
+      type: 'bar', 
+      data: deviceData.map(device => device.stormTotal) 
+    }
+  ];
 
-  // แยกข้อมูลที่เรียงแล้วกลับไปเป็น categories และ data
-  const sortedCategories = combined.map(item => item.name);
-  const sortedData = combined.map(item => item.value);
+  return { series: seriesData, categories };
+};
 
-  chartOptions.value = {
-    ...chartOptions.value,
-    xaxis: {
-      categories: sortedCategories,
-    },
-  };
-  series.value = [{
-    name: "Count Of Alert (Wind Speed)",
-    type: "bar",
-    data: sortedData,
-  }];
+const searchRecords = async () => {
+  try {
+    searchLoading.value = true;
+    showResult.value = false;
+    error.value = null;
 
-  showResult.value = true;
-};  
+    const request = {
+      DeviceId: selectedTugboats.value,
+      StartDateTime: formatDate(startDate.value),
+      EndDatetime: formatDate(endDate.value),
+    };
+    
+    const response = await $api.put('MachineStatus/RealtimeChartDataReport04/multiple', request);
+    
+    if (!response.data || response.data.length === 0) {
+      error.value = 'No data found for the selected criteria';
+      return;
+    }
 
-const series = ref([
-  {
-    name: "Count Of Alert (Wind Speed)",
-    type: "bar",
-    data: [1.4, 2, 2.5, 1.5, 2.5, 2.8, 3.8, 4.6, 3, 3.1, 4, 4.1, 4.9, 6.5, 8.5, 1.4, 2, 2.5, 1.5, 2.5, 2.8, 3.8, 4.6, 3, 3.1],
+    const processedData = processChartData(response.data);
+    
+    series.value = processedData.series;
+    chartOptions.value = {
+      ...chartOptions.value,
+      xaxis: {
+        ...chartOptions.value.xaxis,
+        categories: processedData.categories,
+      },
+      yaxis: [{
+        seriesName: "Count Of Storm",
+        axisTicks: { show: true },
+        axisBorder: { show: true, color: "#352B54" },
+        labels: { style: { colors: "#352B54" } },
+        title: { text: "Count Of Storm", style: { color: "#352B54" } },
+      }]
+    };
+
+    showResult.value = true;
+  } catch (err) {
+    console.error('Error searching records:', err);
+    error.value = 'Failed to load chart data. Please try again.';
+  } finally {
+    searchLoading.value = false;
   }
-]);
+};
 
-watch(sortedSeries, (newValue) => {
-  series.value = [newValue];
-});
+// const downloadReport = () => {
+//   // Implement download functionality
+//   console.log('Download report');
+// };
 
 const chartOptions = ref({
   chart: {
@@ -226,10 +328,10 @@ const chartOptions = ref({
   xaxis: { categories: [] },
   yaxis: [
     {
-      seriesName: "Count Of Alert (Wind Speed)",
+      seriesName: "Count Of Storm",
       axisTicks: { show: true },
       labels: { style: { colors: "#352B54" } },
-      title: { text: "Count Of Alert (Wind Speed)", style: { color: "#352B54" } },
+      title: { text: "Count Of Storm", style: { color: "#352B54" } },
     }
   ],
   legend: {
@@ -237,11 +339,15 @@ const chartOptions = ref({
     horizontalAlign: "center",
     offsetY: 16,
   },
-})
+});
 
+onMounted(() => {
+  fetchTugboatData();
+});
 </script>
 
-<style lang="scss" scoped>
+
+<style scoped>
 .title {
   font-size: 2vh;
   font-weight: 600;
@@ -253,21 +359,38 @@ const chartOptions = ref({
   font-weight: 400;
 }
 
+.download-btn {
+  background-color: var(--yellow);
+  color: var(--white);
+  border-radius: 10px;  
+}
+
 .cancel-btn {
-  background-color: #DC2B2B;
-  color: #ffffff;
-  border-radius: 10px;
+  color: #000000;
+  border: 1px solid #E3E3E3;
+  border-radius: 24px;
 }
 
 .search-btn {
   background-color: #223368;
   color: #ffffff;
-  border-radius: 10px;
+  border-radius: 24px;
 }
 
-.download-btn {
-  background-color: #FAC12A;
-  color: #ffffff;
-  border-radius: 10px;  
+.error--text {
+  color: #DC2B2B;
+  font-weight: bold;
+}
+
+.error-border {
+  border: 1px solid #DC2B2B;
+  border-radius: 4px;
+}
+
+.error-message {
+  font-family: 'Inter', sans-serif;
+  color: #DC2B2B;
+  font-size: 12px;
+  margin-top: 4px;
 }
 </style>

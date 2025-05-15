@@ -3,25 +3,25 @@
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
-      <div class="title">{{ report.name }}</div>
-      <div class="title-thai">{{ report.nameThai }}</div>
+      <div class="title">Report on Barge Tilt</div>
+      <div class="title-thai">รายงานความเอียงทุ่น (แนวแกน X)</div>
       <v-card class="mt-4">
         <v-card-text class="mx-16 my-6">
           <v-row>
             <!-- Device Dropdown -->
             <v-col cols="12" md="3">
               <v-select
-                v-model="selectedBarge"
-                :items="bargeList"
-                item-title="title"
-                item-value="id"
+                v-model="selectedBarges"
+                :items="bargeOptions"
+                item-title="typeDevicename"
+                item-value="deviceId"
                 label="Barge"
                 variant="outlined"
                 density="compact"
                 multiple
                 clearable
-                :menu-props="{ closeOnContentClick: false }"
-                @update:modelValue="handleSelection"
+                :error-messages="deviceError ? 'Device is required' : ''"
+                :error="!!deviceError"
               >
                 <template v-slot:prepend-item>
                   <v-list-item title="Select All" @click="toggleSelectAll">
@@ -35,67 +35,80 @@
                   </v-list-item>
                 </template>
                 <template v-slot:selection="{ index }">
-                  <span v-if="index === 0">{{ selectedBarge.length }} selected</span>
+                  <span v-if="index === 0">{{ selectedBarges.length }} selected</span>
                 </template>
               </v-select>
             </v-col>
             <!-- Date Pickers -->
-            <!-- Start Date -->
             <v-col cols="12" md="3">
-              <v-text-field
+              <datePicker
                 v-model="startDate"
                 label="Start Date"
-                type="date"
-                variant="outlined"
-                density="compact"
-              ></v-text-field>
+                :max="endDate || null"
+                enable-seconds
+                teleport
+                format="yyyy-MM-dd HH:mm:ss"
+                placeholder="Select Start Date"
+                :class="{ 'error-border': startDateError }"
+              ></datePicker>
+              <div v-if="startDateError" class="error-message">{{ startDateError }}</div>
             </v-col>
-            <!-- End Date -->
             <v-col cols="12" md="3">
-              <v-text-field
+              <datePicker
                 v-model="endDate"
                 label="End Date"
-                type="date"
-                variant="outlined"
-                density="compact"
-              ></v-text-field>
+                :min="startDate || null"
+                enable-seconds
+                teleport
+                format="yyyy-MM-dd HH:mm:ss"
+                placeholder="Select End Date"
+                :class="{ 'error-border': endDateError }"
+              ></datePicker>
+              <div v-if="endDateError" class="error-message">{{ endDateError }}</div>
             </v-col>
-
-            <v-col cols="6" md="3">
+            <v-col cols="12" md="3">
               <v-row>
-                <v-col cols="6" md="4" class="px-0">
+                <v-col cols="6" md="3">
                   <v-btn
-                    prepend-icon="mdi-close"
-                    class="cancel-btn"
+                    class="cancel-btn elevation-0 text-none"
                     @click="resetFilters"
                   >
                     Cancel
                   </v-btn>
                 </v-col>
-                <v-col cols="6" md="4" class="px-0">
+                <v-col cols="6" md="3">
                   <v-btn
-                    prepend-icon="mdi-magnify"
-                    class="search-btn"
-                    @click="searchRecords"
+                    class="search-btn elevation-0 text-none"
+                    @click="validateAndSearch"
+                    :loading="searchLoading"
                   >
                     Search
                   </v-btn>
                 </v-col>
-                <v-col cols="6" md="4" class="px-0">
+                <!-- <v-col cols="6" md="4">
                   <v-btn
-                    prepend-icon="mdi-arrow-down"
-                    class="download-btn"
+                    class="download-btn elevation-0 text-none"
                     @click="downloadReport"
+                    :disabled="!showResult"
                   >
                     Download
                   </v-btn>
-                </v-col>
+                </v-col> -->
               </v-row>
             </v-col>
           </v-row>
         </v-card-text>
-        <!-- Results -->
-        <v-card-text v-if="showResult">
+
+        <v-card-text v-if="searchLoading" class="text-center">
+          <v-progress-circular indeterminate color="primary"></v-progress-circular>
+          <div>Loading data...</div>
+        </v-card-text>
+
+        <v-card-text v-if="error" class="text-center error--text">
+          Error loading data: {{ error }}
+        </v-card-text>
+
+        <v-card-text v-if="showResult && !searchLoading">
           <apexchart
             type="bar"
             height="680"
@@ -111,121 +124,251 @@
 <script setup>
 import NavigationBar from '@/components/NavigationBar.vue';
 import SpaceBar from '@/components/SpaceBar.vue';
-import { barges, reports } from '@/data/config';
-import { computed, ref, watch } from 'vue';
 import VueApexCharts from 'vue3-apexcharts';
+import VueDatePicker from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css'
+import { computed, inject, onMounted, ref } from 'vue';
 
-const report = computed(() => reports.find(report => report.id === 'report04'))
-const selectedBarge = ref([]);
-const sortedSeries = ref([]);
-const startDate = ref('');
-const endDate = ref('');
-const showResult = ref(false);
+const $api = inject('$api');
 const apexchart = ref(VueApexCharts);
+const datePicker = VueDatePicker;
+// Data
+const selectedBarges = ref([]);
+const bargeOptions = ref([]);
+const startDate = ref(null);
+const endDate = ref(null);
+const showResult = ref(false);
+const searchLoading = ref(false);
+const error = ref(null);
+const series = ref([]);
 
-const bargeList = computed (() => {
-  return barges.map((barge) => ({ id: barge.id, title: barge.name }))
-});
+// Error handling
+const deviceError = ref('');
+const startDateError = ref('');
+const endDateError = ref('');
 
+// Fetch barge data
+const fetchDeviceBargesGrouped = async () => {
+  try {
+    error.value = null;
+    const response = await $api.get('/MachineStatus/GetDeviceBargesGrouped');
+    
+    bargeOptions.value = response.data.flatMap(group => {
+      const bargeMaster = group.Devices.find(device => 
+        device.DeviceName === 'Barge Master'
+      );
+      
+      return bargeMaster ? [{
+        typeDevicename: group.TypeDevicename,
+        deviceId: bargeMaster.DeviceId
+      }] : [];
+    });
+    
+  } catch (err) {
+    console.error('Failed to fetch barge data:', err);
+    error.value = 'Failed to load barge list. Please try again.';
+  }
+};
+
+// Form validation
+const validateForm = () => {
+  let isValid = true;
+  deviceError.value = false;
+  startDateError.value = false;
+  endDateError.value = false;
+  
+  if (selectedBarges.value.length === 0) {
+    deviceError.value = 'Device is required';
+    isValid = false;
+  }
+  
+  if (!startDate.value) {
+    startDateError.value = 'Start date is required';
+    isValid = false;
+  }
+  
+  if (!endDate.value) {
+    endDateError.value = 'End date is required';
+    isValid = false;
+  }
+  
+  return isValid;
+};
+
+const validateAndSearch = () => {
+  if (validateForm()) {
+    searchRecords();
+  }
+};
+
+// Select all toggle
 const isAllSelected = computed(() => {
-  return selectedBarge.value?.length === bargeList.value?.length;
+  return selectedBarges.value.length === bargeOptions.value.length;
 });
 
 const isPartialSelection = computed(() => {
-  return selectedBarge.value?.length > 0 && !isAllSelected.value;
+  return selectedBarges.value.length > 0 && !isAllSelected.value;
 });
 
 const toggleSelectAll = () => {
   if (isAllSelected.value) {
-    selectedBarge.value = [];
+    selectedBarges.value = [];
   } else {
-    selectedBarge.value = bargeList.value.map((item) => item.id);
+    selectedBarges.value = bargeOptions.value.map(option => option.deviceId);
   }
 };
 
-const handleSelection = () => {
-  if (selectedBarge.value.length === bargeList.value.length) {
-    selectedBarge.value = bargeList.value.map((item) => item.id);
-  }
-};
-
+// Reset filters
 const resetFilters = () => {
-  selectedBarge.value = [];
+  selectedBarges.value = [];
   startDate.value = '';
   endDate.value = '';
   showResult.value = false;
+  error.value = null;
+  deviceError.value = '';
+  startDateError.value = '';
+  endDateError.value = '';
 };
 
-const searchRecords = () => {
-  const selectedBargeNames = selectedBarge.value.map((id) => {
-    const found = bargeList.value.find((barge) => barge.id === id);
-    return found ? found.title : id;
+// Format date for API
+const formatDate = (dateStr) => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  const pad = n => n.toString().padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} 00:00:00`;
+};
+
+// Process chart data from API response
+const processChartData = (data) => {
+  const categories = data.map(item => item.TypeDevicename);
+  const seriesData = data.map(item => {
+    const totalAlert = item.MeasurementAlertCount.find(m => m.Total !== undefined)?.Total || 0;
+    return totalAlert;
   });
 
-  let data = series.value[0].data.slice(0, selectedBargeNames.length);
-
-  let combined = selectedBargeNames.map((name, index) => ({
-    name: name,
-    value: data[index] || 0,
-  }));
-
-  combined.sort((a, b) => b.value - a.value);
-
-  const sortedCategories = combined.map(item => item.name);
-  const sortedData = combined.map(item => item.value);
-
-  chartOptions.value = {
-    ...chartOptions.value,
-    xaxis: {
-      categories: sortedCategories,
-    },
+  return {
+    series: [{
+      name: "Count Of Alert (Barge Tilt)",
+      data: seriesData
+    }],
+    categories
   };
-  series.value = [{
-    name: "Count Of Alert (Barge Tilt)",
-    type: "bar",
-    data: sortedData,
-  }];
-
-  showResult.value = true;
 };
 
-const series = ref([
-  {
-    name: "Count Of Alert (Barge Tilt)",
-    type: "bar",
-    data: [1.4, 2, 2.5, 1.5, 2.5, 2.8, 3.8, 4.6, 3, 3.1, 4, 4.1, 4.9, 6.5, 8.5, 1.4, 2, 2.5, 1.5, 2.5, 2.8, 3.8, 4.6, 3, 3.1],
+// Search records
+const searchRecords = async () => {
+  try {
+    searchLoading.value = true;
+    showResult.value = false;
+    error.value = null;
+
+    const request = {
+      DeviceId: selectedBarges.value,
+      StartDateTime: formatDate(startDate.value),
+      EndDatetime: formatDate(endDate.value),
+    };
+    
+    const response = await $api.put('MachineStatus/RealtimeChartDataReport08/multiple', request);
+    
+    if (!response.data || response.data.length === 0) {
+      error.value = 'No data found for the selected criteria';
+      return;
+    }
+
+    const processedData = processChartData(response.data);
+    
+    series.value = processedData.series;
+    chartOptions.value = {
+      ...chartOptions.value,
+      xaxis: {
+        ...chartOptions.value.xaxis,
+        categories: processedData.categories,
+      },
+    };
+
+    showResult.value = true;
+  } catch (err) {
+    console.error('Error searching records:', err);
+    error.value = 'Failed to load chart data. Please try again.';
+  } finally {
+    searchLoading.value = false;
   }
-]);
+};
 
-watch(sortedSeries, (newValue) => {
-  series.value = [newValue];
-});
+// Download report (placeholder)
+// const downloadReport = () => {
+//   console.log('Download report');
+// };
 
+// Chart options
 const chartOptions = ref({
   chart: {
     height: 680,
     type: "bar",
-    toolbar: { show: true },
+    toolbar: { 
+      show: true,
+      tools: {
+        download: false // We have our own download button
+      }
+    },
   },
   colors: ["#352B54"],
-  fill: { opacity: 1 },
-  dataLabels: { enabled: false },
-  xaxis: { categories: [] },
-  yaxis: [
-    {
-      seriesName: "Count Of Alert (Barge Tilt)",
-      axisTicks: { show: true },
-      labels: { style: { colors: "#352B54" } },
-      title: { text: "Count Of Alert (Barge Tilt)", style: { color: "#352B54" } },
+  plotOptions: {
+    bar: {
+      borderRadius: 4,
+      horizontal: false,
     }
-  ],
-  legend: {
-    show: true,
-    horizontalAlign: "center",
-    offsetY: 16,
   },
+  dataLabels: {
+    enabled: false
+  },
+  xaxis: {
+    type: 'category',
+    categories: [],
+    labels: {
+      trim: true,
+      hideOverlappingLabels: true,
+      style: {
+        fontSize: '12px'
+      }
+    }
+  },
+  yaxis: {
+    title: {
+      text: "Count Of Alert (Barge Tilt)",
+      style: {
+        color: "#352B54",
+        fontSize: '14px'
+      }
+    },
+    labels: {
+      style: {
+        colors: "#352B54"
+      }
+    }
+  },
+  tooltip: {
+    enabled: true,
+    y: {
+      formatter: function (val) {
+        return val + " alerts";
+      }
+    }
+  },
+  noData: {
+    text: "No data available",
+    align: 'center',
+    verticalAlign: 'middle',
+    style: {
+      color: "#666",
+      fontSize: '14px'
+    }
+  }
 });
 
+onMounted(() => {
+  fetchDeviceBargesGrouped();
+});
 </script>
 
 <style scoped>
@@ -240,21 +383,38 @@ const chartOptions = ref({
   font-weight: 400;
 }
 
-.cancel-btn {
-  background-color: #DC2B2B;
+.download-btn {
+  background-color: #FAC12A;
   color: #ffffff;
-  border-radius: 10px;
+  border-radius: 10px;  
+}
+
+.cancel-btn {
+  color: #000000;
+  border: 1px solid #E3E3E3;
+  border-radius: 24px;
 }
 
 .search-btn {
   background-color: #223368;
   color: #ffffff;
-  border-radius: 10px;
+  border-radius: 24px;
 }
 
-.download-btn {
-  background-color: #FAC12A;
-  color: #ffffff;
-  border-radius: 10px;  
+.error--text {
+  color: #DC2B2B;
+  font-weight: bold;
+}
+
+.error-border {
+  border: 1px solid #DC2B2B;
+  border-radius: 4px;
+}
+
+.error-message {
+  font-family: 'Sarabun', sans-serif;
+  color: #DC2B2B;
+  font-size: 12px;
+  margin-top: 4px;
 }
 </style>

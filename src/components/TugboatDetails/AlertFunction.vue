@@ -1,95 +1,93 @@
 <template>
-  <div>
-    <v-menu
-      v-model="showDangerMenu"
-      :close-on-content-click="false"
-      location="bottom"
-      offset-y
-    >
-      <template v-slot:activator="{ props }">
-        <v-badge
-          class="alert-badge"
-          :content="dangerCount.toString()"
-          v-show="dangerCount >= 0"
-          v-bind="props"
+  <v-menu
+    v-model="showDangerMenu"
+    :close-on-content-click="false"
+    location="bottom"
+    offset-y
+  >
+    <template v-slot:activator="{ props }">
+      <v-badge
+        class="alert-badge"
+        :content="dangerCount.toString()"
+        v-show="dangerCount >= 0"
+        v-bind="props"
+      >
+        <v-icon style="font-size: 2.5vh;">mdi-bell-ring</v-icon>
+      </v-badge>
+    </template>
+
+    <v-card min-width="300" class="pa-2">
+      <v-card-title class="text-subtitle-1 font-weight-bold">
+        {{ tugboat.name }} - ค่าวัดที่อยู่ในสถานะอันตราย
+      </v-card-title>
+      <v-divider></v-divider>
+      <v-list density="compact">
+        <v-list-item
+          v-for="(item, index) in dangerMeasurements"
+          :key="index"
+          class="py-1"
         >
-          <v-icon style="font-size: 2.5vh;">mdi-bell-ring</v-icon>
-        </v-badge>
-      </template>
+          <template v-slot:prepend>
+            <v-icon color="red">mdi-alert-circle</v-icon>
+          </template>
+          <v-list-item-title>{{ item.title }}: {{ item.value }} {{ item.unit }}</v-list-item-title>
+          <v-list-item-subtitle>
+            เกณฑ์ปกติ: {{ item.limits.min }} - {{ item.limits.max }} {{ item.unit }}
+          </v-list-item-subtitle>
+        </v-list-item>
+        <v-list-item v-if="dangerMeasurements.length === 0">
+          <v-list-item-title>ไม่พบค่าวัดที่อยู่ในสถานะอันตราย</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-card>
+  </v-menu>
 
-      <v-card min-width="300" class="pa-2">
-        <v-card-title class="text-subtitle-1 font-weight-bold">
-          {{ tugboat.name }} - ค่าวัดที่อยู่ในสถานะอันตราย
-        </v-card-title>
-        <v-divider></v-divider>
-        <v-list density="compact">
-          <v-list-item
-            v-for="(item, index) in dangerMeasurements"
-            :key="index"
-            class="py-1"
-          >
-            <template v-slot:prepend>
-              <v-icon color="red">mdi-alert-circle</v-icon>
-            </template>
-            <v-list-item-title>{{ item.title }}: {{ item.value }} {{ item.unit }}</v-list-item-title>
-            <v-list-item-subtitle>
-              เกณฑ์ปกติ: {{ item.limits.min }} - {{ item.limits.max }} {{ item.unit }}
-            </v-list-item-subtitle>
-          </v-list-item>
-          <v-list-item v-if="dangerMeasurements.length === 0">
-            <v-list-item-title>ไม่พบค่าวัดที่อยู่ในสถานะอันตราย</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-card>
-    </v-menu>
+  <v-menu
+    v-model="showWarningMenu"
+    :close-on-content-click="false"
+    location="bottom"
+    offset-y
+  >
+    <template v-slot:activator="{ props }">
+      <v-badge
+        class="warning-badge"
+        :content="warningCount.toString()"
+        v-show="warningCount >= 0"
+        v-bind="props"
+      >
+        <v-icon style="font-size: 2.5vh;">mdi-alert</v-icon>
+      </v-badge>
+    </template>
 
-    <v-menu
-      v-model="showWarningMenu"
-      :close-on-content-click="false"
-      location="bottom"
-      offset-y
-    >
-      <template v-slot:activator="{ props }">
-        <v-badge
-          class="warning-badge"
-          :content="warningCount.toString()"
-          v-show="warningCount >= 0"
-          v-bind="props"
+    <v-card min-width="300" class="pa-2">
+      <v-card-title class="text-subtitle-1 font-weight-bold">
+        {{ tugboat.name }} - ค่าวัดที่อยู่ในสถานะเตือน
+      </v-card-title>
+      <v-divider></v-divider>
+      <v-list density="compact">
+        <v-list-item
+          v-for="(item, index) in warningMeasurements"
+          :key="index"
+          class="py-1"
         >
-          <v-icon style="font-size: 2.5vh;">mdi-alert</v-icon>
-        </v-badge>
-      </template>
-
-      <v-card min-width="300" class="pa-2">
-        <v-card-title class="text-subtitle-1 font-weight-bold">
-          {{ tugboat.name }} - ค่าวัดที่อยู่ในสถานะเตือน
-        </v-card-title>
-        <v-divider></v-divider>
-        <v-list density="compact">
-          <v-list-item
-            v-for="(item, index) in warningMeasurements"
-            :key="index"
-            class="py-1"
-          >
-            <template v-slot:prepend>
-              <v-icon color="amber-darken-2">mdi-alert</v-icon>
-            </template>
-            <v-list-item-title>{{ item.title }}: {{ item.value }} {{ item.unit }}</v-list-item-title>
-            <v-list-item-subtitle>
-              เกณฑ์ปกติ: {{ item.normalLimits.min }} - {{ item.normalLimits.max }} {{ item.unit }}
-            </v-list-item-subtitle>
-          </v-list-item>
-          <v-list-item v-if="warningMeasurements.length === 0">
-            <v-list-item-title>ไม่พบค่าวัดที่อยู่ในสถานะเตือน</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-card>
-    </v-menu>
-  </div>
+          <template v-slot:prepend>
+            <v-icon color="amber-darken-2">mdi-alert</v-icon>
+          </template>
+          <v-list-item-title>{{ item.title }}: {{ item.value }} {{ item.unit }}</v-list-item-title>
+          <v-list-item-subtitle>
+            เกณฑ์ปกติ: {{ item.normalLimits.min }} - {{ item.normalLimits.max }} {{ item.unit }}
+          </v-list-item-subtitle>
+        </v-list-item>
+        <v-list-item v-if="warningMeasurements.length === 0">
+          <v-list-item-title>ไม่พบค่าวัดที่อยู่ในสถานะเตือน</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-card>
+  </v-menu>
 </template>
 
 <script>
-import { measurementLimits_T } from '@/data/config.js';
+import { measurementLimits_T } from '@/config/config.js';
 import '@/assets/colors.scss';
 
 export default {
@@ -240,7 +238,7 @@ export default {
 <style lang="scss" scoped>
 .alert-badge {
   color: var(--red);
-  margin-right: 16px;
+  margin-right: 1vh;
   cursor: pointer;
 
   :deep(.v-badge__badge) {

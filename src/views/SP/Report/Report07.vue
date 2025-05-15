@@ -3,12 +3,11 @@
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
-      <div class="title">{{ report.name }}</div>
-      <div class="title-thai">{{ report.nameThai }}</div>
-      <v-card class="mt-4">
+      <div class="title">Report on Daily Fuel Consumption for the Barge</div>
+      <div class="title-thai">รายงานการบริโภคน้ำมันรายวันของทุ่น</div>
+      <!-- <v-card class="mt-4">
         <v-card-text class="mx-16 mt-6">
           <v-row>
-            <!-- Device Dropdown -->
             <v-col cols="12" md="3">
               <v-select
                 v-model="selectedBarge"
@@ -21,8 +20,6 @@
                 density="compact"
               ></v-select>
             </v-col>
-            <!-- Date Pickers -->
-            <!-- Start Date -->
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="startDate"
@@ -32,7 +29,6 @@
                 density="compact"
               ></v-text-field>
             </v-col>
-            <!-- End Date -->
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="endDate"
@@ -75,7 +71,6 @@
             </v-col>
           </v-row>
         </v-card-text>
-        <!-- Results -->
         <v-card-text v-if="showResult" class="mx-16">
           <v-data-table
             :headers="headers"
@@ -86,7 +81,7 @@
             :footer-props="{ 'items-per-page-options': [results.length] }"
           ></v-data-table>
         </v-card-text>
-      </v-card>
+      </v-card> -->
     </v-container>
   </v-app>
 </template>
@@ -94,141 +89,137 @@
 <script setup>
 import NavigationBar from '@/components/NavigationBar.vue';
 import SpaceBar from '@/components/SpaceBar.vue';
-import { barges, reports } from '@/data/config';
-import { computed, ref } from 'vue';
+// import { computed, ref } from 'vue';
 
-const report = computed(() => reports.find(report => report.id === 'report07'))
-const selectedBarge = ref([]);
-const startDate = ref('');
-const endDate = ref('');
-const showResult = ref(false);
+// const selectedBarge = ref([]);
+// const startDate = ref('');
+// const endDate = ref('');
+// const showResult = ref(false);
 
-const bargeList = computed(() => 
-  barges.map((barge) => ({ id: barge.id, title: barge.name }))
-);
+// const bargeList = computed(() => 
+//   barges.map((barge) => ({ id: barge.id, title: barge.name }))
+// );
 
-const resetFilters = () => {
-  selectedBarge.value = [];
-  startDate.value = '';
-  endDate.value = '';
-  showResult.value = false;
-};
+// const resetFilters = () => {
+//   selectedBarge.value = [];
+//   startDate.value = '';
+//   endDate.value = '';
+//   showResult.value = false;
+// };
 
-const searchRecords = () => {
-  showResult.value = true;
-};
+// const searchRecords = () => {
+//   showResult.value = true;
+// };
 
-// Computed property เพื่อเพิ่มแถว Total
-const resultsWithTotal = computed(() => {
-  const total = results.value.reduce((acc, item) => {
-    return {
-      meterInBefore: (acc.meterInBefore || 0) + item.meterInBefore,
-      meterInafter: (acc.meterInafter || 0) + item.meterInafter,
-      consume: (acc.consume || 0) + item.consume,
-      meterHourBefore: (acc.meterHourBefore || 0) + item.meterHourBefore,
-      meterHourAfter: (acc.meterHourAfter || 0) + item.meterHourAfter,
-      workingHour: (acc.workingHour || 0) + item.workingHour,
-      litrPerHour: (acc.litrPerHour || 0) + item.litrPerHour,
-      rateSTD: (acc.rateSTD || 0) + item.rateSTD,
-      perDay: (acc.perDay || 0) + item.perDay,
-      diff: (acc.diff || 0) + item.diff,
-      remaining: (acc.remaining || 0) + item.remaining,
-    };
-  }, {});
+// const resultsWithTotal = computed(() => {
+//   const total = results.value.reduce((acc, item) => {
+//     return {
+//       meterInBefore: (acc.meterInBefore || 0) + item.meterInBefore,
+//       meterInafter: (acc.meterInafter || 0) + item.meterInafter,
+//       consume: (acc.consume || 0) + item.consume,
+//       meterHourBefore: (acc.meterHourBefore || 0) + item.meterHourBefore,
+//       meterHourAfter: (acc.meterHourAfter || 0) + item.meterHourAfter,
+//       workingHour: (acc.workingHour || 0) + item.workingHour,
+//       litrPerHour: (acc.litrPerHour || 0) + item.litrPerHour,
+//       rateSTD: (acc.rateSTD || 0) + item.rateSTD,
+//       perDay: (acc.perDay || 0) + item.perDay,
+//       diff: (acc.diff || 0) + item.diff,
+//       remaining: (acc.remaining || 0) + item.remaining,
+//     };
+//   }, {});
 
-  const totalRow = {
-    id: 'total',
-    date: 'Total',
-    deviceNO: 'Total', // ไม่ต้องรวม Device No.
-    ...total
-  };
+//   const totalRow = {
+//     id: 'total',
+//     date: 'Total',
+//     deviceNO: 'Total',
+//     ...total
+//   };
 
-  // รวมแถว Total กับข้อมูลเดิม
-  return [...results.value, totalRow];
-});
+//   return [...results.value, totalRow];
+// });
 
-const headers = ref([
-  { title: 'Date', value: 'date', align: 'center' },
-  { title: 'Device No.', value: 'deviceNO', align: 'center' },
-  { title: 'มิเตอร์เข้าเครื่อง', value: 'meterIn', align: 'center',
-    children: [
-      { title: 'ก่อน', value: 'meterInBefore', align: 'center' },
-      { title: 'หลัง', value: 'meterInafter', align: 'center' },
-    ]
-  },
-  { title: 'นำไปใช้', value: 'consume', align: 'center' },
-  { title: 'มิเตอร์ชั่วโมง', value: 'meterHour', align: 'center',
-    children: [
-      { title: 'ก่อน', value: 'meterHourBefore', align: 'center' },
-      { title: 'หลัง', value: 'meterHourAfter', align: 'center' },
-    ]
-  },
-  { title: 'น้ำมันที่ใช้จริง', value: 'actualOilUse', align: 'center',
-    children: [
-      { title: 'ชั่วโมงการทำงาน', value: 'workingHour', align: 'center' },
-      { title: 'ลิตร / ชม.', value: 'litrPerHour', align: 'center' },
-    ]
-  },
-  { title: 'เรท STD', value: 'rateSTD', align: 'center',
-    children: [
-      { title: 'ลิตร / ชม.', value: 'litrPerHour', align: 'center' },
-      { title: 'ต่อวัน', value: 'perDay', align: 'center' },
-    ]
-  },
-  { title: 'ผลต่าง (ลิตร)', value: 'diff', align: 'center' },
-  { title: 'เหลือ (+เกิน)%', value: 'remaining', align: 'center' },
-]);
+// const headers = ref([
+//   { title: 'Date', value: 'date', align: 'center' },
+//   { title: 'Device No.', value: 'deviceNO', align: 'center' },
+//   { title: 'มิเตอร์เข้าเครื่อง', value: 'meterIn', align: 'center',
+//     children: [
+//       { title: 'ก่อน', value: 'meterInBefore', align: 'center' },
+//       { title: 'หลัง', value: 'meterInafter', align: 'center' },
+//     ]
+//   },
+//   { title: 'นำไปใช้', value: 'consume', align: 'center' },
+//   { title: 'มิเตอร์ชั่วโมง', value: 'meterHour', align: 'center',
+//     children: [
+//       { title: 'ก่อน', value: 'meterHourBefore', align: 'center' },
+//       { title: 'หลัง', value: 'meterHourAfter', align: 'center' },
+//     ]
+//   },
+//   { title: 'น้ำมันที่ใช้จริง', value: 'actualOilUse', align: 'center',
+//     children: [
+//       { title: 'ชั่วโมงการทำงาน', value: 'workingHour', align: 'center' },
+//       { title: 'ลิตร / ชม.', value: 'litrPerHour', align: 'center' },
+//     ]
+//   },
+//   { title: 'เรท STD', value: 'rateSTD', align: 'center',
+//     children: [
+//       { title: 'ลิตร / ชม.', value: 'litrPerHour', align: 'center' },
+//       { title: 'ต่อวัน', value: 'perDay', align: 'center' },
+//     ]
+//   },
+//   { title: 'ผลต่าง (ลิตร)', value: 'diff', align: 'center' },
+//   { title: 'เหลือ (+เกิน)%', value: 'remaining', align: 'center' },
+// ]);
 
-const results = ref([
-  {
-    id: 1,
-    date: "2024-08-01",
-    deviceNO: "D-001",
-    meterInBefore: 1500,
-    meterInafter: 1600,
-    consume: 100,
-    meterHourBefore: 20,
-    meterHourAfter: 25,
-    workingHour: 5,
-    litrPerHour: 20,
-    rateSTD: 18,
-    perDay: 360,
-    diff: -10,
-    remaining: 5,
-  },
-  {
-    id: 2,
-    date: "2024-08-01",
-    deviceNO: "D-001",
-    meterInBefore: 1500,
-    meterInafter: 1600,
-    consume: 100,
-    meterHourBefore: 20,
-    meterHourAfter: 25,
-    workingHour: 5,
-    litrPerHour: 20,
-    rateSTD: 18,
-    perDay: 360,
-    diff: -10,
-    remaining: 5,
-  },
-  {
-    id: 3,
-    date: "2024-08-01",
-    deviceNO: "D-001",
-    meterInBefore: 1500,
-    meterInafter: 1600,
-    consume: 100,
-    meterHourBefore: 20,
-    meterHourAfter: 25,
-    workingHour: 5,
-    litrPerHour: 20,
-    rateSTD: 18,
-    perDay: 360,
-    diff: -10,
-    remaining: 5,
-  },
-]);
+// const results = ref([
+//   {
+//     id: 1,
+//     date: "2024-08-01",
+//     deviceNO: "D-001",
+//     meterInBefore: 1500,
+//     meterInafter: 1600,
+//     consume: 100,
+//     meterHourBefore: 20,
+//     meterHourAfter: 25,
+//     workingHour: 5,
+//     litrPerHour: 20,
+//     rateSTD: 18,
+//     perDay: 360,
+//     diff: -10,
+//     remaining: 5,
+//   },
+//   {
+//     id: 2,
+//     date: "2024-08-01",
+//     deviceNO: "D-001",
+//     meterInBefore: 1500,
+//     meterInafter: 1600,
+//     consume: 100,
+//     meterHourBefore: 20,
+//     meterHourAfter: 25,
+//     workingHour: 5,
+//     litrPerHour: 20,
+//     rateSTD: 18,
+//     perDay: 360,
+//     diff: -10,
+//     remaining: 5,
+//   },
+//   {
+//     id: 3,
+//     date: "2024-08-01",
+//     deviceNO: "D-001",
+//     meterInBefore: 1500,
+//     meterInafter: 1600,
+//     consume: 100,
+//     meterHourBefore: 20,
+//     meterHourAfter: 25,
+//     workingHour: 5,
+//     litrPerHour: 20,
+//     rateSTD: 18,
+//     perDay: 360,
+//     diff: -10,
+//     remaining: 5,
+//   },
+// ]);
 
 </script>
 

@@ -47,43 +47,12 @@ export default {
         { title: 'Details', key: 'details' },
         { title: 'Status', key: 'status' },
       ],
-      /* notices: [
-        { date: '2023-10-01', name: 'Gen No.116 WEICHAI 37KVA', measuremnet: 'Oil Pressure', details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
-        { date: '2023-10-02', name: 'Gen No.116 WEICHAI 37KVA', measuremnet: 'Oil Pressure', details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
-        { date: '2023-10-03', name: 'Gen No.116 WEICHAI 37KVA', measuremnet: 'Oil Pressure', details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
-        { date: '2023-10-04', name: 'Gen No.116 WEICHAI 37KVA', measuremnet: 'Oil Pressure', details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
-        { date: '2023-10-06', name: 'Gen No.118 PERKINS 75KVA', measuremnet: 'Oil Pressure', details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
-        { date: '2023-10-06', name: 'Gen No.118 PERKINS 75KVA', measuremnet: 'Oil Pressure', details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
-      ], */
     };
   },
 };
 </script>
 
 <style lang="scss" scoped>
-// .custom-scroll :deep(.v-table__wrapper) {
-//   overflow-y: auto;
-// }
-
-/* Scrollbar สำหรับ Chrome, Edge, Safari */
-// .custom-scroll :deep(.v-table__wrapper)::-webkit-scrollbar {
-//   width: 8px;
-// }
-
-// .custom-scroll :deep(.v-table__wrapper)::-webkit-scrollbar-track {
-//   background: #f0f0f0;
-//   border-radius: 10px;
-// }
-
-// .custom-scroll :deep(.v-table__wrapper)::-webkit-scrollbar-thumb {
-//   background: #888;
-//   border-radius: 10px;
-// }
-
-// .custom-scroll :deep(.v-table__wrapper)::-webkit-scrollbar-thumb:hover {
-//   background: #555;
-// }
-
 .striped-table :deep(tbody tr:nth-child(odd)) {
   background-color: var(--bg-row);
 }
@@ -91,26 +60,6 @@ export default {
 .striped-table :deep(tbody tr:nth-child(even)) {
   background-color: #ffffff;
 }
-
-// .custom-table :deep(thead th) {
-//   color: var(--black);
-//   font-weight: bold;
-//   font-size: 16px;
-// }
-
-// .custom-table :deep(tbody td) {
-//   color: var(--dark-gray);
-//   font-size: 16px;
-// }
-
-// .custom-table :deep(tbody tr:hover td) {
-//   color: var(--black);
-// }
-
-// .custom-table :deep(tbody tr:hover) {
-//   background-color: #f0f0f0;
-// }
-
 .v-card-text {
   padding: 0;
 }

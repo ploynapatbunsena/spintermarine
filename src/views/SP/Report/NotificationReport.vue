@@ -4,144 +4,177 @@
     <SpaceBar />
     <v-container fluid class="px-10">
       <div class="title">Notification Report</div>
-      
-      <!-- Filter Form -->
       <v-card class="mt-4">
         <v-card-text class="mx-16 my-6">
           <v-row>
-            <!-- Vehicle Dropdown -->
             <v-col cols="12" md="6">
               <v-select
-                v-model="selectedVehicle"
-                :items="vehicleList"
-                item-title="name"
-                item-value="id"
+                v-model="selectedType"
+                :items="typeOptions"
+                item-title="typeDeviceName"
+                item-value="typeDeviceName"
                 label="Vehicle"
-                @update:model-value="onVehicleChange"
                 variant="outlined"
                 density="compact"
+                clearable
+                @update:modelValue="handleTypeChange"
+                :error="vehicleError"
+                :error-messages="vehicleError ? 'Vehicle is required' : ''"
               ></v-select>
             </v-col>
-            
-            <!-- Device Dropdown -->
             <v-col cols="12" md="6">
               <v-select
-                v-model="selectedDevice"
-                :items="deviceList"
-                item-title="title"
-                item-value="id"
-                label="Device"
+                v-model="selectedDevices"
+                :items="deviceOptions"
+                item-title="deviceName"
+                item-value="deviceId"
+                label="Devices"
                 variant="outlined"
                 density="compact"
-                :disabled="!selectedVehicle"
-                @update:model-value="onDeviceChange"
-              ></v-select>
+                clearable
+                :error="deviceError"
+                :error-messages="deviceError ? 'Device is required' : ''"
+              >
+              </v-select>
             </v-col>
-            
-            <!-- Measurement Dropdown -->
             <v-col cols="12" md="3">
               <v-select
                 v-model="selectedMeasurement"
                 :items="measurementList"
-                item-title="title"
-                item-value="id"
+                item-title="measurementName"
+                item-value="measurementId"
                 label="Measurement"
                 variant="outlined"
                 density="compact"
-                :disabled="!selectedDevice"
-              ></v-select>
+                :disabled="!selectedDevices"
+                clearable
+                multiple
+              >
+                <template v-slot:prepend-item>
+                  <v-list-item title="Select All" @click="toggleSelectAll">
+                    <template v-slot:prepend>
+                      <v-checkbox-btn
+                        :color="isPartialSelection ? 'indigo-darken-4' : undefined"
+                        :indeterminate="isPartialSelection"
+                        :model-value="isAllSelected"
+                      ></v-checkbox-btn>
+                    </template>
+                  </v-list-item>
+                </template>
+                <template v-slot:selection="{ index }">
+                  <span v-if="index === 0">{{ selectedMeasurement.length }} selected</span>
+                </template>
+              </v-select>
             </v-col>
-            
-            <!-- Status Dropdown -->
             <v-col cols="12" md="3">
               <v-select
-                v-model="selectedStatus"
-                :items="statusList"
-                item-title="name"
+                v-model="selectedStatuses"
+                :items="statusOptions"
+                item-title="text"
                 item-value="value"
                 label="Status"
                 variant="outlined"
                 density="compact"
-              ></v-select>
+                multiple
+                clearable
+              >
+                <template v-slot:prepend-item>
+                  <v-list-item title="Select All" @click="toggleSelectAllStatus">
+                    <template v-slot:prepend>
+                      <v-checkbox-btn
+                        :color="isPartialStatusSelection ? 'indigo-darken-4' : undefined"
+                        :indeterminate="isPartialStatusSelection"
+                        :model-value="isAllStatusSelected"
+                      ></v-checkbox-btn>
+                    </template>
+                  </v-list-item>
+                </template>
+                <template v-slot:selection="{ index }">
+                  <span v-if="index === 0">{{ selectedStatuses.length }} selected</span>
+                </template>
+              </v-select>
             </v-col>
-            
-            <!-- Date Pickers -->
             <v-col cols="12" md="3">
-              <v-text-field
+              <datePicker
                 v-model="startDate"
                 label="Start Date"
-                type="date"
-                variant="outlined"
-                density="compact"
-              ></v-text-field>
+                :max="endDate || null"
+                enable-seconds
+                teleport
+                format="yyyy-MM-dd HH:mm:ss"
+                placeholder="Select Start Date"
+              ></datePicker>
             </v-col>
-            
             <v-col cols="12" md="3">
-              <v-text-field
+              <datePicker
                 v-model="endDate"
                 label="End Date"
-                type="date"
-                variant="outlined"
-                density="compact"
-              ></v-text-field>
+                :min="startDate || null"
+                enable-seconds
+                teleport
+                format="yyyy-MM-dd HH:mm:ss"
+                placeholder="Select End Date"
+              ></datePicker>
             </v-col>
           </v-row>
-          
-          <!-- Action Buttons -->
           <v-row>
             <v-col class="d-flex justify-end">
               <v-btn
-                prepend-icon="mdi-close"
-                class="cancel-btn mr-2"
+                class="cancel-button elevation-0 text-none mr-4"
                 @click="resetFilters"
               >
                 Cancel
               </v-btn>
               <v-btn
-                prepend-icon="mdi-magnify"
-                class="search-btn mr-2"
-                @click="searchRecords"
+                class="search-btn mr-2 elevation-0 text-none"
+                @click="validateAndSearch"
+                :loading="searchLoading"
               >
                 Search
               </v-btn>
-              <v-btn
+              <!-- <v-btn
                 prepend-icon="mdi-arrow-down"
                 class="download-btn"
                 @click="downloadReport"
               >
                 Download
-              </v-btn>
+              </v-btn> -->
             </v-col>
           </v-row>
         </v-card-text>
-        <!-- Results Table -->
-        <v-card-text v-if="showTable" class="mx-16">
+
+        <v-card-text v-if="searchLoading" class="text-center">
+          <v-progress-circular indeterminate color="primary"></v-progress-circular>
+          <div>Loading data...</div>
+        </v-card-text>
+
+        <v-card-text v-if="error" class="text-center error--text">
+          Error loading data: {{ error }}
+        </v-card-text>
+
+        <v-card-text v-if="showResult  && !searchLoading" class="mx-16">
           <v-data-table
             :headers="headers"
-            :items="results"
-            item-value="id"
-            class="elevation-1 mb-12 striped-table custom-table"
+            :items="tableData"
+            :items-per-page="-1"
+            class="elevation-1"
           >
-            <template v-slot:item="{ item }">
-              <tr>
-                <td>{{ formatDate(item.date) }}</td>
-                <td>{{ item.deviceName }}</td>
-                <td>{{ item.measurement }}</td>
-                <td>{{ item.ticketNumber || '-' }}</td>
-                <td>Value is in the dangerous zone</td>
-                <td>
-                  <v-chip :class="getStatusColor(item.status)">
-                    {{ item.status }}
-                  </v-chip>
-                </td>
-                <td>
-                  <v-icon
-                    icon="mdi-pencil-outline"
-                    class="edit"
-                    @click="openEditDialog(item)"
-                  ></v-icon>
-                </td>
-              </tr>
+            <template v-slot:item.date="{ item }">
+              {{ item.date }}
+            </template>
+            <template v-slot:item.status="{ item }">
+              <v-chip :class="getStatusColor(item.status)">
+                {{ item.status }}
+              </v-chip>
+            </template>
+            <template v-slot:item.action="{ item }">
+              <v-icon
+                class="edit mr-2"
+                small
+                @click="editItem(item.originalData)"
+              >
+                mdi-pencil
+              </v-icon>
             </template>
           </v-data-table>
         </v-card-text>
@@ -153,50 +186,65 @@
           <v-card-title class="card-dialog">แก้ไขรายการ</v-card-title>
           <v-card-text>
             <v-row>
-              <v-col cols="6" md="6">
+              <v-col cols="12" md="6">
                 <div>
                   <p class="title-field">Date</p>
-                  <div class="default-field">
-                    <p>{{ formatDate(editedItem.date) }}</p>
-                  </div>
+                  <v-text-field
+                    density="compact"
+                    style="font-size: 16px; font-family: 'Inter', sans-serif;"
+                    variant="outlined"
+                    disabled
+                    rounded="lg"
+                  >
+                    {{ editedItem.date }}
+                  </v-text-field>
                 </div>
               </v-col>
-              <v-col cols="6" md="6">
+              <v-col cols="12" md="6">
                 <div>
                   <p class="title-field">Device Name</p>
-                  <div class="default-field">
-                    <p>{{ editedItem.deviceName }}</p>
-                  </div>
+                  <v-text-field
+                    density="compact"
+                    style="font-size: 16px; font-family: 'Inter', sans-serif;"
+                    variant="outlined"
+                    disabled
+                    rounded="lg"
+                  >
+                    {{ editedItem.deviceName }}
+                  </v-text-field>
                 </div>
               </v-col>
-              <v-col cols="6" md="6">
+              <v-col cols="12" md="6">
                 <div>
                   <p class="title-field">Measuremnet</p>
-                  <div class="default-field">
-                    <p>{{ editedItem.measurement }}</p>
-                  </div>
+                  <v-text-field
+                    density="compact"
+                    style="font-size: 16px; font-family: 'Inter', sans-serif;"
+                    variant="outlined"
+                    disabled
+                    rounded="lg"
+                  >
+                    {{ editedItem.measurement }}
+                  </v-text-field>
                 </div>
               </v-col>
-              <v-col cols="6" md="6">
+              <v-col cols="12" md="6">
                 <div>
                   <p class="title-field-thai">เลขใบแจ้งซ่อม</p>
                     <v-text-field
-                      v-model="editedItem.ticketNumber"
+                      v-model="editedItem.solution"
                       variant="outlined"
-                      :disabled="!!originalTicketNumber"
-                      style="
-                        width: 362px;
-                        border-radius: 10px;
-                        color: var(--grey-02);
-                        font-family: 'Poppins', sans-serif;"
+                      require
+                      rounded="lg"
+                      density="compact"
                     ></v-text-field>
                 </div>
               </v-col>
             </v-row>
           </v-card-text>
           <v-card-actions class="d-flex align-center justify-center mb-8 ga-8">
-            <v-btn class="cancel-btn" @click="closeDialog">Cancel</v-btn>
-            <v-btn class="save-btn" @click="saveTicket" :disabled="!!originalTicketNumber">Save</v-btn>
+            <v-btn class="cancel-btn text-none" @click="closeEditDialog">Cancel</v-btn>
+            <v-btn class="save-btn text-none" @click="saveEditDialog">Save</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -204,368 +252,393 @@
   </v-app>
 </template>
 
-<script>
-import { ref, computed } from 'vue';
-import { barges, tugboats } from '@/data/config.js';
+<script setup>
 import NavigationBar from '@/components/NavigationBar.vue';
 import SpaceBar from '@/components/SpaceBar.vue';
+import { ref, computed, inject, onMounted, watch } from 'vue';
+import VueDatePicker from '@vuepic/vue-datepicker';
 import '@/assets/colors.scss'
+import '@vuepic/vue-datepicker/dist/main.css'
 
-export default {
-  name: 'NotificationReport',
-  components: {
-    NavigationBar,
-    SpaceBar,
-  },
+const $api = inject('$api');
+const memberData = ref(JSON.parse(localStorage.getItem('member'))) || {};
+const datePicker = VueDatePicker;
+const bargeGruop = ref([]);
+const tugboatRiverGroup = ref([]);
+const tugboatSeaGroup = ref([]);
+const selectedType = ref(null);
+const selectedDevices = ref(null);
+const measurementList = ref([]);
+const selectedMeasurement = ref([]);
+const selectedStatuses = ref([]);
+const searchLoading = ref(false);
+const tableData = ref([]);
+const showResult = ref(false);
+const startDate = ref(null);
+const endDate = ref(null);
+const dialog = ref(false);
+const vehicleError = ref(false);
+const deviceError = ref(false);
+const statusOptions = ref([
+  { text: 'รอแจ้งซ่อม', value: false },
+  { text: 'ดำเนินการเสร็จสิ้น', value: true }
+]);
+const editedItem = ref({
+  date: '',
+  deviceName: '',
+  measurement: '',
+  solution: '',
+  originalData: null
+});
 
-  data() {
-    return {
-      headers: [
-        { title: "Date", key: "date" },
-        { title: "Device Name", key: "deviceName" },
-        { title: "Measurement", key: "measurement" },
-        { title: "เลขใบแจ้งซ่อม", key: "ticketNumber" },
-        { title: "Details", key: "details", sortable: false },
-        { title: "Status", key: "status" },
-        { title: "Action", key: "action", sortable: false },
-      ],
-    };
-  },
-
-  methods: {
-    getStatusColor(status) {
-      switch (status) {
-        case 'รอแจ้งซ่อม':
-          return 'status-pending';
-        case 'ดำเนินการเสร็จสิ้น':
-          return 'status-finish';
-        default:
-          return '';
-      }
-    }
-  },
-  
-  setup() {
-    const selectedVehicle = ref(null);
-    const selectedDevice = ref(null);
-    const selectedMeasurement = ref(null);
-    const selectedStatus = ref('all');
-    const startDate = ref('');
-    const endDate = ref('');
-    const results = ref([]);
-    const showTable = ref(false);
-    const dialog = ref(false);
-    const editedItem = ref({});
-    const editedIndex = ref(-1);
-    const originalTicketNumber = ref('');
-    
-    const defaultBargeMeasurements = [
-      { id: 'all', title: 'Select All' },
-      { id: 'axis-x', title: 'Axis - X' },
-      { id: 'axis-y', title: 'Axis - Y' },
-      { id: 'oil-pressure', title: 'Oil Pressure' },
-      { id: 'water-temp', title: 'Water Temperature' },
-      { id: 'rpm', title: 'RPM' },
-      { id: 'battery', title: 'Battery' }
-    ];
-    
-    const defaultTugboatMeasurements = [
-      { id: 'all', title: 'Select All' },
-      { id: 'oil-pressure', title: 'Oil Pressure' },
-      { id: 'water-temp', title: 'Water Temperature' },
-      { id: 'rpm', title: 'RPM' },
-      { id: 'wind-speed', title: 'Wind Speed' },
-      { id: 'battery', title: 'Battery' }
-    ];
-    
-    const vehicleList = computed(() => {
-      const list = [
-        ...barges.map(barge => ({
-          id: barge.id,
-          name: barge.name
-        })),
-        {
-          id: 'Tugboats',
-          name: 'Tugboats'
-        }
-      ];
-      return list;
-    });
-    
-    const deviceList = computed(() => {
-      if (!selectedVehicle.value) return [];
-      
-      if (selectedVehicle.value === 'Tugboats') {
-        const list = [
-          { id: 'all', title: 'Select All' },
-          ...tugboats.map(tugboat => ({
-            id: tugboat.id,
-            title: tugboat.name
-          }))
-        ];
-        return list;
-      } else {
-        const selectedBargeData = barges.find(b => b.id === selectedVehicle.value);
-        if (!selectedBargeData) return [];
-        
-        return [
-          { id: 'all', title: 'Select All' },
-          ...selectedBargeData.items.map(item => ({
-            id: item.id,
-            title: item.title
-          }))
-        ];
-      }
-    });
-    
-    const measurementList = computed(() => {
-      if (!selectedVehicle.value || !selectedDevice.value) return [];
-      
-      if (selectedVehicle.value === 'Tugboats') {
-        return defaultTugboatMeasurements;
-      } else {
-        const selectedBarge = barges.find(b => b.id === selectedVehicle.value);
-        if (!selectedBarge) return defaultBargeMeasurements;
-        
-        if (selectedDevice.value === 'all') {
-          return defaultBargeMeasurements;
-        } else {
-          const selectedItem = selectedBarge.items.find(item => item.id === selectedDevice.value);
-          if (!selectedItem || !selectedItem.measuremnets) return defaultBargeMeasurements;
-          
-          return [
-            { id: 'all', title: 'Select All' },
-            ...selectedItem.measuremnets.map(m => ({
-              id: m.id,
-              title: m.title
-            }))
-          ];
-        }
-      }
-    });
-    
-    const statusList = ref([
-      { name: 'Select All', value: 'all' },
-      { name: 'รอแจ้งซ่อม', value: 'pending' },
-      { name: 'ดำเนินการเสร็จสิ้น', value: 'completed' }
+const fetchDeviceData = async () => {
+  try {
+    const [bargeResponse, riverResponse, seaResponse] = await Promise.all([
+      $api.get('/MachineStatus/GetDeviceBargesGrouped'),
+      $api.get('/MachineStatus/GetTugboatRiver'),
+      $api.get('/MachineStatus/GetTugboatSea')
     ]);
-    
-    const onVehicleChange = () => {
-      selectedDevice.value = null;
-      selectedMeasurement.value = null;
-    };
-    
-    const onDeviceChange = () => {
-      selectedMeasurement.value = null;
-    };
-    
-    const resetFilters = () => {
-      selectedVehicle.value = null;
-      selectedDevice.value = null;
-      selectedMeasurement.value = null;
-      selectedStatus.value = 'all';
-      startDate.value = '';
-      endDate.value = '';
-      showTable.value = false;
-    };
-    
-    const parseDate = (dateString) => {
-      if (!dateString) return null;
-      return new Date(dateString);
-    };
-    
-    const searchRecords = () => {
-      const mockData = [];
-      const startDateObj = parseDate(startDate.value);
-      const endDateObj = parseDate(endDate.value);
-      
-      const adjustedEndDateObj = endDateObj ? new Date(endDateObj) : null;
-      if (adjustedEndDateObj) {
-        adjustedEndDateObj.setDate(adjustedEndDateObj.getDate() + 1);
-      }
-      
-      if (selectedVehicle.value === 'Tugboats') {
-        let devicesToShow = [];
-        
-        if (selectedDevice.value === 'all') {
-          devicesToShow = tugboats;
-        } else {
-          devicesToShow = tugboats.filter(t => t.id === selectedDevice.value);
-        }
-        
-        devicesToShow.forEach(device => {
-          let measurementsToShow = [];
-          if (selectedMeasurement.value === 'all' || !selectedMeasurement.value) {
-            measurementsToShow = device.measuremnets || defaultTugboatMeasurements.filter(m => m.id !== 'all');
-          } else {
-            measurementsToShow = device.measuremnets.filter(m => m.id === selectedMeasurement.value) || [];
-          }
-          
-          measurementsToShow.forEach(measurement => {
-            const randomDate = generateDateInRange(startDateObj, adjustedEndDateObj);
-            
-            mockData.push({
-              id: `${device.id}-${measurement.id}`,
-              date: randomDate,
-              deviceName: device.name,
-              measurement: measurement.title,
-              ticketNumber: '',
-              status: 'รอแจ้งซ่อม'
-            });
-          });
-        });
-      } else {
-        const selectedBarge = barges.find(b => b.id === selectedVehicle.value);
-        if (!selectedBarge) return;
-        
-        let devicesToShow = [];
-        
-        if (selectedDevice.value === 'all') {
-          devicesToShow = selectedBarge.items;
-        } else {
-          devicesToShow = selectedBarge.items.filter(i => i.id === selectedDevice.value);
-        }
-        
-        devicesToShow.forEach(device => {
-          let measurementsToShow = [];
-          if (selectedMeasurement.value === 'all' || !selectedMeasurement.value) {
-            measurementsToShow = device.measuremnets || defaultBargeMeasurements.filter(m => m.id !== 'all');
-          } else {
-            if (device.measuremnets) {
-              measurementsToShow = device.measuremnets.filter(m => m.id === selectedMeasurement.value);
-            } else {
-              measurementsToShow = defaultBargeMeasurements.filter(m => m.id === selectedMeasurement.value && m.id !== 'all');
-            }
-          }
-          
-          measurementsToShow.forEach(measurement => {
-            const randomDate = generateDateInRange(startDateObj, adjustedEndDateObj);
-            
-            mockData.push({
-              id: `${device.id}-${measurement.id}`,
-              date: randomDate,
-              deviceName: device.title,
-              measurement: measurement.title,
-              ticketNumber: '',
-              status: 'รอแจ้งซ่อม'
-            });
-          });
-        });
-      }
-      
-      let filteredData = mockData;
-      if (selectedStatus.value !== 'all') {
-        const statusMap = {
-          'pending': 'รอแจ้งซ่อม',
-          'completed': 'ดำเนินการเสร็จสิ้น'
-        };
-        filteredData = mockData.filter(item => item.status === statusMap[selectedStatus.value]);
-      }
-      
-      if (startDateObj || adjustedEndDateObj) {
-        filteredData = filteredData.filter(item => {
-          const itemDate = new Date(item.date);
-          
-          const afterStart = startDateObj ? itemDate >= startDateObj : true;
-          const beforeEnd = adjustedEndDateObj ? itemDate < adjustedEndDateObj : true;
-          
-          return afterStart && beforeEnd;
-        });
-      }
-      
-      results.value = filteredData;
-      showTable.value = true;
-    };
-    
-    const generateDateInRange = (startDate, endDate) => {
-      const now = new Date();
-      
-      let start = startDate;
-      let end = endDate;
-      
-      if (!start && !end) {
-        start = new Date(now);
-        start.setDate(start.getDate() - 30);
-        end = now;
-      } else if (start && !end) {
-        end = now;
-      } else if (!start && end) {        
-        start = new Date(end);
-        start.setDate(start.getDate() - 30);
-      }
 
-      const timeDiff = end.getTime() - start.getTime();
-      return new Date(start.getTime() + Math.random() * timeDiff);
-    };
-    
-    const downloadReport = () => {
-      alert('Downloading report...');
-      // Implement download functionality
-    };
-    
-    const openEditDialog = (item) => {
-      editedIndex.value = results.value.findIndex(r => r.id === item.id);
-      editedItem.value = Object.assign({}, item);
-      originalTicketNumber.value = item.ticketNumber || '';
-      dialog.value = true;
-    };
-    
-    const closeDialog = () => {
-      dialog.value = false;
-      editedItem.value = {};
-      editedIndex.value = -1;
-    };
-    
-    const saveTicket = () => {
-      if (editedIndex.value > -1) {
-        results.value[editedIndex.value].ticketNumber = editedItem.value.ticketNumber;
-        results.value[editedIndex.value].status = 'ดำเนินการเสร็จสิ้น';
-        results.value[editedIndex.value].date = new Date();
-      }
-      closeDialog();
-    };
-    
-    const formatDate = (date) => {
-      if (!date) return '';
-      
-      const d = new Date(date);
-      const day = d.getDate().toString().padStart(2, '0');
-      const month = (d.getMonth() + 1).toString().padStart(2, '0');
-      const year = d.getFullYear();
-      const hours = d.getHours().toString().padStart(2, '0');
-      const minutes = d.getMinutes().toString().padStart(2, '0');
-      
-      return `${day}/${month}/${year} ${hours}:${minutes}`;
-    };
+    bargeGruop.value = bargeResponse.data;
+    tugboatRiverGroup.value = riverResponse.data;
+    tugboatSeaGroup.value = seaResponse.data;
 
-    return {
-      selectedVehicle,
-      selectedDevice,
-      selectedMeasurement,
-      selectedStatus,
-      startDate,
-      endDate,
-      vehicleList,
-      deviceList,
-      measurementList,
-      statusList,
-      results,
-      showTable,
-      dialog,
-      editedItem,
-      onVehicleChange,
-      onDeviceChange,
-      resetFilters,
-      searchRecords,
-      downloadReport,
-      openEditDialog,
-      closeDialog,
-      saveTicket,
-      formatDate,
-      originalTicketNumber,
-    };
+    bargeGruop.value.forEach(group => group.typeVehicle = 'Barge');
+    tugboatRiverGroup.value.forEach(group => group.typeVehicle = 'Tugboat River Going');
+    tugboatSeaGroup.value.forEach(group => group.typeVehicle = 'Tugboat Sea Going');
+
+  } catch (error) {
+    console.error('Failed to fetch device data:', error);
+    error.value = 'Failed to load device list. Please try again.';
   }
-}
+};
+
+const fetchMeasurementList = async () => {
+  try {
+    if (!selectedDevices.value) {
+      measurementList.value = [];
+      selectedMeasurement.value = [];
+      return;
+    }
+
+    const response = await $api.put('/Device/GetDeviceMeasurementList', {
+      DeviceId: selectedDevices.value
+    });
+    // console.log('DeviceId:', selectedDevices.value);
+
+    measurementList.value = response.data
+      .filter(item => item.MeasurementLabel !== "Status")
+      .map(item => ({
+        measurementId: item.MeasurementId,
+        measurementName: item.MeasurementName,
+      }));
+
+    selectedMeasurement.value = [];
+  } catch (error) {
+    console.error('Failed to fetch measurement list:', error);
+    error.value = 'Failed to load measurement list. Please try again.';
+    measurementList.value = [];
+    selectedMeasurement.value = [];
+  }
+};
+
+const typeOptions = computed(() => {
+  const options = [];
+  
+  bargeGruop.value.forEach(item => {
+    options.push({
+      typeDeviceName: item.TypeDevicename,
+      typeVehicle: 'Barge',
+      source: 'barge'
+    });
+  });
+
+  if (tugboatRiverGroup.value.length > 0) {
+    options.push({
+      typeDeviceName: 'Tugboat River Going',
+      typeVehicle: 'Tugboat River Going',
+      source: 'river'
+    });
+  }
+
+  if (tugboatSeaGroup.value.length > 0) {
+    options.push({
+      typeDeviceName: 'Tugboat Sea Going',
+      typeVehicle: 'Tugboat Sea Going',
+      source: 'sea'
+    });
+  }
+  console.log('option', options);
+  
+  return options;
+});
+
+const deviceOptions = computed(() => {
+  if (!selectedType.value) return [];
+
+  const selectedOption = typeOptions.value.find(option => option.typeDeviceName === selectedType.value);
+  if (!selectedOption) return [];
+
+  let devices = [];
+  
+  if (selectedOption.source === 'barge') {
+    const group = bargeGruop.value.find(item => item.TypeDevicename === selectedType.value);
+    if (group) devices = group.Devices;
+  } 
+  else if (selectedOption.source === 'river') {
+    tugboatRiverGroup.value.forEach(group => {
+      devices = devices.concat(group.Devices);
+    });
+  }
+  else if (selectedOption.source === 'sea') {
+    tugboatSeaGroup.value.forEach(group => {
+      devices = devices.concat(group.Devices);
+    });
+  }
+  console.log('device',devices);
+  return devices
+  .filter(device => !device.DeviceLabel.toLowerCase().includes('crane'))
+  .map(device => ({
+    deviceId: device.DeviceId,
+    deviceName: device.DeviceLabel
+  }));
+});
+
+const isAllSelected = computed(() => {
+  return selectedMeasurement.value.length === measurementList.value.length;
+});
+
+const isPartialSelection = computed(() => {
+  return selectedMeasurement.value.length > 0 && !isAllSelected.value;
+});
+
+const toggleSelectAll = () => {
+  if (isAllSelected.value) {
+    selectedMeasurement.value = [];
+  } else {
+    selectedMeasurement.value = measurementList.value.map(option => option.measurementId);
+  }
+};
+
+const isAllStatusSelected = computed(() => {
+  return selectedStatuses.value.length === statusOptions.value.length;
+});
+
+const isPartialStatusSelection = computed(() => {
+  return selectedStatuses.value.length > 0 && !isAllStatusSelected.value;
+});
+
+const toggleSelectAllStatus = () => {
+  if (isAllStatusSelected.value) {
+    selectedStatuses.value = [];
+  } else {
+    selectedStatuses.value = statusOptions.value.map(option => option.value);
+  }
+};
+
+const handleTypeChange = () => {
+  selectedDevices.value = [];
+};
+
+const resetFilters = () => {
+  selectedType.value = null;
+  selectedDevices.value = [];
+  selectedMeasurement.value = [];
+  selectedStatuses.value = [];
+  startDate.value = null;
+  endDate.value = null;
+  showResult.value = false;
+  vehicleError.value = false;
+  deviceError.value = false;
+};
+
+// const formatDateTime = (dateString) => {
+//   if (!dateString) return '';
+//   const date = new Date(dateString);
+//   return date.toLocaleString();
+// };
+
+const searchRecords = async () => {
+  try {
+    searchLoading.value = true;
+    showResult.value = false;
+
+    const requestBody = {
+      DeviceId: selectedDevices.value
+    };
+
+    if (selectedMeasurement.value?.length > 0) {
+      if (isAllSelected.value || selectedMeasurement.value.length === measurementList.value.length) {
+        requestBody.MeasurementId = "";
+      } else {
+        requestBody.MeasurementId = selectedMeasurement.value.join(",");
+      }
+    } else {
+      requestBody.MeasurementId = "";
+    }
+
+    if (selectedStatuses.value?.length > 0) {
+      if (isAllStatusSelected.value || selectedStatuses.value.length === statusOptions.value.length) {
+        requestBody.IsAccept = "";
+      } else if (selectedStatuses.value.length === 1) {
+        requestBody.IsAccept = selectedStatuses.value[0];
+      } else {
+        requestBody.IsAccept = selectedStatuses.value.join(",");
+      }
+    } else {
+      requestBody.IsAccept = "";
+    }
+
+    const params = {};
+    if (startDate.value) {params.start = adjustTime(startDate.value);}
+    if (endDate.value) { params.end = adjustTime(endDate.value);}
+
+    const config = params.start || params.end 
+      ? { params } 
+      : {};
+
+    const response = await $api.put('/device/notificationlistStatus', requestBody, config);
+    
+    const filteredData = response.data.filter(item => item.Title.includes("Danger"));
+
+    tableData.value = filteredData.map(item => ({
+      date: item.AlertTime,
+      deviceName: item.DeviceLabel,
+      measurement: `${item.MeasurementLabel} (${item.MeasurementUnit})`,
+      solution: item.Solution,
+      details: item.Description,
+      status: item.IsAccept ? 'ดำเนินการเสร็จสิ้น' : 'รอแจ้งซ่อม',
+      originalData: item
+    }));
+
+    showResult.value = true;
+
+  } catch (error) {
+    console.error('Failed to fetch notification list:', error);
+    alert('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+    tableData.value = [];
+  } finally {
+    searchLoading.value = false;
+  }
+};
+
+const adjustTime = (date) => {
+  const adjustedDate = new Date(date);
+  adjustedDate.setHours(adjustedDate.getHours() + 7);
+  return adjustedDate.toISOString();
+};
+
+const headers = [
+  { title: "Date", key: "date"},
+  { title: "Device Name", key: "deviceName"},
+  { title: "Measurement", key: "measurement" },
+  { title: "เลขใบแจ้งซ่อม", key: "solution" },
+  { title: "Details", key: "details", sortable: false },
+  { title: "Status", key: "status" },
+  { title: "Action", key: "action", sortable: false },
+];
+
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'รอแจ้งซ่อม':
+      return 'status-pending';
+    case 'ดำเนินการเสร็จสิ้น':
+      return 'status-finish';
+    default:
+      return '';
+  }
+};
+
+const saveEditDialog = async () => {
+  try {
+    if (!editedItem.value.solution) {
+      alert('กรุณากรอกเลขใบแจ้งซ่อม');
+      return;
+    }
+
+    const requestBody = {
+      Id: editedItem.value.originalData.Id,
+      CustomerId: memberData.value.CustomerId,
+      DeviceId: editedItem.value.originalData.DeviceId,
+      MeasurementId: editedItem.value.originalData.MeasurementId,
+      Solution: editedItem.value.solution,
+      ModifiedBy: memberData.value.MemberId
+    };
+    console.log('Saving with data:', requestBody);
+    await $api.put('/device/notification/accept/single', requestBody);
+
+    const index = tableData.value.findIndex(
+      item => item.originalData.Id === editedItem.value.originalData.Id
+    );
+    
+    if (index !== -1) {
+      tableData.value[index].originalData.Solution = editedItem.value.solution;
+      tableData.value[index].originalData.IsAccept = true;
+      tableData.value[index].status = 'ดำเนินการเสร็จสิ้น';
+      tableData.value[index].solution = editedItem.value.solution;
+    }
+
+    dialog.value = false;
+  } catch (error) {
+    console.error('Failed to save ticket:', error);
+  }
+};
+
+const editItem = (item) => {
+  editedItem.value = {
+    date: item.ModifiedDatetime || item.AlertTime,
+    deviceName: item.DeviceLabel,
+    measurement: `${item.MeasurementLabel} (${item.MeasurementUnit})`,
+    solution: item.Solution || '',
+    originalData: item
+  };
+  dialog.value = true;
+};
+
+const closeEditDialog = () => {
+  dialog.value = false;
+};
+
+const validateAndSearch = () => {
+  let isValid = true;
+  
+  vehicleError.value = false;
+  deviceError.value = false;
+  
+  if (!selectedType.value) {
+    vehicleError.value = 'Please select at least one vehicle';
+    isValid = false;
+  }
+
+  if (!selectedDevices.value) {
+    deviceError.value = 'Please select device';
+    isValid = false;
+  }
+
+  if (!vehicleError.value && !deviceError.value) {
+    searchRecords();
+  }
+
+  if (isValid) {
+    searchRecords();
+  }
+  
+  return isValid;
+};
+
+onMounted(() => {
+  fetchDeviceData();
+  fetchMeasurementList();
+});
+
+watch(selectedDevices, (newVal) => {
+  if (newVal) {
+    fetchMeasurementList();
+  } else {
+    measurementList.value = [];
+    selectedMeasurement.value = null;
+  }
+});
 </script>
 
 <style scoped>
@@ -623,18 +696,6 @@ export default {
   font-weight: 600;
 }
 
-.cancel-btn {
-  background-color: var(--red);
-  color: var(--white);
-  border-radius: 10px;
-}
-
-.search-btn {
-  background-color: var(--light-blue);
-  color: var(--white);
-  border-radius: 10px;  
-}
-
 .download-btn {
   background-color: var(--yellow);
   color: var(--white);
@@ -647,7 +708,6 @@ export default {
 }
 
 .title-field {
-  font-family: 'Poppins', sans-serif;
   font-size: 16px;
   color: var(--gray);
   margin-bottom: 6px;
@@ -673,17 +733,47 @@ export default {
   }
 }
 
+.cancel-button {
+  color: #000000;
+  border: 1px solid #E3E3E3;
+  border-radius: 24px;
+}
+
+.search-btn {
+  background-color: #223368;
+  color: #ffffff;
+  border-radius: 24px;
+}
+
 .cancel-btn {
-  background-color: var(--red);
-  color: var(--white);
-  border-radius: 14px;
-  padding: 0px 20px;
+  color: #000000;
+  border-radius: 24px;
+  border: 1px solid #E3E3E3;
+  font-family: 'Inter', sans-serif;
+  width: 5vw;
 }
 
 .save-btn {
-  background-color: var(--primary);
-  color: var(--white);
-  border-radius: 14px;
-  padding: 0px 20px;
+  background-color: #1476FF;
+  color: #ffffff;
+  border-radius: 24px;
+  font-family: 'Inter', sans-serif;
+  width: 5vw;
+}
+
+.error--text {
+  color: #DC2B2B;
+  font-weight: bold;
+}
+
+.error-border {
+  border: 1px solid #DC2B2B;
+  border-radius: 4px;
+}
+
+.error-message {
+  color: #DC2B2B;
+  font-size: 12px;
+  margin-top: 4px;
 }
 </style>

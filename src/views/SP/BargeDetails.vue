@@ -3,15 +3,17 @@
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="d-flex align-center justify-center fill-height"> 
-      <v-row>
+      <v-row v-if="!isLoading">
         <v-col cols="12" class="position-relative d-flex align-center">
           <div style="width: 10vh;"></div>
           <div class="title flex-grow-1 text-center">{{ typeDeviceName }}</div>
           <div style="width: 10vh;">
-            <AlertFunction />
+            <AlertBadges
+              :warningCount="totalAlerts.warning"
+              :dangerCount="totalAlerts.danger"
+            />
           </div>
         </v-col>
-
         <v-col cols="12">
           <v-card elevation="0" class="pa-4">
             <v-row>
@@ -20,71 +22,55 @@
                 <v-row>
                   <v-col
                     v-for="device in filteredDevices.slice(0, 5)"
-                    :key="device.deviceid"
+                    :key="device.DeviceId"
                     class="mx-auto"
                     cols="auto"
                   >
                     <v-card
                       class="gen-card pa-0 d-flex flex-column align-center"
-                      @click="goToGeneratorDetails(device.deviceid)"
+                      @click="goToGeneratorDetails(device.DeviceId)"
                     >
-                      <div class="gen-status" :class="getStatusClass(device)">
-                        <span 
-                          class="material-symbols-rounded status-icon" 
-                          :class="getStatusClass(device)"
-                        >
+                      <div class="gen-status" :class="[getAlertColorClass(device), getStatusClass(device)]">
+                        <v-icon v-if="getStatusIcon(device)" class="status-icon">
                           {{ getStatusIcon(device) }}
-                        </span>
-                        <p class="gen-name">{{ device.devicelabel }}</p>
+                        </v-icon>
+                        <p class="gen-name">{{ device.DeviceLabel }}</p>
                       </div>
                       <v-img
                         :src="require('@/assets/Images/generator.png')"
                         class="gen-img"
                       />
                       <div class="gen-details">
-                        <v-row no-gutters class="column-detail" style="background-color: #F9F9FA;">
-                          <v-col cols="8">Act Power</v-col>
-                          <v-col cols="4">{{ getMeasurementValue(device, 'Actual Power') || 'N/A' }} kW</v-col>
-                        </v-row>
-                        <v-row no-gutters class="column-detail">
-                          <v-col cols="8">RPM</v-col>
-                          <v-col cols="4">{{ getMeasurementValue(device, 'RPM') || 'N/A' }}</v-col>
-                        </v-row>
-                        <v-row no-gutters class="column-detail" style="background-color: #F9F9FA;">
-                          <v-col cols="8">Coolant temp</v-col>
-                          <v-col cols="4">{{ getMeasurementValue(device, 'Water Temp') || 'N/A' }}°C</v-col>
-                        </v-row>
-                        <v-row no-gutters class="column-detail">
-                          <v-col cols="8">Oil Pressure</v-col>
-                          <v-col cols="4">{{ getMeasurementValue(device, 'Oil Pressure') || 'N/A' }} bar</v-col>
-                        </v-row>
-                        <v-row no-gutters class="column-detail" style="background-color: #F9F9FA;">
-                          <v-col cols="8">Fuel Consumption/hr</v-col>
-                          <v-col cols="4">{{ getMeasurementValue(device, 'Fuel Rate') || 'N/A' }} Lt.</v-col>
+                        <v-row 
+                          v-for="(item, index) in deviceMeasurements(device)"
+                          :key="index"
+                          no-gutters 
+                          class="column-detail" 
+                          :style="{ backgroundColor: index % 2 === 0 ? '#F9F9FA' : 'transparent' }"
+                        >
+                          <v-col cols="8">{{ item.name }}</v-col>
+                          <v-col cols="2">{{ item.value }}</v-col>
+                          <v-col cols="2">{{ item.unit }}</v-col>
                         </v-row>
                       </div>
-                    </v-card>  
+                    </v-card>
                   </v-col>
                 </v-row>
               </v-col>
-              <!-- <v-col md="4" sm="4" cols="12">
+              <v-col md="4" sm="4" cols="12">
                 <v-row>
                   <v-col class="d-flex justify-center" cols="auto">
                     <v-card class="crane-card" elevation="0">
                       <div class="d-flex justify-space-between align-center pb-2">
                         <h2 class="text-h6 text-lg-h6 text-xxl-h4" style="font-family: 'Inter', sans-serif;">Crane</h2>
-                        <router-link :to="{ name: 'StatusEditForm', params: { typeDeviceName: typeDeviceName } }">
+                        <router-link :to="{ name: 'StatusUpdateForm', params: { typeDeviceName: typeDeviceName } }">
                           <v-icon icon="mdi-pencil-outline" class="edit"></v-icon>
                         </router-link>
                       </div>
                       <v-row class="mx-2">
-                        <v-col
-                          v-for="crane in craneDevices" 
-                          :key="crane.DeviceId" 
-                          cols="4"
-                        >
-                          <v-card class="d-flex flex-column align-center rounded-lg ">
-                            <div class="crane-title" :class="getStatusClass(crane)">
+                        <v-col v-for="crane in craneDevices" :key="crane.DeviceId" cols="4">
+                          <v-card class="d-flex flex-column align-center rounded-lg">
+                            <div class="crane-title" :class="getStatusCrane(crane)">
                               {{ crane.DeviceLabel }}
                             </div>
                             <v-img
@@ -102,7 +88,7 @@
                           <v-card>
                             <div class="d-flex justify-space-between align-center mx-4 my-2">
                               <p class="text-status">Standby</p>
-                              <span class="text-blue">{{ craneStatusCounts.standby }}</span>
+                              <span class="text-blue">{{ craneStatusCounts[1] }}</span>
                             </div>
                             <div class="bottom-line-blue"></div>
                           </v-card>
@@ -111,7 +97,7 @@
                           <v-card>
                             <div class="d-flex justify-space-between align-center mx-4 my-2">
                               <p class="text-status">Running</p>
-                              <span class="text-green">{{ craneStatusCounts.running }}</span>
+                              <span class="text-green">{{ craneStatusCounts[2] }}</span>
                             </div>
                             <div class="bottom-line-green"></div>
                           </v-card>
@@ -120,66 +106,7 @@
                           <v-card>
                             <div class="d-flex justify-space-between align-center mx-4 my-2">
                               <p class="text-status">Maintenance</p>
-                              <span class="text-black">{{ craneStatusCounts.maintenance }}</span>
-                            </div>
-                            <div class="bottom-line-black"></div>
-                          </v-card>
-                        </v-col>
-                      </v-row>
-                    </v-card>
-                  </v-col>
-                </v-row>
-              </v-col> -->
-              <v-col md="4" sm="4" cols="12">
-                <v-row>
-                  <v-col class="d-flex justify-center" cols="auto">
-                    <v-card class="crane-card" elevation="0">
-                      <div class="d-flex justify-space-between align-center pb-2">
-                        <h2 class="text-h6 text-lg-h6 text-xxl-h4" style="font-family: 'Inter', sans-serif;">Crane</h2>
-                        <router-link :to="{ name: 'StatusEditForm', params: { typeDeviceName: 'Barge Bunga' } }">
-                          <v-icon icon="mdi-pencil-outline" class="edit"></v-icon>
-                        </router-link>
-                      </div>
-                      <v-row class="mx-2">
-                        <v-col v-for="crane in craneDevices" :key="crane.deviceid" cols="4">
-                          <v-card class="d-flex flex-column align-center rounded-lg">
-                            <div class="crane-title" :class="getStatusClassCrane(crane)">
-                              {{ crane.devicelabel }}
-                            </div>
-                            <v-img
-                              width="8vh"
-                              height="10vh"
-                              :src="require('@/assets/Images/crane.png')"
-                              class="crane-img"
-                              cover
-                            ></v-img>
-                          </v-card>
-                        </v-col>
-                      </v-row>
-                      <v-row class="mx-2">
-                        <v-col cols="4">
-                          <v-card>
-                            <div class="d-flex justify-space-between align-center mx-4 my-2">
-                              <p class="text-status">Standby</p>
-                              <span class="text-blue">{{ craneStatusCounts.standby }}</span>
-                            </div>
-                            <div class="bottom-line-blue"></div>
-                          </v-card>
-                        </v-col>
-                        <v-col cols="4">
-                          <v-card>
-                            <div class="d-flex justify-space-between align-center mx-4 my-2">
-                              <p class="text-status">Running</p>
-                              <span class="text-green">{{ craneStatusCounts.running }}</span>
-                            </div>
-                            <div class="bottom-line-green"></div>
-                          </v-card>
-                        </v-col>
-                        <v-col cols="4">
-                          <v-card>
-                            <div class="d-flex justify-space-between align-center mx-4 my-2">
-                              <p class="text-status">Maintenance</p>
-                              <span class="text-black">{{ craneStatusCounts.maintenance }}</span>
+                              <span class="text-black">{{ craneStatusCounts[3] }}</span>
                             </div>
                             <div class="bottom-line-black"></div>
                           </v-card>
@@ -194,55 +121,41 @@
             <v-row>
               <v-col md="8" sm="8" cols="12">
                 <v-row>
-                  <!-- รายการ Generator ที่ 6-10 -->
                   <v-col
                     v-for="device in filteredDevices.slice(5, 10)"
-                    :key="device.deviceid"
+                    :key="device.DeviceId"
                     class="mx-auto"
                     cols="auto"
                   >
                     <v-card
                       class="gen-card pa-0 d-flex flex-column align-center"
-                      @click="goToGeneratorDetails(device.deviceid)"
+                      @click="goToGeneratorDetails(device.DeviceId)"
                     >
-                      <div class="gen-status" :class="getStatusClass(device)">
-                        <span 
-                          class="material-symbols-rounded status-icon" 
-                          :class="getStatusClass(device)"
-                        >
+                      <div class="gen-status" :class="[getAlertColorClass(device), getStatusClass(device)]">
+                        <v-icon v-if="getStatusIcon(device)" class="status-icon">
                           {{ getStatusIcon(device) }}
-                        </span>
-                        <p class="gen-name">{{ device.devicelabel }}</p>
+                        </v-icon>
+                        <p class="gen-name">{{ device.DeviceLabel }}</p>
                       </div>
                       <v-img
                         :src="require('@/assets/Images/generator.png')"
                         class="gen-img"
                       />
                       <div class="gen-details">
-                        <v-row no-gutters class="column-detail" style="background-color: #F9F9FA;">
-                          <v-col cols="8">Act Power</v-col>
-                          <v-col cols="4">{{ getMeasurementValue(device, 'Actual Power') || 'N/A' }} kW</v-col>
-                        </v-row>
-                        <v-row no-gutters class="column-detail">
-                          <v-col cols="8">RPM</v-col>
-                          <v-col cols="4">{{ getMeasurementValue(device, 'RPM') || 'N/A' }}</v-col>
-                        </v-row>
-                        <v-row no-gutters class="column-detail" style="background-color: #F9F9FA;">
-                          <v-col cols="8">Coolant temp</v-col>
-                          <v-col cols="4">{{ getMeasurementValue(device, 'Water Temp') || 'N/A' }}°C</v-col>
-                        </v-row>
-                        <v-row no-gutters class="column-detail">
-                          <v-col cols="8">Oil Pressure</v-col>
-                          <v-col cols="4">{{ getMeasurementValue(device, 'Oil Pressure') || 'N/A' }} bar</v-col>
-                        </v-row>
-                        <v-row no-gutters class="column-detail" style="background-color: #F9F9FA;">
-                          <v-col cols="8">Fuel Consumption/hr</v-col>
-                          <v-col cols="4">{{ getMeasurementValue(device, 'Fuel Rate') || 'N/A' }} Lt.</v-col>
+                        <v-row 
+                          v-for="(item, index) in deviceMeasurements(device)"
+                          :key="index"
+                          no-gutters 
+                          class="column-detail" 
+                          :style="{ backgroundColor: index % 2 === 0 ? '#F9F9FA' : 'transparent' }"
+                        >
+                          <v-col cols="8">{{ item.name }}</v-col>
+                          <v-col cols="2">{{ item.value }}</v-col>
+                          <v-col cols="2">{{ item.unit }}</v-col>
                         </v-row>
                       </div>
                     </v-card>  
                   </v-col>
-                  
                   <!-- เพิ่มคอลัมน์เปล่าเมื่อมี devices น้อยกว่า 10 -->
                   <template v-if="filteredDevices.length < 10">
                     <v-col
@@ -251,21 +164,18 @@
                       class="mx-auto"
                       cols="auto"
                     >
-                      <v-card 
-                        class="gen-card pa-0 d-flex flex-column align-center" 
-                        style="visibility: hidden;"
-                      >
-                        <!-- คอลัมน์เปล่า -->
-                      </v-card>
+                      <v-card class="gen-card pa-0 d-flex flex-column align-center" style="visibility: hidden;"></v-card>
                     </v-col>
                   </template>
                 </v-row>
               </v-col>
-              
               <!-- Gasoline Tank -->
               <v-col md="4" sm="4" cols="12" class="">
                 <v-card class="gasoline-card" elevation="0">
-                  <GasolineTank />
+                  <GasolineTank
+                    :remainingVolume="fuelLevel"
+                    :totalCapacity="totalCapacity"
+                  />
                 </v-card>
               </v-col>    
             </v-row> 
@@ -309,14 +219,17 @@
                   </v-row>
                 </v-card>
               </v-col>
-              
               <!-- Map -->
               <v-col md="4" sm="4" cols="12">
                 <v-card class="pa-2 rounded-xl h-100">
-                  <MapOfBarge />
+                  <MapOfBarge 
+                    :position="bargePosition"
+                    :wind-speed="coordinates.windSpeed"
+                    :wind-direction="coordinates.windDirection"
+                    :measurement-unit="windSpeedUnit"
+                  />
                 </v-card>
               </v-col>
-              
               <!-- Notification Table-->
               <v-col md="4" sm="4" cols="12">
                 <v-card class=" rounded-xl h-100">
@@ -326,15 +239,24 @@
                       <v-icon icon="mdi-pencil-outline" class="edit"></v-icon>
                     </router-link>
                   </div>
-                  <NoticeTable />
+                  <NotificationTable :notices="mappedNotices"/>
                 </v-card>
               </v-col>
             </v-row>
           </v-card>
         </v-col>
       </v-row>
-      <router-view />
-     </v-container> 
+      <v-overlay
+        :model-value="isLoading"
+        class="align-center justify-center"
+        persistent
+      >
+        <div class="pa-6 d-flex flex-column align-center">
+          <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+          <div class="mt-4 text-h6" style="font-family: 'Inter', sans-serif;">Loading data...</div>
+        </div>
+      </v-overlay>
+    </v-container> 
   </v-app>
 </template>
 
@@ -344,195 +266,279 @@ import SpaceBar from '@/components/SpaceBar.vue';
 import GasolineTank from '@/components/BargeDetails/GasolineTank.vue';
 import GaugeTiltLevel from '@/components/BargeDetails/GaugeTiltLevel.vue';
 import MapOfBarge from '@/components/BargeDetails/MapOfBarge.vue';
-import NoticeTable from '@/components/NoticeTable.vue';
+import NotificationTable from '@/components/NotificationTable.vue';
+import AlertBadges from '@/components/BargeDetails/AlertBadges.vue';
+import { fuelCapacityConfig } from '@/config/fuel-capacity-config';
 import '@/assets/colors.scss';
 import { computed, inject, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { watch } from 'vue';
-import { mockStatus } from '@/data/mockValue';
 
 const $api = inject('$api');
 const router = useRouter();
 const route = useRoute();
 const devices = ref([]);
+const noti = ref([]);
 const typeDeviceName = ref(route.params.typeDeviceName);
-const devicesStatus = ref(mockStatus);
+const isLoading = ref(true);
 
-const xValue = ref(0); 
-const yValue = ref(0);
-
-const getRandomValue = () => {
-  return Math.floor(Math.random() * 11) - 5; // สุ่มจาก 0-10 แล้วลบ 5 ได้ -5 ถึง 5
-};
-
-onMounted(() => {
-  xValue.value = getRandomValue();
-  yValue.value = getRandomValue();
-  
-  setInterval(() => {
-    xValue.value = getRandomValue();
-    yValue.value = getRandomValue();
-  }, 10000);
-});
-
+const xValue = computed(() => tiltValues.value.x);
+const yValue = computed(() => tiltValues.value.y);
 const xRotation = computed(() => (xValue.value / 6) * 10);
 const yRotation = computed(() => (yValue.value / 6) * 10);
 
-/* const excludedDeviceNames = [
-  'Barge CRANE 1',
-  'Barge CRANE 2',
-  'Barge CRANE 3',
-  'Barge Master'
-]; */
+const fetchDeviceBargesGrouped = async () => {
+  try {
+    isLoading.value = true;
 
-/* const filteredDevices = computed(() => {
-  return devices.value
-    .filter(device => 
-      device.TypeVehicle === 'Barge' && 
-      device.TypeDevicename === typeDeviceName.value && 
-      !excludedDeviceNames.includes(device.DeviceName)
-    );
-}); */
+    const response = await $api.get('/MachineStatus/GetDeviceByTypeDeviceName', {
+      params: { typeDeviceName: typeDeviceName.value }
+    });
 
-const filteredDevices = computed(() => {
-  return devicesStatus.value.filter(device => 
-    device.typevehicle === 'Barge' && 
-    device.typedevicename === 'Barge Bunga' && 
-    device.devicename.includes('GEN')
-  );
+    const processedDevices = response.data.map(device => {
+      let warningTotal = 0;
+      let dangerTotal = 0;
+      
+      device.MeasurementsAlertCount?.forEach(item => {
+        if ('AlertWarningTotal' in item) {
+          warningTotal += parseInt(item.AlertWarningTotal) || 0;
+        }
+        if ('AlertDangerTotal' in item) {
+          dangerTotal += parseInt(item.AlertDangerTotal) || 0;
+        }
+      });
+
+      return {
+        ...device,
+        AlertWarningTotalSum: warningTotal,
+        AlertDangerTotalSum: dangerTotal
+      };
+    });
+
+    devices.value = processedDevices;
+    console.log(devices.value);
+    
+  } catch (error) {
+    console.error('Fetch error:', error);
+    devices.value = [];
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const fetchNotification = async () => {
+  
+  isLoading.value = true;
+  if (!devices.value.length) {
+    await fetchDeviceBargesGrouped();
+  }
+  
+  noti.value = [];
+  try {
+    for (const device of devices.value) {
+      const requestBody = {
+        DeviceId: device.DeviceId,
+        IsAccept: false
+      };
+
+      try {
+        const response = await $api.put('/device/notificationlistStatus', requestBody);
+        const filteredData = response.data.filter(item =>  item.Title.includes("Danger"));
+        noti.value = [...noti.value, ...filteredData];
+      } catch (err) {
+        console.error(`Failed to fetch notifications for DeviceId ${device.DeviceId}:`, err);
+      }
+    }
+
+    console.log("Notifications:", noti.value);
+  } catch (err) {
+    error.value = 'Failed to fetch notifications. Please try again later.';
+    console.error(err);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const mappedNotices = computed(() => {
+  return noti.value.map(item => ({
+    date: new Date(item.AlertTime).toLocaleString('th-TH', {
+      dateStyle: 'short',
+      timeStyle: 'short'
+    }),
+    name: item.DeviceName,
+    measuremnet: item.MeasurementName,
+    details: item.Description,
+    status: item.Title
+  }));
 });
 
-const getStatusClass = (crane) => {
-  const status = crane.data[0]?.Data[0]?.data;
-  switch (status) {
+const totalAlerts = computed(() => {
+  return devices.value.reduce((total, device) => {
+    return {
+      warning: total.warning + (device.AlertWarningTotalSum || 0),
+      danger: total.danger + (device.AlertDangerTotalSum || 0)
+    };
+  }, { warning: 0, danger: 0 });
+});
+
+const filteredDevices = computed(() => {
+  return devices.value.filter(device => device.DeviceName.includes("GEN"));
+});
+
+const craneDevices = computed(() => {
+  return devices.value.filter(device => device.DeviceName.includes("CRANE"));
+});
+
+const craneStatusCounts = computed(() => {
+  const counts = { 0: 0, 1: 0, 2: 0, 3: 0 };
+
+  craneDevices.value.forEach(crane => {
+    const statusMeasurement = crane.Mesurement.find(m => m.measurementname === "Status");
+
+    const statusValue = statusMeasurement ? parseInt(statusMeasurement.lastvalue) : 0;
+    if (!isNaN(statusValue) && statusValue in counts) {
+      counts[statusValue]++;
+    }
+  });
+  return counts;
+});
+
+const totalCapacity = computed(() => {
+  return fuelCapacityConfig[typeDeviceName.value] || fuelCapacityConfig.default;
+});
+
+const fuelLevel = computed(() => {
+  const bargeMaster = devices.value.find(device => device.DeviceName === 'Barge Master');
+  if (!bargeMaster) return 0;
+  const fuelMeasurement = bargeMaster.Mesurement?.find(m => m.measurementname === 'Fuel Level Main tank');
+  
+  return parseInt(fuelMeasurement?.lastvalue) || 0;
+});
+
+const tiltValues = computed(() => {
+  const bargeMaster = devices.value.find(d => d.DeviceName === 'Barge Master');
+  if (!bargeMaster) return { x: 0, y: 0 };
+  
+  const axisX = bargeMaster.Mesurement?.find(m => m.measurementname === 'Axis-X');
+  const axisY = bargeMaster.Mesurement?.find(m => m.measurementname === 'Axis-Y');
+  
+  return {
+    x: parseFloat(axisX?.lastvalue) || 0,
+    y: parseFloat(axisY?.lastvalue) || 0
+  };
+});
+
+const coordinates = computed(() => {
+  const bargeMaster = devices.value.find(d => d.DeviceName === 'Barge Master');
+  if (!bargeMaster) return { 
+    latitude: 13.122581, 
+    longitude: 100.816189,
+    windSpeed: 0,
+    windDirection: 0
+  };
+  
+  const latitudeMeasurement = bargeMaster.Mesurement?.find(m => m.measurementname === 'Latitude');
+  const longitudeMeasurement = bargeMaster.Mesurement?.find(m => m.measurementname === 'Longitude');
+  const windSpeed = bargeMaster.Mesurement?.find(m => m.measurementname === 'Wind-Speed');
+  const windDirection = bargeMaster.Mesurement?.find(m => m.measurementname === 'Wind-Direction');
+
+  return {
+    latitude: parseFloat(latitudeMeasurement?.lastvalue) || 13.122581,
+    longitude: parseFloat(longitudeMeasurement?.lastvalue) || 100.816189,
+    windSpeed: parseInt(windSpeed?.lastvalue) || 0,
+    windDirection: parseInt(windDirection?.lastvalue) || 0
+  };
+});
+
+const bargePosition = computed(() => ({
+  lat: coordinates.value.latitude,
+  lng: coordinates.value.longitude
+}));
+
+const windSpeedUnit = computed(() => {
+  const bargeMaster = devices.value.find(d => d.DeviceName === 'Barge Master');
+  if (!bargeMaster) return 'm/s';
+  
+  const windSpeedMeasurement = bargeMaster.Mesurement?.find(m => m.measurementname === 'Wind-Speed');
+  return windSpeedMeasurement?.measurementunit || 'm/s';
+});
+
+const deviceMeasurements = (device) => {
+  const names = ['Actual Power', 'RPM', 'Water Temp', 'Oil Pressure', 'Total Fuel Consumption'];
+  return names.map(name => ({
+    name,
+    value: device.Mesurement?.find(m => m.measurementname === name)?.lastvalue || 'N/A',
+    unit: device.Mesurement?.find(m => m.measurementname === name)?.measurementunit || ''
+  }));
+};
+
+const getStatusClass = (device) => {
+  const statusMeasurement = device.Mesurement.find(m => m.measurementname === "Status");
+  if (!statusMeasurement) return 'status-unknown';
+
+  const statusValue = parseInt(statusMeasurement.lastvalue);
+  switch (statusValue) {
+    case 0: default: return 'status-unknown';
     case 1: return 'status-standby';
     case 2: return 'status-running';
     case 3: return 'status-standby-maintenance';
     case 4: return 'status-running-maintenance';
     case 5: return 'status-down';
-    case 0: default: return 'status-unknown';
   }
 };
 
-const craneDevices = computed(() => {
-  return devicesStatus.value.filter(device => 
-    device.typevehicle === 'Barge' && 
-    device.typedevicename === 'Barge Bunga' && 
-    device.devicename.includes('CRANE')
-  );
-});
+const getAlertColorClass = (device) => {
+  const dangerTotal = device.AlertDangerTotalSum || 0;
+  const warningTotal = device.AlertWarningTotalSum || 0;
+  
+  if (dangerTotal > 0) {
+    return 'alert-danger';
+  } else if (warningTotal > 0) {
+    return 'alert-warning';
+  }
+  return '';
+};
 
-const getStatusClassCrane = (crane) => {
-  const status = crane.data[0]?.Data[0]?.data;
-  switch (status) {
+// Icon of status of Gen
+const getStatusIcon = (device) => {
+  const statusMeasurement  = device.Mesurement.find(m => m.measurementname === "Status");
+  if (!statusMeasurement) return 'status-unknown';
+
+  const statusValue = parseInt(statusMeasurement.lastvalue);
+  switch (statusValue) {
+    case 3: return "mdi-hammer-wrench";
+    case 4: return "mdi-hammer-wrench";
+  }
+};
+
+const getStatusCrane = (crane) => {
+  const statusMeasurement = crane.Mesurement.find(m => m.measurementname === "Status");
+  if (!statusMeasurement) return 'status-unknown';
+
+  const statusValue = parseInt(statusMeasurement.lastvalue);
+  switch (statusValue) {
+    case 0: default: return 'status-unknown';
     case 1: return 'status-standby';
     case 2: return 'status-running';
-    case 3: return 'status-down';
-    case 0: default: return 'status-unknown';
+    case 3: return 'status-down'; //maintenance
   }
 };
 
-const craneStatusCounts = computed(() => {
-  const counts = { standby: 0, running: 0, maintenance: 0 };
-  craneDevices.value.forEach(crane => {
-    const status = crane.data[0]?.Data[0]?.data;
-    if (status === 1) counts.standby++;
-    else if (status === 2) counts.running++;
-    else if (status === 3) counts.maintenance++;
-  });
-  return counts;
-});
-
-/* const craneStatusCounts = computed(() => {
-  const counts = { standby: 0, running: 0, maintenance: 0 };
-  craneDevices.value.forEach(device => {
-    const status = device.Measurement?.find(m => m.MeasurementLabel === 'Status')?.MeasurementUnit || 'standby';
-    if (status === 'standby') counts.standby++;
-    else if (status === 'running') counts.running++;
-    else if (status === 'maintenance') counts.maintenance++;
-  });
-  return counts;
-});
-
-const craneDevices = computed(() => {
-  return devices.value.filter(device => 
-    device.TypeVehicle === 'Barge' && 
-    device.TypeDevicename === typeDeviceName.value && 
-    excludedDeviceNames.includes(device.DeviceName) &&
-    device.DeviceName.startsWith('Barge CRANE')
-  );
-}); */
-
-/* const getStatusClass = (device) => {
-  const status = device.Measurement?.find(m => m.MeasurementLabel === 'Status')?.MeasurementUnit || 'standby';
-  switch (status) {
-    case 'standby': return 'status-standby';
-    case 'running': return 'status-running';
-    case 'standby-maintenance': return 'status-standby-maintenance'
-    case 'running-maintenance': return 'status-running-maintenance'
-    case 'down': case 'maintenance': return 'status-down';
-    case 'warning': return 'status-warning';
-    case 'danger': return 'status-danger';
-    default: return 'status-standby';
-  }
-}; */
-
-const getStatusIcon = (status) => {
-  switch (status) {
-    case "running-maintenance": return "construction";
-    case "standby-maintenance": return "construction";
-    default: return "";
-  }
-};
-
-const getMeasurementValue = (device, label) => {
-  const measurement = device.Measurement?.find(m => m.MeasurementLabel === label);
-  return measurement ? measurement.Value || 'N/A' : 'N/A';
-};
-
-// Fetch devices
-const fetchDevices = async () => {
-  try {
-    const response = await $api.put('/device/GetDeviceListProfile', {
-      DeviceId: ''
-    });
-    devices.value = response.data;
-  } catch (error) {
-    console.error('Failed to fetch devices:', error);
-  }
-};
-
-// Navigate to GeneratorDetails
 const goToGeneratorDetails = (deviceId) => {
-  if (deviceId) {
-    router.push({ 
-      name: 'GeneratorDetails', 
-      params: { 
-        typeDeviceName: typeDeviceName.value, 
-        deviceId: deviceId 
-      }
-    });
-  } else {
-    console.error('Device ID is undefined');
-  }
+  router.push({ name: 'GeneratorDetails', params: { deviceId: deviceId }});
 };
 
 onMounted(() => {
-  fetchDevices();
-});
-
-watch(() => route.params.typeDeviceName, (newVal) => {
-  if (newVal !== typeDeviceName.value) {
-    typeDeviceName.value = newVal;
-    fetchDevices(newVal);
-  }
+  fetchDeviceBargesGrouped();
+  fetchNotification();
 });
 </script>
 
 <style lang="scss" scoped>
 .status-icon {
+  margin-right: 1vh;
   color: #FFFFFF;
 }
+
 .title {
   display: flex;
   align-items: center;
@@ -667,7 +673,15 @@ watch(() => route.params.typeDeviceName, (newVal) => {
 }
 
 .status-unknown {
-  background-color: #d8d8d8;
+  background-color: #C0C0C0;
+}
+
+.alert-danger {
+  background-color: #DC2B2B;
+}
+
+.alert-warning {
+  background-color: #FAC12A;
 }
 
 .material-symbols-rounded {

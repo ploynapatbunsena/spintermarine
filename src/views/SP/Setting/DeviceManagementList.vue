@@ -1,87 +1,78 @@
 <template>
-  <PermissionCheck 
-    menu-id="0101030400" 
-    :required-permissions="{
-      IsRead: true,
-      IsWrite: true
-    }"
-  >
-    <template #default="{ permissions }">
-      <v-app style="background-color: #F7F9FC;">
-        <NavigationBar />
-        <SpaceBar />
-        <v-container fluid class="px-10">
-          <div class="title">Device Management</div>
-          <v-card class="mt-4">
-            <v-card-text class="mx-6 my-6">
+  <v-app style="background-color: #F7F9FC;">
+    <NavigationBar />
+    <SpaceBar />
+    <v-container fluid class="px-10">
+      <div class="title">Device Management</div>
+      <v-card class="mt-4">
+        <v-card-text class="mx-6 my-6">
+          <v-row>
+            <!-- Vehicle Dropdown -->
+            <v-col cols="12" md="4" lg="4">
+              <v-select
+                label="Vehicle"
+                variant="outlined"
+                density="compact"
+                :items="vehicleItems"
+                v-model="selectedVehicle"
+                item-title="name"
+                item-value="name"
+              ></v-select>
+            </v-col>
+            <v-col cols="6" md="4" lg="4">
               <v-row>
-                <!-- Vehicle Dropdown -->
-                <v-col cols="12" md="4">
-                  <v-select
-                    label="Vehicle"
-                    variant="outlined"
-                    density="compact"
-                    :items="vehicleItems"
-                    v-model="selectedVehicle"
-                    item-title="name"
-                    item-value="name"
-                  ></v-select>
+                <v-col cols="6" md="3">
+                  <v-btn
+                    prepend-icon="mdi-close"
+                    class="cancel-btn"
+                    @click="resetFilters"
+                  >
+                    Cancel
+                  </v-btn>
                 </v-col>
-                <v-col cols="12" md="3">
-                  <v-row>
-                    <v-col cols="6" md="4">
-                      <v-btn
-                        prepend-icon="mdi-close"
-                        class="cancel-btn"
-                        @click="resetFilters"
-                      >
-                        Cancel
-                      </v-btn>
-                    </v-col>
-                    <v-col cols="6" md="4">
-                      <v-btn
-                        prepend-icon="mdi-magnify"
-                        class="search-btn"
-                        @click="searchRecords"
-                      >
-                        Search
-                      </v-btn>
-                    </v-col>
-                  </v-row>
+                <v-col cols="6" md="3">
+                  <v-btn
+                    prepend-icon="mdi-magnify"
+                    class="search-btn"
+                    @click="searchRecords"
+                  >
+                    Search
+                  </v-btn>
                 </v-col>
               </v-row>
-            </v-card-text>
-            <v-card-text v-if="showResult" class="mx-6">
-              <v-data-table
-                :headers="headers"
-                :items="filteredItems"
-                class="elevation-1 mb-12 striped-table custom-table"
-              >
-                <template v-slot:item="{ item }">
-                  <tr>
-                    <td>{{ item.DeviceId }}</td>
-                    <td>{{ item.DeviceName }}</td>
-                    <td>{{ item.DeviceLabel }}</td>
-                    <td class="description">{{ item.Note }}</td>
-                    <td class="action">{{ item.IsActive ? 'Active' : 'Inactive' }}</td>
-                    <td class="d-flex justify-center align-center">
-                      <v-icon v-if="permissions.IsWrite" icon="mdi-pencil-outline" class="edit" @click="editDevice(item.DeviceId)"></v-icon>
-                    </td>
-                  </tr>
-                </template>
-              </v-data-table>
-            </v-card-text>
-          </v-card>
-        </v-container>
-      </v-app>
-    </template>
-  </PermissionCheck>
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-text v-if="showResult" class="mx-6">
+          <v-data-table
+            :headers="headers"
+            :items="filteredItems"
+            class="elevation-1 mb-12 striped-table custom-table"
+          >
+            <template v-slot:item="{ item }">
+              <tr>
+                <td>{{ item.DeviceId }}</td>
+                <td>{{ item.DeviceName }}</td>
+                <td>{{ item.DeviceLabel }}</td>
+                <td class="description">{{ item.Note }}</td>
+                <td class="action" :class="{ 'text-green': item.IsActive, 'text-red': !item.IsActive }">
+                  {{ item.IsActive ? 'Active' : 'Inactive' }}
+                </td>
+                <td class="d-flex justify-center align-center">
+                  <v-icon icon="mdi-pencil-outline" class="edit" @click="editDevice(item.DeviceId)"></v-icon>
+                </td>
+              </tr>
+            </template>
+          </v-data-table>
+        </v-card-text>
+      </v-card>
+    </v-container>
+  </v-app>
 </template>
 
 <script setup>
 import NavigationBar from '@/components/NavigationBar.vue';
 import SpaceBar from '@/components/SpaceBar.vue';
-import PermissionCheck from '@/components/PermissionCheck.vue';
 import { ref, onMounted, inject } from 'vue';
 import router from '@/router';
 
@@ -112,9 +103,9 @@ const fetchDeviceList = async () => {
       if (device.TypeVehicle === 'Barge') {
         return { name: device.TypeDevicename };
       } else if (device.TypeVehicle === 'Tugboat river going') {
-        return { name: 'Tugboat River going' };
+        return { name: 'Tugboat River Going' };
       } else if (device.TypeVehicle === 'Tugboat sea going') {
-        return { name: 'Tugboat Sea going' };
+        return { name: 'Tugboat Sea Going' };
       }
       return null;
     })
@@ -137,9 +128,9 @@ const searchRecords = () => {
       if (device.TypeVehicle === 'Barge') {
         return device.TypeDevicename === selectedVehicle.value;
       } else if (device.TypeVehicle === 'Tugboat river going') {
-        return 'Tugboat River going' === selectedVehicle.value;
+        return 'Tugboat River Going' === selectedVehicle.value;
       } else if (device.TypeVehicle === 'Tugboat sea going') {
-        return 'Tugboat Sea going' === selectedVehicle.value;
+        return 'Tugboat Sea Going' === selectedVehicle.value;
       }
       return false;
     });
@@ -151,7 +142,7 @@ const searchRecords = () => {
 
 const editDevice = (deviceId) => {
   router.push({ name: "DeviceManagementForm", params: { deviceId }})
-}
+};
 
 onMounted(() => {
   fetchDeviceList();
@@ -176,6 +167,12 @@ onMounted(() => {
   border-radius: 10px;
 }
 
+.add-btn {
+  background-color: #FAC12A;
+  color: #ffffff;
+  border-radius: 10px;
+}
+
 .custom-table :deep(thead th) {
   color: #000000;
   font-weight: bold;
@@ -196,8 +193,15 @@ onMounted(() => {
 }
 
 td.action {
-  color: #14CA74 !important; /* บังคับ CSS */
   text-align: center;
+}
+
+.text-green {
+  color: #14CA74 !important;
+}
+
+.text-red {
+  color: #DC2B2B !important;
 }
 
 td.description {

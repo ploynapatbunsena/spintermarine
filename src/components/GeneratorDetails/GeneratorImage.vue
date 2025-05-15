@@ -4,13 +4,13 @@
       <v-col cols="12" sm="6" lg="6">
         <v-row>
           <v-col cols="12">
-            <p class="header">Total Flow</p>
+            <p class="header">Total Fuel ALL</p>
           </v-col>
         </v-row>
         <v-row>
           <v-col cols="6" class="d-flex align-center">
-            <p class="value">0</p>
-            <p class="unit">m³</p>
+            <p class="value">{{ measurements?.['Total Fuel ALL']?.value || '0' }}</p>
+            <p class="unit">{{ measurements?.['Total Fuel ALL']?.unit || 'L' }}</p>
           </v-col>
         </v-row>
         <v-row>
@@ -20,8 +20,8 @@
         </v-row>
         <v-row>
           <v-col cols="6" class="d-flex align-center">
-            <p class="value">0</p>
-            <p class="unit">m³</p>
+            <p class="value">{{ measurements?.['Fuel Rate']?.value || '0' }}</p>
+            <p class="unit">{{ measurements?.['Fuel Rate']?.unit || 'L/hr' }}</p>
           </v-col>
         </v-row>
       </v-col>
@@ -36,10 +36,14 @@
   </v-container>
 </template>
 
-<script>
-export default {
-  name: 'GeneratorInfo',
-}
+<script setup>
+
+const props = defineProps({
+  measurements: {
+    type: Object,
+    required: true,
+  },
+});
 </script>
 
 <style lang="scss" scoped>
@@ -76,7 +80,6 @@ export default {
 .unit {
   font-size: 4vh;
   font-weight: 300;
-  // margin-left: 24px;
   color: var(--white);
 }
 </style>

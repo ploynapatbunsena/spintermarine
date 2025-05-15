@@ -3,38 +3,41 @@
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
-      <div class="title">{{ report.name }}</div>
-      <div class="title-thai">{{ report.nameThai }}</div>
+      <div class="title">Report on Fuel Rate per RPM for Evaluating Engine Efficiency of Motor Barge</div>
+      <div class="title-thai">รายงานอัตราการใช้ชื้อเพลิง ต่อ RPM เพื่อดูประสิทธิภาพเครื่องยนต์ของทุ่น</div>
       <v-card class="mt-4">
         <v-card-text class="mx-16 my-6">
           <v-row>
-            <!-- Barge Dropdown -->
-            <v-col cols="12" md="6">
+            <!-- TypeDevicename Dropdown -->
+            <v-col cols="12" md="3">
               <v-select
-                v-model="selectedBarge"
-                :items="bargeList"
-                item-title="title"
-                item-value="id"
+                v-model="selectedType"
+                :items="typeOptions"
+                item-title="typeDevicename"
+                item-value="typeDevicename"
                 label="Barge"
-                @update:model-value="onBargeChange"
                 variant="outlined"
                 density="compact"
+                clearable
+                :error-messages="typeError"
+                :error="!!typeError"
+                @update:modelValue="handleTypeChange"
               ></v-select>
             </v-col>
-            <!-- GEN Dropdown -->
-            <v-col cols="12" md="6">
+            <!-- Device Dropdown -->
+            <v-col cols="12" md="3">
               <v-select
-                v-model="selectedDevice"
-                :items="deviceList"
-                item-title="title"
-                item-value="id"
-                label="Device"
+                v-model="selectedDevices"
+                :items="deviceOptions"
+                item-title="deviceName"
+                item-value="deviceId"
+                label="Generator Devices"
                 variant="outlined"
                 density="compact"
-                :disabled="!selectedBarge"
                 multiple
                 clearable
-                @update:modelValue="handleSelection"
+                :error-messages="deviceError"
+                :error="!!deviceError"
               >
                 <template v-slot:prepend-item>
                   <v-list-item title="Select All" @click="toggleSelectAll">
@@ -48,66 +51,75 @@
                   </v-list-item>
                 </template>
                 <template v-slot:selection="{ index }">
-                  <span v-if="index === 0">{{ selectedDevice.length }} selected</span>
+                  <span v-if="index === 0">{{ selectedDevices.length }} selected</span>
                 </template>
               </v-select>
             </v-col>
+
             <!-- Date Pickers -->
-            <!-- Start Date -->
-            <v-col cols="12" md="3">
-              <v-text-field
+            <v-col cols="12" md="2">
+              <datePicker
                 v-model="startDate"
                 label="Start Date"
-                type="date"
-                variant="outlined"
-                density="compact"
-              ></v-text-field>
+                :max="endDate || null"
+                enable-seconds
+                teleport
+                format="yyyy-MM-dd HH:mm:ss"
+                placeholder="Select Start Date"
+                :class="{ 'error-border': startDateError }"
+              ></datePicker>
+              <div v-if="startDateError" class="error-message">{{ startDateError }}</div>
             </v-col>
-            <!-- End Date -->
-            <v-col cols="12" md="3">
-              <v-text-field
+            <v-col cols="12" md="2">
+              <datePicker
                 v-model="endDate"
                 label="End Date"
-                type="date"
-                variant="outlined"
-                density="compact"
-              ></v-text-field>
+                :min="startDate || null"
+                enable-seconds
+                teleport
+                format="yyyy-MM-dd HH:mm:ss"
+                placeholder="Select End Date"
+                :class="{ 'error-border': endDateError }"
+              ></datePicker>
+              <div v-if="endDateError" class="error-message">{{ endDateError }}</div>
             </v-col>
-            <v-col cols="12" md="3">
-              <v-row>
-                <v-col cols="6" md="4">
-                  <v-btn
-                    prepend-icon="mdi-close"
-                    class="cancel-btn"
-                    @click="resetFilters"
-                  >
-                    Cancel
-                  </v-btn>
-                </v-col>
-                <v-col cols="6" md="4">
-                  <v-btn
-                    prepend-icon="mdi-magnify"
-                    class="search-btn"
-                    @click="searchRecords"
-                  >
-                    Search
-                  </v-btn>
-                </v-col>
-                <v-col cols="6" md="4" class="px-0">
-                  <v-btn
-                    prepend-icon="mdi-arrow-down"
-                    class="download-btn"
-                    @click="downloadReport"
-                  >
-                    Download
-                  </v-btn>
-                </v-col>
-              </v-row>
+          <!-- </v-row> -->
+          <!-- <v-row> -->
+            <v-col cols="12" md="2">
+              <v-btn
+                class="cancel-btn elevation-0 text-none mr-4"
+                @click="resetFilters"
+              >
+                Cancel
+              </v-btn>
+              <v-btn
+                class="search-btn elevation-0 text-none mr-4"
+                @click="validateAndSearch"
+                :loading="searchLoading"
+              >
+                Search
+              </v-btn>
+              <!-- <v-btn
+                class="download-btn elevation-0 text-none"
+                @click="downloadReport"
+                :disabled="!showResult"
+              >
+                Download
+              </v-btn> -->
             </v-col>
           </v-row>
         </v-card-text>
-        <!-- Results -->
-        <v-card-text v-if="showResult">
+
+        <v-card-text v-if="searchLoading" class="text-center">
+          <v-progress-circular indeterminate color="primary"></v-progress-circular>
+          <div>Loading data...</div>
+        </v-card-text>
+
+        <v-card-text v-if="error" class="text-center error--text">
+          Error loading data: {{ error }}
+        </v-card-text>
+
+        <v-card-text v-if="showResult && !searchLoading">
           <apexchart
             type="bar"
             height="680"
@@ -115,7 +127,7 @@
             :series="series"
           ></apexchart>
         </v-card-text>
-      </v-card> 
+      </v-card>
     </v-container>
   </v-app>
 </template>
@@ -123,164 +135,326 @@
 <script setup>
 import NavigationBar from '@/components/NavigationBar.vue';
 import SpaceBar from '@/components/SpaceBar.vue';
-import { barges, reports } from '@/data/config';
-import { computed, ref } from 'vue';
 import VueApexCharts from 'vue3-apexcharts';
+import VueDatePicker from '@vuepic/vue-datepicker';
+import { computed, inject, onMounted, ref } from 'vue';
+import '@vuepic/vue-datepicker/dist/main.css'
 
-const report = computed(() => reports.find(report => report.id === 'report05'));
-const selectedBarge = ref([]);
-const selectedDevice = ref([]);
-const startDate = ref('');
-const endDate = ref('');
-const showResult = ref(false);
+const $api = inject('$api');
 const apexchart = ref(VueApexCharts);
+const datePicker = VueDatePicker;
 
-const bargeList = computed(() =>
-  barges.map((barge) => ({ id: barge.id, title: barge.name })),
-);
+// Data
+const bargeData = ref([]);
+const selectedType = ref(null);
+const selectedDevices = ref([]);
+const startDate = ref(null);
+const endDate = ref(null);
+const showResult = ref(false);
+const searchLoading = ref(false);
+const error = ref(null);
+const series = ref([]);
 
-const deviceList = computed(() => {
-  if (!selectedBarge.value) return [];
+// Error handling
+const typeError = ref('');
+const deviceError = ref('');
+const startDateError = ref('');
+const endDateError = ref('');
 
-  const selectedBargeData = barges.find(b => b.id === selectedBarge.value);
-  if (!selectedBargeData) return [];
-  
-  return selectedBargeData.items.map(item => ({
-      id: item.id,
-      title: item.title
-    }))
-});
+// Fetch barge data
+const fetchDeviceBargesGrouped = async () => {
+  try {
+    const response = await $api.get('/MachineStatus/GetDeviceBargesGrouped');
+    bargeData.value = response.data;
 
-const onBargeChange = () => {
-  selectedDevice.value = null;
+  } catch (error) {
+    console.error('Failed to fetch barge data:', error);
+    error.value = 'Failed to load barge list. Please try again.';
+  }
 };
 
+const typeOptions = computed(() => {
+  return bargeData.value.map(group => ({
+    typeDevicename: group.TypeDevicename
+  }));
+});
+
+const deviceOptions = computed(() => {
+  if (!selectedType.value) return [];
+  
+  const selectedGroup = bargeData.value.find(group => 
+    group.TypeDevicename === selectedType.value
+  );
+  
+  if (!selectedGroup) return [];
+  
+  return selectedGroup.Devices
+    .filter(device => device.DeviceName.includes('GEN'))
+    .map(device => ({
+      deviceId: device.DeviceId,
+      deviceName: device.DeviceLabel
+    }));
+});
+
+// Handle type selection change
+const handleTypeChange = () => {
+  selectedDevices.value = [];
+};
+
+// Select all toggle
 const isAllSelected = computed(() => {
-  return selectedDevice.value?.length === deviceList.value?.length;
+  return selectedDevices.value.length === deviceOptions.value.length;
 });
 
 const isPartialSelection = computed(() => {
-  return selectedDevice.value?.length > 0 && !isAllSelected.value;
+  return selectedDevices.value.length > 0 && !isAllSelected.value;
 });
 
 const toggleSelectAll = () => {
   if (isAllSelected.value) {
-    selectedDevice.value = [];
+    selectedDevices.value = [];
   } else {
-    selectedDevice.value = deviceList.value.map((item) => item.id);
+    selectedDevices.value = deviceOptions.value.map(option => option.deviceId);
   }
 };
 
-const handleSelection = () => {
-  if (selectedDevice.value.length === deviceList.value.length) {
-    selectedDevice.value = deviceList.value.map((item) => item.id);
+// Form validation
+const validateForm = () => {
+  let isValid = true;
+  typeError.value = '';
+  deviceError.value = '';
+  startDateError.value = '';
+  endDateError.value = '';
+  
+  if (!selectedType.value) {
+    typeError.value = 'Barge is required';
+    isValid = false;
+  }
+  
+  if (selectedDevices.value.length === 0) {
+    deviceError.value = 'Generator is required';
+    isValid = false;
+  }
+  
+  if (!startDate.value) {
+    startDateError.value = 'Start date is required';
+    isValid = false;
+  }
+  
+  if (!endDate.value) {
+    endDateError.value = 'End date is required';
+    isValid = false;
+  }
+  
+  return isValid;
+};
+
+const validateAndSearch = () => {
+  if (validateForm()) {
+    searchRecords();
   }
 };
 
+// Reset filters
 const resetFilters = () => {
-  selectedBarge.value = null;
-  selectedDevice.value = [];
-  startDate.value = '';
-  endDate.value = '';
+  selectedType.value = null;
+  selectedDevices.value = [];
+  startDate.value = null;
+  endDate.value = null;
   showResult.value = false;
+  error.value = null;
+  typeError.value = '';
+  deviceError.value = '';
+  startDateError.value = '';
+  endDateError.value = '';
 };
 
-// const searchRecords = () => {
-//   const selectedGenNames = selectedDevice.value.map((id) => {
-//     const found = deviceList.value.find((gen) => gen.id === id);
-//     return found ? found.title : id;
-//   });
+// Format date for API
+const formatDate = (date) => {
+  if (!date) return '';
+  const pad = n => n.toString().padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+};
 
-//   chartOptions.value = {
-//     ...chartOptions.value,
-//     xaxis: {
-//       categories: selectedGenNames,
-//     },
-//   };
+// Process chart data from API response
+const processChartData = (data) => {
+  const categories = [];
+  const rpmData = [];
+  const fuelData = [];
 
-//   showResult.value = true;
-// };
+  data.forEach(device => {
+    const measurements = device.Measurement || [];
+    
+    const rpmMeasurement = measurements.find(m => m.measurementname === 'RPM');
+    const fuelMeasurement = measurements.find(m => m.measurementname === 'Fuel Rate');
 
-// ปรับปรุงฟังก์ชัน searchRecords
-const searchRecords = () => {
-  // ถ้าไม่มีการเลือกอุปกรณ์ ไม่ต้องแสดงผล
-  if (!selectedDevice.value || selectedDevice.value.length === 0) {
-    showResult.value = false;
-    return;
-  }
-  
-  // รายชื่ออุปกรณ์ที่เลือก
-  const selectedGenNames = selectedDevice.value.map((id) => {
-    const found = deviceList.value.find((gen) => gen.id === id);
-    return found ? found.title : id;
+    if (rpmMeasurement?.AvgValue !== null && rpmMeasurement?.AvgValue !== undefined) {
+      categories.push(device.DeviceName);
+      rpmData.push(rpmMeasurement.AvgValue);
+    }
+
+    if (fuelMeasurement?.AvgValue !== null && fuelMeasurement?.AvgValue !== undefined) {
+      fuelData.push(fuelMeasurement.AvgValue);
+    }
   });
-  
-  // สร้างข้อมูลจำลองตามจำนวนอุปกรณ์ที่เลือก
-  // (ในการใช้งานจริง คุณจะดึงข้อมูลจริงจาก API หรือแหล่งข้อมูลอื่น)
-  const generateRandomData = (count) => {
-    return Array.from({ length: count }, () => +(Math.random() * 10).toFixed(1));
+
+  return {
+    series: [
+      {
+        name: "RPM",
+        data: rpmData
+      },
+      {
+        name: "Fuel Rate",
+        data: fuelData
+      }
+    ],
+    categories
   };
-  
-  // อัปเดตชุดข้อมูลตามจำนวนอุปกรณ์ที่เลือก
-  series.value = [
-    {
-      name: "RPM (RPM)",
-      type: "bar",
-      data: generateRandomData(selectedDevice.value.length),
-    },
-    {
-      name: "Fuel Rate",
-      type: "bar",
-      data: generateRandomData(selectedDevice.value.length),
-    },
-  ];
-  
-  // อัปเดตหมวดหมู่ของแกน X เป็นชื่ออุปกรณ์ที่เลือก
-  chartOptions.value = {
-    ...chartOptions.value,
-    xaxis: {
-      categories: selectedGenNames,
-    },
-  };
-  
-  showResult.value = true;
 };
 
-const series = ref([
-  {
-    name: "RPM (RPM)",
-    type: "bar",
-    data: [1.4, 2, 2.5, 1.5, 2.5, 2.8, 3.8, 4.6, 3],
-  },
-  {
-    name: "Fuel Rate",
-    type: "bar",
-    data: [1.1, 3, 3.1, 4, 4.1, 4.9, 6.5, 8.5, 1.1],
-  },
-]);
+// Search records
+const searchRecords = async () => {
+  try {
+    searchLoading.value = true;
+    showResult.value = false;
+    error.value = null;
 
+    const request = {
+      DeviceId: selectedDevices.value,
+      StartDateTime: formatDate(startDate.value),
+      EndDatetime: formatDate(endDate.value),
+    };
+    
+    const response = await $api.put('MachineStatus/RealtimeChartDataReport05/multiple', request);
+    
+    if (!response.data || response.data.length === 0) {
+      error.value = 'No data found for the selected criteria';
+      return;
+    }
+
+    const processedData = processChartData(response.data);
+    
+    series.value = processedData.series;
+    chartOptions.value = {
+      ...chartOptions.value,
+      xaxis: {
+        ...chartOptions.value.xaxis,
+        categories: processedData.categories,
+      },
+    };
+
+    showResult.value = true;
+  } catch (err) {
+    console.error('Error searching records:', err);
+    error.value = 'Failed to load chart data. Please try again.';
+  } finally {
+    searchLoading.value = false;
+  }
+};
+
+// Download report (placeholder)
+const downloadReport = () => {
+  console.log('Download report');
+};
+
+// Chart options
 const chartOptions = ref({
   chart: {
     height: 680,
     type: "bar",
-    toolbar: { show: true },
-  },
-  plotOptions: {
-    bar: {
-      horizontal: true,
-      borderRadius: 6,
-      borderRadiusApplication: 'end'
-    }
+    stacked: false,
+    toolbar: { 
+      show: true,
+      tools: {
+        download: false // We have our own download button
+      }
+    },
   },
   colors: ["#352B54", "#FAC12A"],
-  fill: { opacity: 1 },
-  dataLabels: { enabled: false },
-  legend: {
-    horizontalAlign: "center",
-    offsetY: 16,
+  plotOptions: {
+    bar: {
+      horizontal: false,
+      columnWidth: '55%',
+      borderRadius: 4,
+    },
   },
+  dataLabels: {
+    enabled: false
+  },
+  stroke: {
+    show: true,
+    width: 2,
+    colors: ['transparent']
+  },
+  xaxis: {
+    categories: [],
+    labels: {
+      trim: true,
+      hideOverlappingLabels: true,
+      style: {
+        fontSize: '12px'
+      }
+    }
+  },
+  yaxis: [
+    {
+      title: {
+        text: "RPM",
+        style: {
+          color: "#352B54",
+          fontSize: '14px'
+        }
+      },
+      labels: {
+        style: {
+          colors: "#352B54"
+        }
+      }
+    },
+    {
+      opposite: true,
+      title: {
+        text: "Fuel Rate (L/hr)",
+        style: {
+          color: "#FAC12A",
+          fontSize: '14px'
+        }
+      },
+      labels: {
+        style: {
+          colors: "#FAC12A"
+        }
+      }
+    }
+  ],
+  tooltip: {
+    enabled: true,
+    y: {
+      formatter: function (val, { seriesIndex }) {
+        return seriesIndex === 0 ? val + " RPM" : val + " L/hr";
+      }
+    }
+  },
+  legend: {
+    position: 'top',
+    horizontalAlign: 'center',
+    offsetY: 10
+  },
+  noData: {
+    text: "No data available",
+    align: 'center',
+    verticalAlign: 'middle',
+    style: {
+      color: "#666",
+      fontSize: '14px'
+    }
+  }
 });
 
+onMounted(() => {
+  fetchDeviceBargesGrouped();
+});
 </script>
 
 <style scoped>
@@ -296,20 +470,37 @@ const chartOptions = ref({
 }
 
 .cancel-btn {
-  background-color: #DC2B2B;
-  color: #ffffff;
-  border-radius: 10px;
+  color: #000000;
+  border: 1px solid #E3E3E3;
+  border-radius: 24px;
 }
 
 .search-btn {
   background-color: #223368;
   color: #ffffff;
-  border-radius: 10px;
+  border-radius: 24px;
 }
 
 .download-btn {
   background-color: #FAC12A;
   color: #ffffff;
   border-radius: 10px;  
+}
+
+.error--text {
+  color: #DC2B2B;
+  font-weight: bold;
+}
+
+.error-border {
+  border: 1px solid #DC2B2B;
+  border-radius: 4px;
+}
+
+.error-message {
+  font-family: 'Sarabun', sans-serif;
+  color: #DC2B2B;
+  font-size: 12px;
+  margin-top: 4px;
 }
 </style>

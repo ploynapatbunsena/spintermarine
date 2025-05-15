@@ -1,125 +1,61 @@
 <template>
-  <v-container>
-    <v-row>
-      <!-- Main Tank -->
-      <v-col>
-        <div class="gasolineTank">
-          <p class="gasoline-title">Main Tank</p>
-          <div class="tank-container">
-            <div class="tank">
-              <div class="oil" :style="{ height: mainTank.oilPercentage + '%' }"></div>
-              <div class="percentage">{{ mainTank.oilPercentage }}%</div>
-            </div>
-            <div class="details">
-              <p>ปริมาณน้ำมัน: {{ mainTank.remainingVolume }}/{{ mainTank.totalCapacity }}L</p>
-            </div>
-          </div>
-        </div>
-      </v-col>
-
-      <!-- Feed Tank -->
-      <v-col>
-        <div class="gasolineTank">
-          <p class="gasoline-title">Feed Tank</p>
-          <div class="tank-container">
-            <div class="tank">
-              <div class="oil" :style="{ height: feedTank.oilPercentage + '%' }"></div>
-              <div class="percentage">{{ feedTank.oilPercentage }}%</div>
-            </div>
-            <div class="details">
-              <p>ปริมาณน้ำมัน: {{ feedTank.remainingVolume }}/{{ feedTank.totalCapacity }}L</p>
-            </div>
-          </div>
-        </div>
-      </v-col>
-
-      <!-- Total Tank -->
-      <v-col>
-        <div class="gasolineTank">
-          <p class="gasoline-title">Total Tank</p>
-          <div class="tank-container">
-            <div class="tank">
-              <div class="oil" :style="{ height: totalTank.oilPercentage + '%' }"></div>
-              <div class="percentage">{{ totalTank.oilPercentage }}%</div>
-            </div>
-            <div class="details">
-              <p>ปริมาณน้ำมัน: {{ totalTank.remainingVolume }}/{{ totalTank.totalCapacity }}L</p>
-            </div>
-          </div>
-        </div>
-      </v-col>
-    </v-row>
-  </v-container>
+  <div class="gasolineTank">
+    <p class="gasoline-title">{{ title }}</p>
+    <div class="tank-container">
+      <div class="tank">
+        <div class="oil" :style="{ height: oilPercentage + '%' }"></div>
+        <div class="percentage">{{ oilPercentage }}%</div>
+      </div>
+      <div class="details">
+        <p>ปริมาณน้ำมัน: {{ formattedRemainingVolume }} / {{ formattedTotalCapacity }} L</p>
+      </div>
+    </div>
+  </div>
 </template>
 
-<script>
-import '@/assets/colors.scss';
+<script setup>
+import { computed } from 'vue';
 
-export default {
-  name: "FuelTank",
-  data() {
-    return {
-      mainTank: {
-        remainingVolume: 500, // ค่าเริ่มต้นตัวอย่าง (ลิตร)
-        totalCapacity: 1000,  // ค่าเริ่มต้นตัวอย่าง (ลิตร)
-      },
-      feedTank: {
-        remainingVolume: 200,
-        totalCapacity: 500,
-      },
-      totalTank: {
-        remainingVolume: 700,
-        totalCapacity: 1500,
-      },
-    };
+const props = defineProps({
+  title: {
+    type: String,
+    required: true
   },
-  computed: {
-    mainTankOilPercentage() {
-      return this.calculatePercentage(this.mainTank.remainingVolume, this.mainTank.totalCapacity);
-    },
-    feedTankOilPercentage() {
-      return this.calculatePercentage(this.feedTank.remainingVolume, this.feedTank.totalCapacity);
-    },
-    totalTankOilPercentage() {
-      return this.calculatePercentage(this.totalTank.remainingVolume, this.totalTank.totalCapacity);
-    },
+  remainingVolume: {
+    type: [Number, String],
+    default: 0
   },
-  methods: {
-    calculatePercentage(remaining, total) {
-      if (total === 0 || isNaN(remaining) || isNaN(total)) {
-        return 0; // ป้องกัน NaN หรือการหารด้วย 0
-      }
-      return ((remaining / total) * 100).toFixed(2);
-    },
-  },
-  created() {
-    // รวม computed properties เข้ากับ object ของแต่ละแท็งก์เพื่อให้ใช้งานใน template ได้ง่ายขึ้น
-    this.mainTank.oilPercentage = this.mainTankOilPercentage;
-    this.feedTank.oilPercentage = this.feedTankOilPercentage;
-    this.totalTank.oilPercentage = this.totalTankOilPercentage;
-  },
-  watch: {
-    // อัปเดต oilPercentage เมื่อข้อมูลเปลี่ยนแปลง
-    'mainTank.remainingVolume'() {
-      this.mainTank.oilPercentage = this.mainTankOilPercentage;
-    },
-    'mainTank.totalCapacity'() {
-      this.mainTank.oilPercentage = this.mainTankOilPercentage;
-    },
-    'feedTank.remainingVolume'() {
-      this.feedTank.oilPercentage = this.feedTankOilPercentage;
-    },
-    'feedTank.totalCapacity'() {
-      this.feedTank.oilPercentage = this.feedTankOilPercentage;
-    },
-    'totalTank.remainingVolume'() {
-      this.totalTank.oilPercentage = this.totalTankOilPercentage;
-    },
-    'totalTank.totalCapacity'() {
-      this.totalTank.oilPercentage = this.totalTankOilPercentage;
-    },
-  },
-};
+  totalCapacity: {
+    type: [Number, String],
+    default: 0
+  }
+});
+
+const numericRemainingVolume = computed(() => {
+  if (props.remainingVolume == null) return 0;
+  const value = parseFloat(props.remainingVolume);
+  return isNaN(value) ? 0 : Math.max(0, value);
+});
+
+const numericTotalCapacity = computed(() => {
+  if (props.totalCapacity == null) return 0;
+  const value = parseFloat(props.totalCapacity);
+  return isNaN(value) ? 0 : Math.max(0, value);
+});
+
+const oilPercentage = computed(() => {
+  if (numericTotalCapacity.value <= 0) return 0;
+  const percentage = (numericRemainingVolume.value / numericTotalCapacity.value) * 100;
+  return Math.max(0, Math.min(100, percentage)).toFixed(1);
+});
+
+const formattedRemainingVolume = computed(() => {
+  return numericRemainingVolume.value.toLocaleString();
+});
+
+const formattedTotalCapacity = computed(() => {
+  return numericTotalCapacity.value.toLocaleString();
+});
 </script>
 
 <style lang="scss" scoped>

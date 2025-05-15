@@ -4,20 +4,16 @@
     <div class="top-space"></div>
     <div class="page-container">
       <div class="filter-container">
-        <v-navigation-drawer 
-          v-model="open"
-          width="350"
-        >
+        <v-navigation-drawer v-model="open" width="350">
           <v-list>
             <v-list-item class="py-4 ml-6 title" title="Tugboat"></v-list-item>
             <v-divider></v-divider>
             <v-list-item 
-              v-for="tugboat in filteredDevices" 
+              v-for="tugboat in devices" 
               :key="tugboat.DeviceId"
               class="d-flex align-center py-3 ml-6"
               @click="selectSingleBoat(tugboat.DeviceId)"
               :class="{ 'selected-boat': selectedBoats === tugboat.DeviceId }"
-          
             >
               <template v-slot:prepend>
                 <v-checkbox
@@ -29,7 +25,7 @@
                 ></v-checkbox>
               </template>
               <div class="d-flex align-center">
-                <v-icon class="mx-3" :class="getStatusClass(tugboat.status)">mdi-ferry</v-icon>
+                <v-icon class="mx-3" :class="getStatusClass(tugboat)">mdi-ferry</v-icon>
                 <span>{{ tugboat.DeviceName }}</span>
               </div>
             </v-list-item>
@@ -47,7 +43,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed, inject } from 'vue';
+import { ref, onMounted, watch, inject } from 'vue';
 import { useRoute } from 'vue-router';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -56,67 +52,84 @@ import NavigationBar from '@/components/NavigationBar.vue';
 import TransportTable from '@/components/TugboatDetails/TransportTable.vue';
 
 const $api = inject('$api');
-
-// State
+const route = useRoute();
+const deviceId = ref(route.params.deviceId);
 const map = ref(null);
 const boatMarkers = ref([]);
 const selectedBoats = ref(null);
 const selectedBoatData = ref(null);
 const open = ref(true);
 const devices = ref([]);
+const loading = ref(false);
+const error = ref(null);
+const position = [13.1486, 100.8122]; // Default (เกาะสีชัง)
 
-// ตำแหน่งเริ่มต้น (เกาะสีชัง)
-const defaultPosition = [13.1486, 100.8122];
-
-// Computed property สำหรับกรอง devices
-const filteredDevices = computed(() => {
-  return devices.value.filter(device => 
-    device.TypeVehicle === 'Tugboat river going' || device.TypeVehicle === 'Tugboat sea going'
-  );
-});
-
-// การจัดการ route
-const route = useRoute();
-
-const fetchDevices = async (deviceId) => {
+const fetchAllTugboats = async () => {
   try {
-    const response = await $api.put('/device/GetDeviceListProfile', {
-      DeviceId: '' // ดึงข้อมูลทั้งหมดก่อน
-    });
-    devices.value = response.data;
+    loading.value = true;
+    error.value = null;
 
-    // Auto Select ตาม deviceId ที่ส่งมา โดยเช็คว่าเป็น Tugboat river going หรือ Tugboat sea going
-    if (deviceId) {
-      const selectedDevice = filteredDevices.value.find(d => d.DeviceId === deviceId);
-      if (selectedDevice) {
-        selectedBoats.value = deviceId;
-        selectedBoatData.value = selectedDevice;
-      } else {
-        selectedBoats.value = null;
-        selectedBoatData.value = null;
-      }
-      updateMapMarkers();
+    const riverResponse = await $api.get('/MachineStatus/GetTugboatRiver');
+    const riverTugboats = riverResponse.data.flatMap(item => item.Devices);
+
+    const seaResponse = await $api.get('/MachineStatus/GetTugboatSea');
+    const seaTugboats = seaResponse.data.flatMap(item => item.Devices);
+
+    devices.value = [...riverTugboats, ...seaTugboats];
+
+    if (deviceId.value) {
+      await fetchDeviceData(deviceId.value);
     }
-  } catch (error) {
-    console.error('Failed to fetch devices:', error);
+  } catch (err) {
+    console.error('Error fetching tugboats:', err);
+    error.value = err;
     devices.value = [];
+  } finally {
+    loading.value = false;
   }
 };
 
-// ฟังก์ชันจาก GPSVessel
+const fetchDeviceData = async (specificDeviceId) => {
+  try {
+    loading.value = true;
+    error.value = null;
+
+    const response = await $api.get('/MachineStatus/GetDeviceByDeviceId', {
+      params: { deviceid: specificDeviceId }
+    });
+
+    // Response เป็น array ดึง object ตัวแรก
+    const updatedDevice = Array.isArray(response.data) && response.data.length > 0 ? response.data[0] : null;
+
+    if (!updatedDevice) {
+      throw new Error('No device data found for DeviceId: ' + specificDeviceId);
+    }
+    selectedBoatData.value = updatedDevice;
+
+    const index = devices.value.findIndex(d => d.DeviceId === specificDeviceId);
+    if (index !== -1) {
+      devices.value[index] = { ...devices.value[index], ...updatedDevice };
+    } else {
+      devices.value.push(updatedDevice);
+    }
+
+    selectedBoats.value = specificDeviceId;
+    updateMapMarkers();
+  } catch (err) {
+    console.error('Error fetching device data:', err);
+    error.value = err;
+    selectedBoatData.value = null;
+  } finally {
+    loading.value = false;
+  }
+};
+
 const initMap = () => {
-  map.value = L.map('map').setView(defaultPosition, 10);
+  map.value = L.map('map').setView(position, 10);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '© OpenStreetMap contributors'
   }).addTo(map.value);
-};
-
-const updateSelectedBoats = (boatId) => {
-  selectedBoats.value = boatId;
-  const boat = filteredDevices.value.find(b => b.DeviceId === boatId);
-  selectedBoatData.value = boat || null;
-  updateMapMarkers();
 };
 
 const updateMapMarkers = () => {
@@ -130,81 +143,106 @@ const updateMapMarkers = () => {
   boatMarkers.value = [];
 
   // เพิ่ม marker ใหม่
-  if (selectedBoats.value) {
-    const boat = filteredDevices.value.find(b => b.DeviceId === selectedBoats.value);
-    if (boat) {
-      // ใช้ตำแหน่งจาก API (ในอนาคต) หรือ default เป็นเกาะสีชัง
-      const location = {
-        lat: boat.latitude || defaultPosition[0],
-        lng: boat.longitude || defaultPosition[1]
-      };
+  if (selectedBoats.value && selectedBoatData.value) {
+    const tugboat = selectedBoatData.value;
 
-      const boatIcon = L.divIcon({
-        className: 'custom-boat-icon',
-        html: `<div style="color: ${getStatusColor(boat.status || 'Unknown')};">
-                <i class="mdi mdi-ferry" style="font-size: 30px;"></i>
-              </div>`,
-        iconSize: [30, 30]
-      });
+    // ดึง Latitude และ Longitude จาก Mesurement
+    const latitude = tugboat.Mesurement?.find(m => m.measurementname === 'Latitude')?.lastValue;
+    const longitude = tugboat.Mesurement?.find(m => m.measurementname === 'Longitude')?.lastValue;
 
-      const marker = L.marker([location.lat, location.lng], { icon: boatIcon })
-        .bindPopup(`<b>${boat.DeviceName || 'Unknown'}</b><br>Status: ${boat.status || 'N/A'}`)
-        .addTo(map.value);
+    console.log("Latitude:", latitude, "Longitude:", longitude);
 
-      boatMarkers.value.push(marker);
+    // แปลง lastValue เป็นพิกัดทศนิยม
+    const lat = latitude ? parseFloat(latitude) / 1000000 : position[0];
+    const lng = longitude ? parseFloat(longitude) / 1000000 : position[1];
 
-      // Center the map on the selected boat
-      map.value.setView([location.lat, location.lng], 12);
-    }
+    console.log("Converted Lat:", lat, "Converted Lng:", lng);
+
+    const boatIcon = L.divIcon({
+      className: 'custom-boat-icon',
+      html: `<div style="color: ${getStatusColor(tugboat)};">
+              <i class="mdi mdi-ferry" style="font-size: 30px;"></i>
+            </div>`,
+      iconSize: [30, 30]
+    });
+
+    const marker = L.marker([lat, lng], { icon: boatIcon })
+      .bindPopup(`<b>${tugboat.DeviceName || 'Unknown'}</b><br>Status: ${getStatusText(tugboat)}`)
+      .addTo(map.value);
+
+    boatMarkers.value.push(marker);
+
+    map.value.setView([lat, lng], 12);
   }
 };
 
-const getStatusColor = (status) => {
+const getStatusText = (tugboat) => {
+  const status = tugboat.Mesurement?.find(m => m.measurementname === 'Status')?.lastValue;
   switch (status) {
-    case 'Running': return '#009688';
-    case 'Maintenance': return '#DC2B2B';
-    case 'Pending': return '#FAC12A';
+    case '1': return 'Running';
+    case '2': return 'Maintenance';
+    case '3': return 'Pending';
+    case '5': return 'Unknown';
+    default: return 'Unknown';
+  }
+};
+
+const getStatusColor = (tugboat) => {
+  const status = tugboat.Mesurement?.find(m => m.measurementname === 'Status')?.lastValue;
+  switch (status) {
+    case '1': return '#009688'; // Running
+    case '2': return '#DC2B2B'; // Maintenance
+    case '3': return '#FAC12A'; // Pending
+    case '5': return '#979a9a'; // Active
     default: return '#000000';
   }
 };
 
-// ฟังก์ชันจาก SelectList
-const getStatusClass = (status) => {
+const getStatusClass = (tugboat) => {
+  const status = tugboat.Mesurement?.find(m => m.measurementname === 'Status')?.lastValue;
   switch (status) {
-    case "Running": return "status-running";
-    case "Maintenance": return "status-maintenance";
-    case "Pending": return "status-pending";
-    default: return "";
+    case '1': return 'status-running';
+    case '2': return 'status-maintenance';
+    case '3': return 'status-pending';
+    case '5': return 'status-unknown';
+    default: return '';
   }
 };
 
-const selectSingleBoat = (boatId) => {
-  selectedBoats.value = selectedBoats.value === boatId ? null : boatId;
-  emitSelectedBoats();
+const selectSingleBoat = (tugboatId) => {
+  if (selectedBoats.value !== tugboatId) {
+    selectedBoats.value = tugboatId;
+    fetchDeviceData(tugboatId);
+  } else {
+    selectedBoats.value = null;
+    selectedBoatData.value = null;
+    updateMapMarkers();
+  }
 };
 
 const emitSelectedBoats = () => {
-  updateSelectedBoats(selectedBoats.value);
-};
-
-// Lifecycle hooks
-onMounted(async () => {
-  const deviceId = route.params.deviceId;
-  await fetchDevices(deviceId);
-  initMap();
   if (selectedBoats.value) {
+    fetchDeviceData(selectedBoats.value);
+  } else {
+    selectedBoatData.value = null;
     updateMapMarkers();
   }
+};
+
+onMounted(async () => {
+  initMap();
+  await fetchAllTugboats();
 });
 
 // Watchers
-watch(selectedBoats, (newVal) => {
-  selectedBoatData.value = filteredDevices.value.find(b => b.DeviceId === newVal) || null;
-});
-
 watch(() => route.params.deviceId, async (newDeviceId) => {
   if (newDeviceId) {
-    await fetchDevices(newDeviceId);
+    deviceId.value = newDeviceId;
+    if (devices.value.length === 0) {
+      await fetchAllTugboats();
+    } else {
+      await fetchDeviceData(newDeviceId);
+    }
     if (map.value) {
       updateMapMarkers();
     }
@@ -270,6 +308,10 @@ watch(() => route.params.deviceId, async (newDeviceId) => {
 
 .status-running {
   color: #009688;
+}
+
+.status-unknown {
+  color: #979a9a;
 }
 
 :deep(.v-navigation-drawer__content)::-webkit-scrollbar {

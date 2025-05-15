@@ -13,87 +13,80 @@
   </v-container>
 </template>
 
-<script>
-import VueGauge from "vue-gauge";
+<script setup>
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import VueGauge from 'vue-gauge';
+defineProps({
+  title: {
+    type: String,
+    default: '',
+  },
+  value: {
+    type: Number,
+    default: 0,
+  },
+  maxValue: {
+    type: Number,
+    default: 100,
+  },
+  delimiters: {
+    type: Array,
+    default: () => [],
+  },
+  colors: {
+    type: Array,
+    default: () => [],
+  },
+  labels: {
+    type: Array,
+    default: () => [],
+  },
+  rangeLabel: {
+    type: Array,
+    default: () => ['0', '100'],
+  },
+  centralLabel: {
+    type: String,
+    default: '',
+  },
+  needleColor: {
+    type: String,
+    default: '#355F2E',
+  },
+});
 
-export default {
-  name: "GaugeChart",
-  components: { VueGauge },
-  props: {
-    title: {
-      type: String,
-      default: "",
-    },
-    value: {
-      type: Number,
-      default: 0,
-    },
-    maxValue: {
-      type: Number,
-      default: 100,
-    },
-    delimiters: {
-      type: Array,
-      default: () => [],
-    },
-    colors: {
-      type: Array,
-      default: () => [],
-    },
-    labels: {
-      type: Array,
-      default: () => [],
-    },
-    rangeLabel: {
-      type: Array,
-      default: () => ["0", "100"],
-    },
-    centralLabel: {
-      type: String,
-      default: "",
-    },
-    needleColor: {
-      type: String,
-      default: "#355F2E",
-    },
-  },
-  data() {
-    return {
-      chartWidthVw: 15, // ขนาดเริ่มต้นเป็น vw (viewport width)
-    };
-  },
-  computed: {
-    gaugeOptions() {
-      const needlePercentage = (this.value / this.maxValue) * 100;
-      const chartWidth = (this.chartWidthVw / 100) * window.innerWidth;
+const chartWidthVw = ref(15);
 
-      return {
-        needleValue: needlePercentage,
-        needleColor: this.needleColor,
-        arcDelimiters: this.delimiters,
-        arcColors: this.colors,
-        arcLabels: this.labels,
-        rangeLabelFontSize: 16,
-        arcLabelFontSize: 10,
-        arcOverEffect: true,
-        chartWidth: chartWidth, // ใช้ chartWidth ที่คำนวณจากขนาดหน้าจอ
-        rangeLabel: this.rangeLabel,
-        hasNeedle: true,
-      };
-    },
-  },
-  mounted() {
-    window.addEventListener("resize", this.updateChartWidth);
-  },
-  beforeUnmount() {
-    window.removeEventListener("resize", this.updateChartWidth);
-  },
-  methods: {
-    updateChartWidth() {
-      this.$forceUpdate(); // บังคับให้ Vue อัปเดต UI เมื่อขนาดหน้าจอเปลี่ยน
-    },
-  },
+const gaugeOptions = computed(() => {
+  const needlePercentage = (value / maxValue) * 100;
+  const chartWidth = (chartWidthVw.value / 100) * window.innerWidth;
+
+  return {
+    needleValue: needlePercentage,
+    needleColor: needleColor,
+    arcDelimiters: delimiters,
+    arcColors: colors,
+    arcLabels: labels,
+    rangeLabelFontSize: 16,
+    arcLabelFontSize: 10,
+    arcOverEffect: true,
+    chartWidth,
+    rangeLabel,
+    hasNeedle: true,
+  };
+});
+
+const updateChartWidth = () => {
+  chartWidthVw.value = chartWidthVw.value; // บังคับให้ Vue อัปเดต
 };
+
+onMounted(() => {
+  window.addEventListener('resize', updateChartWidth);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateChartWidth);
+});
 </script>
 
 <style scoped>

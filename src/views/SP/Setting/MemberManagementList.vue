@@ -38,7 +38,9 @@
                 <td>{{ item.email }}</td>
                 <td>{{ item.phoneNumber }}</td>
                 <td>{{ item.createDateTime }}</td>
-                <td class="action">{{ item.IsActive ? 'Active' : 'Inactive' }}</td>
+                <td class="action" :class="{ 'text-green': item.IsActive, 'text-red': !item.IsActive }">
+                  {{ item.IsActive ? 'Active' : 'Inactive' }}
+                </td>
                 <td class="d-flex justify-center align-center">
                   <v-icon icon="mdi-pencil" class="edit" @click="editProfile(item.memberId)"></v-icon>
                   <v-icon icon="mdi-delete" class="delete" @click="confirmDelete(item.memberId)"></v-icon>
@@ -49,18 +51,40 @@
         </v-card-text>
       </v-card>
     </v-container>
-
-    <!-- Delete Confirmation Dialog -->
     <v-dialog v-model="deleteDialog" max-width="500px">
-      <v-card>
-        <v-card-title class="headline">Confirm Delete</v-card-title>
+      <v-card rounded="xl" class="pa-5">
+        <v-card-actions class="justify-end">
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            @click="deleteDialog"
+          ></v-btn>
+        </v-card-actions>
         <v-card-text>
-          Are you sure you want to delete member {{ memberToDelete }}?
+          
+          <div style="display: flex; flex-direction: column; align-items: center;">
+            <span class="material-symbols-rounded" style="font-size: 6vh; color: #CBD0DC;" >inventory_2</span>
+            <v-card-title style="font-family: 'Sarabun', sans-serif;" class="headline">คุณกำลังดำเนินการลบบัญชีผู้ใช้</v-card-title>
+          </div>
+        </v-card-text>
+        
+        <v-card-text>
+          <v-text-field
+            v-model="cancelReason"
+            placeholder="กรุณาระบุเหตุผล"
+            style="font-family: 'Sarabun', sans-serif;"
+            class="tetx-field "
+            clearable
+            variant="outlined"
+            required
+          />
+          <div class="text-medium-emphasis" style="font-family: 'Sarabun', sans-serif;">
+            เมื่อบัญชีผู้ใช้นี้ถูกลบ ท่านไม่สามารถกู้คืนได้
+          </div>
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" text @click="deleteDialog = false">Cancel</v-btn>
-          <v-btn color="red darken-1" text @click="deleteMember">Delete</v-btn>
+          <v-btn class="cancel-btn text-none" @click="deleteDialog = false"> Cancel </v-btn>
+          <v-btn class="delete-btn text-none" @click="deleteMember"> Delete </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -74,10 +98,11 @@ import { ref, onMounted, inject } from 'vue';
 import router from '@/router';
 
 const $api = inject('$api');
-const filteredItems = ref([]);
 const search = ref('');
 const deleteDialog = ref(false);
-const memberToDelete = ref(null);
+const memberToDelete = ref('');
+const cancelReason = ref('');
+const filteredItems = ref([]);
 
 const headers = ref([
   { title: 'Member Id', key: 'memberId', align: 'start' },
@@ -99,6 +124,7 @@ const fetchDeviceList = async () => {
 
     const mappedItems = response.data.map(item => ({
       memberId: item.MemberId,
+      customerId: item.CustomerId,
       companyName: item.Department,
       username: `${item.MemberFirstnameEng} ${item.MemberLastnameEng}`,
       position: item.Position,
@@ -108,7 +134,8 @@ const fetchDeviceList = async () => {
       IsActive: item.IsActive
     }));
 
-    filteredItems.value = mappedItems;
+    filteredItems.value = mappedItems.filter(item => item.IsActive);
+    // filteredItems.value = mappedItems;
   } catch (error) {
     console.error('Failed to fetch Profile list:', error);
   }
@@ -124,21 +151,53 @@ const confirmDelete = (memberId) => {
 };
 
 const deleteMember = async () => {
-  // try {
-  //   // Assuming there's a DELETE endpoint like this
-  //   await $api.delete(`/member/delete/${memberToDelete.value}`);
-    
-  //   // Remove the deleted member from the list
-  //   filteredItems.value = filteredItems.value.filter(
-  //     item => item.memberId !== memberToDelete.value
-  //   );
-    
-  //   deleteDialog.value = false;
-  //   memberToDelete.value = null;
-  // } catch (error) {
-  //   console.error('Failed to delete member:', error);
-  //   deleteDialog.value = false;
-  // }
+  if (!cancelReason.value) {
+    alert('Please provide a reason for deleting.');
+    return;
+  }
+  try {
+    const member = JSON.parse(localStorage.getItem("member"));
+    let cancelByMemberId = member?.MemberId;
+
+    // หา CustomerId ของ member ที่ต้องการลบ
+    const memberItem = filteredItems.value.find(item => item.memberId === memberToDelete.value);
+    if (!memberItem) {
+      alert('Member not found.');
+      return;
+    }
+
+    const requestBody = {
+      MemberId: memberToDelete.value,
+      CustomerId: memberItem.customerId, // ถ้าไม่มี customerId ใน item ก็ fallback ไปยังค่าเดิม
+      CancelBy: cancelByMemberId,
+      CancelReason: cancelReason.value.toString()
+    };
+
+    await $api.put('/Member/Delete', requestBody);
+
+    const index = filteredItems.value.findIndex(item => item.memberId === memberToDelete.value);
+    if (index !== -1) {
+      filteredItems.value[index].IsActive = false;
+    }
+    filteredItems.value = filteredItems.value.filter(item => item.IsActive);
+    // alert('Member deleted successfully!');
+
+    deleteDialog.value = false;
+    memberToDelete.value = '';
+    cancelReason.value = '';
+  } catch (error) {
+    console.error('Failed to delete member:', error);
+    let errorMessage = 'Failed to delete member';
+    if (error.response) {
+      errorMessage = error.response.data.message || error.response.data || 'Bad request';
+    } else if (error.request) {
+      errorMessage = 'No response from server';
+    } else {
+      errorMessage = error.message;
+    }
+    alert(`Error: ${errorMessage}`);
+    deleteDialog.value = false;
+  }
 };
 
 onMounted(() => {
@@ -150,12 +209,6 @@ onMounted(() => {
 .title {
   font-size: 2vh;
   font-weight: 600;
-}
-
-.cancel-btn {
-  background-color: #DC2B2B;
-  color: #ffffff;
-  border-radius: 10px;
 }
 
 .search-btn {
@@ -184,8 +237,15 @@ onMounted(() => {
 }
 
 td.action {
-  color: #14CA74 !important; /* บังคับ CSS */
   text-align: center;
+}
+
+.text-green {
+  color: #14CA74 !important;
+}
+
+.text-red {
+  color: #DC2B2B !important;
 }
 
 td.description {
@@ -208,6 +268,28 @@ td.description {
   border-radius: 24px;
   font-size: 20px;
   /* color: #E62020; */
+}
+
+.tetx-field {
+  font-family: 'Sarabun', sans-serif;
+  font-size: 16px;
+  color: #000000;
+}
+
+.cancel-btn {
+  color: #000000;
+  border-radius: 24px;
+  border: 1px solid #E3E3E3;
+  font-family: 'Inter', sans-serif;
+  width: 5vw;
+}
+
+.delete-btn {
+  background-color: #E62020;
+  color: #ffffff;
+  border-radius: 24px;
+  font-family: 'Inter', sans-serif;
+  width: 5vw;
 }
 
 </style>

@@ -6,8 +6,9 @@
           :headers="headers"
           :items="notices"
           item-value="name"
-          class="elevation-0 striped-table custom-table custom-scroll"
+          items-per-page="5"
           hide-default-footer
+          class="elevation-0 striped-table custom-table custom-scroll"
           style="font-size: 1.2vh;"
         >
           <template v-slot:item="{ item }">
@@ -29,26 +30,21 @@
   </v-container>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      headers: [
-        { title: 'Date', key: 'date' },
-        { title: 'Device Name', key: 'name' },
-        { title: 'Measurement', key: 'measuremnet' },
-        { title: 'Details', key: 'details' },
-        { title: 'Status', key: 'status' },
-      ],
-      // notices: [
-      //   { date: '2023-10-01', name: 'Gen No.116', measuremnet: 'Oil Pressure',details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
-      //   { date: '2023-10-02', name: 'Gen No.116', measuremnet: 'Oil Pressure',details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
-      //   { date: '2023-10-03', name: 'Gen No.116', measuremnet: 'Oil Pressure',details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
-      //   { date: '2023-10-04', name: 'Gen No.116', measuremnet: 'Oil Pressure',details: 'Value is in the dangerous zone', status: 'รอแจ้งซ่อม' },
-      // ],
-    };
+<script setup>
+const props = defineProps({
+  notices: {
+    type: Array,
+    default: () => []
   },
-};
+});
+
+const headers = [
+  { title: 'Date', key: 'date' },
+  { title: 'Device Name', key: 'name' },
+  { title: 'Measurement', key: 'measuremnet' },
+  { title: 'Details', key: 'details' },
+  { title: 'Status', key: 'status' },
+]
 </script>
 
 <style scoped>

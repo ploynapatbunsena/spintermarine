@@ -9,16 +9,16 @@
     elevation="0"
   >
     <template v-if="!previewUrl">
-      <label for="dropzoneFile">
-        <span class="material-symbols-rounded" style="font-size: 52px;">backup</span>
-      </label>
-      <p class="text-grey"><span>Click to upload</span> or drag and drop</p>
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <label for="dropzoneFile">
+          <span class="material-symbols-rounded" style="font-size: 5vh; color: #CBD0DC;">backup</span>
+        </label>
+        <p class="text-grey"><span>Click to upload</span> or drag and drop</p>
+      </div>
     </template>
     <div v-else class="preview-container">
       <img :src="previewUrl" alt="Preview" class="thumbnail" />
-      <v-icon @click="removeFile" class="delete-btn">
-        <span class="material-symbols-rounded" style="font-size: 24px;">close</span>
-      </v-icon>
+      <v-btn class="delete-btn" icon="mdi-trash-can-outline" variant="text" @click="removeFile"></v-btn>
     </div>
 
     <span class="file-info">{{ selectedFile?.name || '' }}</span>
@@ -28,6 +28,7 @@
       class="dropzoneFile" 
       @change="handleFileInput"
       accept="image/*"
+      ref="fileInput"
     />
   </v-card>
 </template>
@@ -39,6 +40,7 @@ const emit = defineEmits(['file-selected']);
 const active = ref(false);
 const previewUrl = ref(null);
 const selectedFile = ref(null);
+const fileInput = ref(null);
 
 const toggleActive = () => {
   active.value = !active.value;
@@ -69,12 +71,13 @@ const removeFile = () => {
     URL.revokeObjectURL(previewUrl.value);
     previewUrl.value = null;
     selectedFile.value = null;
-    document.querySelector('.dropzoneFile').value = '';
+    if (fileInput.value) {
+      fileInput.value.value = '';
+    }
     emit('file-selected', null);
   }
 };
 
-// Cleanup URL object when component is unmounted
 onUnmounted(() => {
   if (previewUrl.value) {
     URL.revokeObjectURL(previewUrl.value);
@@ -83,28 +86,13 @@ onUnmounted(() => {
 </script>
 
 <style scoped lang="scss">
-// .dropzone {
-//   width: 550px;
-//   height: 320px;
-//   display: flex;
-//   flex-direction: column;
-//   justify-content: center;
-//   align-items: center;
-//   border-radius: 16px;
-//   row-gap: 16px;
-//   border: 1px dashed #9f9f9f;
-//   background-color: #efefef;
-//   transition: 0.3s ease all;
-//   position: absolute;
-//   padding: 16px;
-//   overflow: hidden;
-// }
-
 .dropzone {
   max-width: 100vw;
-  max-height: 320px;
-  border: 1px dashed #9f9f9f;
-  background-color: #efefef;
+  max-height: 300px;
+  height: 100vh;
+  border: 2px dashed #CBD0DC;
+  border-radius: 32px;
+  background-color: #ffffff;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -118,12 +106,12 @@ onUnmounted(() => {
   justify-content: center;
   align-items: center;
   width: 100%;
-  height: 80%;
+  height: 100%;
 }
 
 .thumbnail {
-  max-width: 90%;
-  max-height: 80%;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
   border-radius: 8px;
 }
@@ -133,15 +121,10 @@ onUnmounted(() => {
   top: 10px;
   right: 10px;
   color: #000000;
-  border-radius: 100%;
   background-color: #FFFFFF;
   width: 32px;
   height: 32px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
+  min-width: 32px;
 }
 
 .delete-btn:hover {
@@ -162,13 +145,12 @@ onUnmounted(() => {
 }
 
 label {
-  width: 90px;
-  height: 90px;
+  width: 8vh;
+  height: 8vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #000000;
-  background-color: #ffffff;
+  border: 1px solid #CBD0DC;
   transition: 0.3s ease all;
   border-radius: 100%;
   cursor: pointer;
@@ -178,18 +160,10 @@ input {
   display: none;
 }
 
-.active-dropzone {
-  color: #ffffff;
-  border-color: #00b8f2;
-  background-color: #d6e6f2;
-
-  label {
-    background-color: #ffffff;
-    color: #00b8f2;
-  }
-}
-
 .text-grey {
   color: #707070;
+  font-family: 'Inter', sans-serif;
+  text-align: center;
+  margin-top: 2vh;
 }
 </style>

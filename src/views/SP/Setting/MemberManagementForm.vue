@@ -1,164 +1,163 @@
 <template>
-  <PermissionCheck 
-    menu-id="0101030600" 
-    :required-permissions="{
-      IsRead: true,
-      IsWrite: true
-    }"
-  >
-    <template #default="{ permissions }">
-      <v-app style="background-color: #F7F9FC;">
-        <NavigationBar />
-        <SpaceBar />
-        <v-container fluid class="px-10">
-          <div class="title">Member Management</div>
-          <!-- Alert สำหรับแจ้งผลการบันทึก -->
-          <v-alert
-            v-model="showAlert"
-            :type="alertType"
-            class="mb-4"
-            transition="fade-transition"
-          >
-            {{ alertMessage }}
-          </v-alert>
-          <v-row>
-            <v-col cols="12">
-              <v-card>
-                <v-card-text class="card-text">
-                  <div class="header">
-                    <span class="material-symbols-rounded">person_edit</span>
-                    <p>Personal Profile and Contact</p>
+  <v-app style="background-color: #F7F9FC;">
+    <NavigationBar />
+    <SpaceBar />
+    <v-container fluid class="px-10">
+      <div class="title">Member Management</div>
+      <v-row>
+        <v-col cols="12">
+          <v-card>
+            <v-card-text class="card-text">
+              <div class="header">
+                <span class="material-symbols-rounded">person_edit</span>
+                <p>Personal Profile and Contact</p>
+              </div>
+              <v-row>
+                <v-col cols="12" sm="12" lg="6">
+                  <div class="device-detail">
+                    <p class="label">Member Id</p>
+                    <v-text-field
+                      v-model="profileDetail.MemberId"
+                      variant="outlined"
+                      density="compact"
+                      class="input-field"
+                      disabled
+                    ></v-text-field>
                   </div>
-                  <v-row>
-                    <v-col cols="12" sm="12" lg="6">
-                      <div class="device-detail">
-                        <p class="label">Member Id</p>
-                        <v-text-field
-                          v-model="profileDetail.MemberId"
-                          variant="outlined"
-                          density="compact"
-                          class="input-field"
-                          disabled
-                        ></v-text-field>
-                      </div>
-                      <div class="device-detail">
-                        <p class="label">First Name</p>
-                        <v-text-field
-                          v-model="profileDetail.MemberFirstnameEng"
-                          variant="outlined"
-                          density="compact"
-                          class="input-field"
-                          style="font-family: 'Sarabun', sans-serif;"
-                        ></v-text-field>
-                      </div>
-                      <div class="device-detail">
-                        <p class="label">Last Name</p>
-                        <v-text-field
-                          v-model="profileDetail.MemberLastnameEng"
-                          variant="outlined"
-                          density="compact"
-                          class="input-field"
-                        ></v-text-field>
-                      </div>
-                    </v-col>
-                    <v-col cols="12" sm="12" lg="6">
-                      <div class="device-detail">
-                        <p class="label">Position</p>
-                        <v-text-field
-                          v-model="profileDetail.Position"
-                          variant="outlined"
-                          density="compact"
-                          class="input-field"
-                          style="font-family: 'Sarabun', sans-serif;"
-                        ></v-text-field>
-                      </div>
-                      <div class="device-detail">
-                        <p class="label">Email</p>
-                        <v-text-field
-                          v-model="profileDetail.MemberEmail"
-                          variant="outlined"
-                          density="compact"
-                          class="input-field"
-                        ></v-text-field>
-                      </div>
-                      <div class="device-detail">
-                        <p class="label">Phone</p>
-                        <v-text-field
-                          v-model="profileDetail.MemberPhone"
-                          variant="outlined"
-                          density="compact"
-                          class="input-field"
-                        ></v-text-field>
-                      </div>
-                    </v-col>
-                  </v-row>
-                </v-card-text>
-              </v-card>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="12">
-              <v-card class="mt-6">
-                <v-data-table
-                  v-model="selected"
-                  :headers="headers"
-                  :items="permissionCheck"
-                  hide-default-footer
-                  :items-per-page="-1"                  
-                  class="striped-table custom-table"
-                >
-                  <template v-slot:[`body.prepend`]>
-                    <tr class="select-all-row">
-                      <td></td>
-                      <td></td>
-                      <td><v-checkbox color="primary" v-model="selectAll.IsRead" @update:modelValue="toggleSelectAll('IsRead')" hide-details></v-checkbox></td>
-                      <td><v-checkbox color="primary" v-model="selectAll.IsWrite" @update:modelValue="toggleSelectAll('IsWrite')" hide-details></v-checkbox></td>
-                      <td><v-checkbox color="primary" v-model="selectAll.IsCheck" @update:modelValue="toggleSelectAll('IsCheck')" hide-details></v-checkbox></td>
-                      <td><v-checkbox color="primary" v-model="selectAll.IsApprove" @update:modelValue="toggleSelectAll('IsApprove')" hide-details></v-checkbox></td>
-                      <td><v-checkbox color="primary" v-model="selectAll.IsAccept" @update:modelValue="toggleSelectAll('IsAccept')" hide-details></v-checkbox></td>
-                      <td><v-checkbox color="primary" v-model="selectAll.IsAcknowledge" @update:modelValue="toggleSelectAll('IsAcknowledge')" hide-details></v-checkbox></td>
-                      <td><v-checkbox color="primary" v-model="selectAll.IsPrint" @update:modelValue="toggleSelectAll('IsPrint')" hide-details></v-checkbox></td>
-                      <td><v-checkbox color="primary" v-model="selectAll.IsImport" @update:modelValue="toggleSelectAll('IsImport')" hide-details></v-checkbox></td>
-                      <td><v-checkbox color="primary" v-model="selectAll.IsExport" @update:modelValue="toggleSelectAll('IsExport')" hide-details></v-checkbox></td>
-                      <td><v-checkbox color="primary" v-model="selectAll.IsActive" @update:modelValue="toggleSelectAll('IsActive')" hide-details></v-checkbox></td>
-                    </tr>
-                  </template>
-                  <template v-slot:item="{ item }">
-                    <tr>
-                      <td>{{ item.MenuId }}</td>
-                      <td>{{ item.MenuName }}</td>
-                      <td><v-checkbox color="primary" v-model="item.IsRead" hide-details></v-checkbox></td>
-                      <td><v-checkbox color="primary" v-model="item.IsWrite" hide-details></v-checkbox></td>
-                      <td><v-checkbox color="primary" v-model="item.IsCheck" hide-details></v-checkbox></td>
-                      <td><v-checkbox color="primary" v-model="item.IsApprove" hide-details></v-checkbox></td>
-                      <td><v-checkbox color="primary" v-model="item.IsAccept" hide-details></v-checkbox></td>
-                      <td><v-checkbox color="primary" v-model="item.IsAcknowledge" hide-details></v-checkbox></td>
-                      <td><v-checkbox color="primary" v-model="item.IsPrint" hide-details></v-checkbox></td>
-                      <td><v-checkbox color="primary" v-model="item.IsImport" hide-details></v-checkbox></td>
-                      <td><v-checkbox color="primary" v-model="item.IsExport" hide-details></v-checkbox></td>
-                      <td><v-checkbox color="primary" v-model="item.IsActive" hide-details></v-checkbox></td>
-                    </tr>
-                  </template>
-                </v-data-table>
-              </v-card>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="12" md="12" class="button-section">
-              <v-btn class="cancel-btn" @click="resetForm" elevation="0">Cancel</v-btn>
-              <v-btn class="save-btn" @click="saveRecord" elevation="0" :disabled="!permissions.IsWrite">Save</v-btn>
-            </v-col>
-          </v-row>
-        </v-container>
-      </v-app>
-    </template>
-  </PermissionCheck>
+                  <div class="device-detail">
+                    <p class="label">First Name</p>
+                    <v-text-field
+                      v-model="profileDetail.MemberFirstnameEng"
+                      variant="outlined"
+                      density="compact"
+                      class="input-field"
+                      style="font-family: 'Sarabun', sans-serif;"
+                    ></v-text-field>
+                  </div>
+                  <div class="device-detail">
+                    <p class="label">Last Name</p>
+                    <v-text-field
+                      v-model="profileDetail.MemberLastnameEng"
+                      variant="outlined"
+                      density="compact"
+                      class="input-field"
+                    ></v-text-field>
+                  </div>
+                </v-col>
+                <v-col cols="12" sm="12" lg="6">
+                  <div class="device-detail">
+                    <p class="label">Position</p>
+                    <v-text-field
+                      v-model="profileDetail.Position"
+                      variant="outlined"
+                      density="compact"
+                      class="input-field"
+                      disabled
+                      style="font-family: 'Sarabun', sans-serif;"
+                    ></v-text-field>
+                  </div>
+                  <div class="device-detail">
+                    <p class="label">Email</p>
+                    <v-text-field
+                      v-model="profileDetail.MemberEmail"
+                      variant="outlined"
+                      density="compact"
+                      class="input-field"
+                      disabled
+                    ></v-text-field>
+                  </div>
+                  <div class="device-detail">
+                    <p class="label">Phone</p>
+                    <v-text-field
+                      v-model="profileDetail.MemberPhone"
+                      variant="outlined"
+                      density="compact"
+                      class="input-field"
+                    ></v-text-field>
+                  </div>
+                </v-col>
+              </v-row>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col cols="12">
+          <v-card class="mt-6">
+            <v-data-table
+              v-model="selected"
+              :headers="headers"
+              :items="permissionCheck"
+              hide-default-footer
+              :items-per-page="-1"                  
+              class="striped-table custom-table"
+            >
+              <template v-slot:[`body.prepend`]>
+                <tr class="select-all-row">
+                  <td></td>
+                  <td></td>
+                  <td><v-checkbox color="primary" v-model="selectAll.IsRead" @update:modelValue="toggleSelectAll('IsRead')" hide-details></v-checkbox></td>
+                  <td><v-checkbox color="primary" v-model="selectAll.IsWrite" @update:modelValue="toggleSelectAll('IsWrite')" hide-details></v-checkbox></td>
+                  <td><v-checkbox color="primary" v-model="selectAll.IsCheck" @update:modelValue="toggleSelectAll('IsCheck')" hide-details></v-checkbox></td>
+                  <td><v-checkbox color="primary" v-model="selectAll.IsApprove" @update:modelValue="toggleSelectAll('IsApprove')" hide-details></v-checkbox></td>
+                  <td><v-checkbox color="primary" v-model="selectAll.IsAccept" @update:modelValue="toggleSelectAll('IsAccept')" hide-details></v-checkbox></td>
+                  <td><v-checkbox color="primary" v-model="selectAll.IsAcknowledge" @update:modelValue="toggleSelectAll('IsAcknowledge')" hide-details></v-checkbox></td>
+                  <td><v-checkbox color="primary" v-model="selectAll.IsPrint" @update:modelValue="toggleSelectAll('IsPrint')" hide-details></v-checkbox></td>
+                  <td><v-checkbox color="primary" v-model="selectAll.IsImport" @update:modelValue="toggleSelectAll('IsImport')" hide-details></v-checkbox></td>
+                  <td><v-checkbox color="primary" v-model="selectAll.IsExport" @update:modelValue="toggleSelectAll('IsExport')" hide-details></v-checkbox></td>
+                  <td><v-checkbox color="primary" v-model="selectAll.IsActive" @update:modelValue="toggleSelectAll('IsActive')" hide-details></v-checkbox></td>
+                </tr>
+              </template>
+              <template v-slot:item="{ item }">
+                <tr>
+                  <td>{{ item.MenuId }}</td>
+                  <td>{{ item.MenuName }}</td>
+                  <td><v-checkbox color="primary" v-model="item.IsRead" hide-details></v-checkbox></td>
+                  <td><v-checkbox color="primary" v-model="item.IsWrite" hide-details></v-checkbox></td>
+                  <td><v-checkbox color="primary" v-model="item.IsCheck" hide-details></v-checkbox></td>
+                  <td><v-checkbox color="primary" v-model="item.IsApprove" hide-details></v-checkbox></td>
+                  <td><v-checkbox color="primary" v-model="item.IsAccept" hide-details></v-checkbox></td>
+                  <td><v-checkbox color="primary" v-model="item.IsAcknowledge" hide-details></v-checkbox></td>
+                  <td><v-checkbox color="primary" v-model="item.IsPrint" hide-details></v-checkbox></td>
+                  <td><v-checkbox color="primary" v-model="item.IsImport" hide-details></v-checkbox></td>
+                  <td><v-checkbox color="primary" v-model="item.IsExport" hide-details></v-checkbox></td>
+                  <td><v-checkbox color="primary" v-model="item.IsActive" hide-details></v-checkbox></td>
+                </tr>
+              </template>
+            </v-data-table>
+          </v-card>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col cols="12" md="12" class="button-section">
+          <v-btn class="cancel-btn text-none" @click="resetForm" elevation="0">Cancel</v-btn>
+          <v-btn class="save-btn text-none" @click="saveRecord" elevation="0">Save</v-btn>
+        </v-col>
+      </v-row>
+    </v-container>
+    
+    <v-snackbar
+      v-model="showAlert"
+      :color="alertType"
+      :timeout="3000"
+      location="top right"
+      class="alert-banner"
+      rounded="lg"
+    >
+      <div class="pa-5" style="font-family: 'Inter', sans-serif; font-size: 1.5vh;">
+        <v-icon class="ma-2" size="20">
+          {{ alertIcon }}
+        </v-icon>
+        {{ alertMessage }}
+      </div>
+    </v-snackbar>
+
+  </v-app>
 </template>
 
 <script setup>
 import NavigationBar from '@/components/NavigationBar.vue';
 import SpaceBar from '@/components/SpaceBar.vue';
-import PermissionCheck from '@/components/PermissionCheck.vue';
 import { inject, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -169,8 +168,9 @@ const permissionCheck = ref([]);
 const selected = ref([]);
 const originalProfile = ref({});
 const initialProfile = ref({});
-const showAlert = ref(false);
 const alertType = ref('success');
+const alertIcon = ref('mdi-check-circle') 
+const showAlert = ref(false);
 const alertMessage = ref('');
 const selectAll = ref({
   IsRead: false,
@@ -197,8 +197,22 @@ const headers = ref([
   { title: 'Print', value: 'IsPrint', align: 'center' },
   { title: 'Import', value: 'IsImport', align: 'center' },
   { title: 'Export', value: 'IsExport', align: 'center' },
-  { title: 'Action', value: 'IsActive', align: 'center' },
+  { title: 'Active', value: 'IsActive', align: 'center' },
 ]);
+
+const showSuccessAlert = (message) => {
+  showAlert.value = true;
+  alertType.value = 'success';
+  alertMessage.value = message;
+  alertIcon.value = 'mdi-check-circle';
+};
+
+const showErrorAlert = (message) => {
+  showAlert.value = true;
+  alertType.value = 'error';
+  alertMessage.value = message;
+  alertIcon.value = 'mdi-alert-circle'
+};
 
 const fetchProfileDetail = async () => {
   try {
@@ -241,10 +255,7 @@ const fetchProfileDetail = async () => {
     updateSelectAllState();
   } catch (error) {
     console.error('Failed to fetch profile detail:', error);
-    showAlert.value = true;
-    alertType.value = 'error';
-    alertMessage.value = 'Failed to load member data.';
-    setTimeout(() => showAlert.value = false, 1000);
+    showErrorAlert('Failed to load member data.');
   }
 };
 
@@ -269,7 +280,7 @@ const resetForm = () => {
 const saveRecord = async () => {
   try {
     const memberData = JSON.parse(localStorage.getItem('member')) || {};
-    const memberId = memberData.MemberId || route.params.memberId; // Fallback to route param
+    const memberId = memberData.MemberId || route.params.memberId;
     const modifiedDatetime = new Date().toISOString();
 
     if (!profileDetail.value.MemberId) {
@@ -279,7 +290,7 @@ const saveRecord = async () => {
     const payload = {
       member: {
         ...originalProfile.value,
-        MemberId: profileDetail.value.MemberId, // Ensure MemberId is included
+        MemberId: profileDetail.value.MemberId,
         MemberFirstnameEng: profileDetail.value.MemberFirstnameEng,
         MemberLastnameEng: profileDetail.value.MemberLastnameEng,
         Position: profileDetail.value.Position,
@@ -296,20 +307,13 @@ const saveRecord = async () => {
     };
 
     await $api.put('/member/edit/permission', payload);
-    
-    showAlert.value = true;
-    alertType.value = 'success';
-    alertMessage.value = 'Member data saved successfully!';
-    setTimeout(() => showAlert.value = false, 1000);
+    showSuccessAlert('Member updated successfully!');
 
     await fetchProfileDetail();
     resetForm();
   } catch (error) {
-    console.error('Failed to save member details:', error);
-    showAlert.value = true;
-    alertType.value = 'error';
-    alertMessage.value = 'Failed to save member data: ' + (error.message || 'Unknown error');
-    setTimeout(() => showAlert.value = false, 1000);
+    console.error('Failed to update member information:', error);
+    showErrorAlert('Failed to update member information: ' + (error.message || 'Unknown error'));
   }
 };
 
@@ -386,15 +390,19 @@ onMounted(() => {
 }
 
 .cancel-btn {
-  background-color: #DC2B2B;
-  color: #ffffff;
-  border-radius: 10px;
+  color: #000000;
+  border-radius: 24px;
+  border: 1px solid #E3E3E3;
+  font-family: 'Inter', sans-serif;
+  width: 5vw;
 }
 
 .save-btn {
   background-color: #1476FF;
   color: #ffffff;
-  border-radius: 10px;
+  border-radius: 24px;
+  font-family: 'Inter', sans-serif;
+  width: 5vw;
 }
 
 .custom-table :deep(thead th) {

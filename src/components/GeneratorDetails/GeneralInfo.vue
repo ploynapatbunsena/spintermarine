@@ -2,12 +2,12 @@
   <v-container>
     <v-row class="gap-10">
       <v-col cols="12" sm="6" lg="6" class="d-flex align-center card">
-        <div class="icon engine-state">
+        <div class="icon engine-state" :style="{ backgroundColor: status.color }">
           <span class="material-symbols-rounded">vital_signs</span>
         </div>
         <div class="text-side">
           <p class="text-grey">Engine State</p>
-          <p class="text-value">N/A</p>
+          <p class="text-value">{{ status.text }}</p>
         </div>
       </v-col>
       <v-col cols="12" sm="6" lg="6" class="d-flex align-center card">
@@ -16,7 +16,7 @@
         </div>
         <div class="text-side">
           <p class="text-grey">Running Hour</p>
-          <p class="text-value">0 hour</p>
+          <p class="text-value">{{ measurements['Hour Meter'].value }} {{ measurements['Hour Meter'].unit }}</p>
         </div>
       </v-col>
     </v-row>
@@ -27,7 +27,7 @@
         </div>
         <div class="text-side">
           <p class="text-grey">Battery Volts</p>
-          <p class="text-value">24 V</p>
+          <p class="text-value">{{ measurements['Battery Volts'].value }} {{ measurements['Battery Volts'].unit }}</p>
         </div>
       </v-col>
       <v-col cols="12" sm="6" lg="6" class="d-flex align-center card">
@@ -35,8 +35,8 @@
           <span class="material-symbols-rounded">speed</span>
         </div>
         <div class="text-side">
-          <p class="text-grey">Act Power</p>
-          <p class="text-value">0 kW</p>
+          <p class="text-grey">Actual Power</p>
+          <p class="text-value">{{ measurements['Actual Power'].value }} {{ measurements['Actual Power'].unit }}</p>
         </div>
       </v-col>
     </v-row>
@@ -47,7 +47,7 @@
         </div>
         <div class="text-side">
           <p class="text-grey">Oil Pressure</p>
-          <p class="text-value">0 bar</p>
+          <p class="text-value">{{ measurements['Oil Pressure'].value }} {{ measurements['Oil Pressure'].unit }}</p>
         </div>
       </v-col>
       <v-col cols="12" sm="6" lg="6" class="d-flex align-center card">
@@ -56,7 +56,7 @@
         </div>
         <div class="text-side">
           <p class="text-grey">Water Temperature</p>
-          <p class="text-value">0 °C</p>
+          <p class="text-value">{{ measurements['Water Temp'].value }} {{ measurements['Water Temp'].unit }}</p>
         </div>
       </v-col>
     </v-row>
@@ -67,7 +67,7 @@
         </div>
         <div class="text-side">
           <p class="text-grey">Total Fuel Consumptions</p>
-          <p class="text-value">0 l</p>
+          <p class="text-value">{{ measurements['Total Fuel Consumption'].value }} {{ measurements['Total Fuel Consumption'].unit }}</p>
         </div>
       </v-col>
       <v-col cols="12" sm="6" lg="6" class="d-flex align-center card">
@@ -76,20 +76,34 @@
         </div>
         <div class="text-side">
           <p class="text-grey">RPM</p>
-          <p class="text-value">0 RPM</p>
+          <p class="text-value">{{ measurements['RPM'].value }} {{ measurements['RPM'].unit }}</p>
         </div>
       </v-col>
     </v-row>
   </v-container>
 </template>
 
-<script>
+<script setup>
 import '@/assets/colors.scss'
 
-export default {
-  name: 'GeneralInfo',
-}
-
+const props = defineProps({
+  measurements: {
+    type: Object,
+    default: () => ({
+      'Hour Meter': { value: '0', unit: 'Hr' },
+      'Battery Volts': { value: '0', unit: 'V' },
+      'Actual Power': { value: '0', unit: 'kW' },
+      'Oil Pressure': { value: '0', unit: 'bar' },
+      'Water Temp': { value: '0', unit: '°C' },
+      'Total Fuel Consumption': { value: '0', unit: 'L' },
+      'RPM': { value: '0', unit: 'RPM' }
+    })
+  },
+  status: {
+    type: Object,
+    default: () => ({ text: 'N/A'})
+  }
+});
 </script>
 
 <style lang="scss" scoped>

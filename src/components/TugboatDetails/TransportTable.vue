@@ -63,7 +63,7 @@
                   </div>
                   <div class="text-side">
                     <p class="text-grey">RPM</p>
-                    <p class="text-value">0 RPM</p>
+                    <p class="text-value">{{ rpm.value }} {{ rpm.unit }}</p>
                   </div>
                 </v-card>
               </v-col>
@@ -74,7 +74,7 @@
                   </div>
                   <div class="text-side">
                     <p class="text-grey">Speed</p>
-                    <p class="text-value">0 km/h</p>
+                    <p class="text-value">{{ speed.value }} {{ speed.unit }}</p>
                   </div>
                 </v-card>
               </v-col>
@@ -85,7 +85,7 @@
                   </div>
                   <div class="text-side">
                     <p class="text-grey">%Throttle</p>
-                    <p class="text-value">0%</p>
+                    <p class="text-value">{{ throttle.value }} {{ throttle.unit }}</p>
                   </div>
                 </v-card>
               </v-col>
@@ -96,7 +96,7 @@
                   </div>
                   <div class="text-side">
                     <p class="text-grey">Wind Speed</p>
-                    <p class="text-value">0 km/h</p>
+                    <p class="text-value">{{ windSpeed.value }} {{ windSpeed.unit }}</p>
                   </div>
                 </v-card>
               </v-col>
@@ -132,106 +132,136 @@
   </v-container>
 </template> 
 
-<script>
-import '@/assets/colors.scss'
+<script setup>
+import { ref, computed, watch } from 'vue';
+import '@/assets/colors.scss';
 
-export default {
-  props: {
-    selectedBoat: Object, // รับข้อมูลเรือยนต์จาก GPSVessel.vue
+const props = defineProps({
+  selectedBoat: {
+    type: Object,
+    default: null,
   },
-  name: 'TransportTable',
-  data() {
-    return {
-      localSelectedBoat: this.selectedBoat,
-      selectedVessel: null,
-      headers: [
-        { title: 'Barge Name', key: 'bargeName' },
-        { title: 'Origin', key: 'origin' },
-        { title: 'Destination', key: 'destination' },
-        { title: 'Vessel', key: 'vessel' },
-        { title: 'Job Order', key: 'jobOrder' },
-        { title: 'Cargo', key: 'cargo' },
-        { title: 'ETA', key: 'eta' },
-      ],
-      vesselHeaders: [
-        { title: 'Tugboat Name', key: 'tugboatName' },
-        { title: 'Vessel', key: 'vessel' },
-        { title: 'Job Order', key: 'jobOrder' },
-        { title: 'Cargo', key: 'cargo' },
-      ],
-      vessels: [
-        // "MV. SMOOTH SEA",
-        // "MV. GOLDEN FLAVOR GROUP",
-        // "MV. ALIKI FORCE",
-        // "MV. VENETIA",
-      ],
-      vesselData: {
-        "MV. SMOOTH SEA": [
-          { tugboatName: 'Tugboat A', vessel: 'MV. SMOOTH SEA', jobOrder: 'JO-001', cargo: 'Coal', },
-          { tugboatName: 'Tugboat B', vessel: 'MV. SMOOTH SEA', jobOrder: 'JO-002', cargo: 'Wood', }
-        ],
-          "MV. GOLDEN FLAVOR GROUP": [
-            { tugboatName: 'Tugboat C', vessel: 'MV. GOLDEN FLAVOR GROUP', jobOrder: 'JO-003', cargo: 'Rice', },
-            { tugboatName: 'Tugboat D', vessel: 'MV. GOLDEN FLAVOR GROUP', jobOrder: 'JO-004', cargo: 'Wheat', }
-          ],
-        "MV. ALIKI FORCE": [
-          { tugboatName: 'Tugboat E', vessel: 'MV. ALIKI FORCE', jobOrder: 'JO-005', cargo: 'Steel', },
-          { tugboatName: 'Tugboat F', vessel: 'MV. ALIKI FORCE', jobOrder: 'JO-006', cargo: 'Aluminum', }
-        ],
-        "MV. VENETIA": [
-          { tugboatName: 'Tugboat G', vessel: 'MV. VENETIA', jobOrder: 'JO-007', cargo: 'Oil', },
-          { tugboatName: 'Tugboat H', vessel: 'MV. VENETIA', jobOrder: 'JO-008', cargo: 'Gas', },
-          { tugboatName: 'Tugboat I', vessel: 'MV. VENETIA', jobOrder: 'JO-009', cargo: 'Fertilizer', }
-        ]
-      }
-    };
-  },
+});
 
-  watch: {
-    // เมื่อ prop selectedBoat เปลี่ยน ให้อัพเดท localSelectedBoat และรีเซ็ต selectedVessel
-    selectedBoat: {
-      handler(newVal) {
-        if (newVal) {
-          this.localSelectedBoat = newVal;
-          this.selectedVessel = null;
-        }
-      },
-      immediate: true
+const localSelectedBoat = ref(props.selectedBoat);
+const selectedVessel = ref(null);
+
+const headers = [
+  { title: 'Barge Name', value: 'bargeName' },
+  { title: 'Origin', value: 'origin' },
+  { title: 'Destination', value: 'destination' },
+  { title: 'Vessel', value: 'vessel' },
+  { title: 'Job Order', value: 'jobOrder' },
+  { title: 'Cargo', value: 'cargo' },
+  { title: 'ETA', value: 'eta' },
+];
+
+const vesselHeaders = [
+  { title: 'Tugboat Name', value: 'tugboatName' },
+  { title: 'Vessel', value: 'vessel' },
+  { title: 'Job Order', value: 'jobOrder' },
+  { title: 'Cargo', value: 'cargo' },
+];
+
+const vessels = [
+  'MV. SMOOTH SEA',
+  'MV. GOLDEN FLAVOR GROUP',
+  'MV. ALIKI FORCE',
+  'MV. VENETIA',
+];
+
+const vesselData = {
+  'MV. SMOOTH SEA': [
+    { tugboatName: 'Tugboat A', vessel: 'MV. SMOOTH SEA', jobOrder: 'JO-001', cargo: 'Coal' },
+    { tugboatName: 'Tugboat B', vessel: 'MV. SMOOTH SEA', jobOrder: 'JO-002', cargo: 'Wood' },
+  ],
+  'MV. GOLDEN FLAVOR GROUP': [
+    { tugboatName: 'Tugboat C', vessel: 'MV. GOLDEN FLAVOR GROUP', jobOrder: 'JO-003', cargo: 'Rice' },
+    { tugboatName: 'Tugboat D', vessel: 'MV. GOLDEN FLAVOR GROUP', jobOrder: 'JO-004', cargo: 'Wheat' },
+  ],
+  'MV. ALIKI FORCE': [
+    { tugboatName: 'Tugboat E', vessel: 'MV. ALIKI FORCE', jobOrder: 'JO-005', cargo: 'Steel' },
+    { tugboatName: 'Tugboat F', vessel: 'MV. ALIKI FORCE', jobOrder: 'JO-006', cargo: 'Aluminum' },
+  ],
+  'MV. VENETIA': [
+    { tugboatName: 'Tugboat G', vessel: 'MV. VENETIA', jobOrder: 'JO-007', cargo: 'Oil' },
+    { tugboatName: 'Tugboat H', vessel: 'MV. VENETIA', jobOrder: 'JO-008', cargo: 'Gas' },
+    { tugboatName: 'Tugboat I', vessel: 'MV. VENETIA', jobOrder: 'JO-009', cargo: 'Fertilizer' },
+  ],
+};
+
+// Computed properties สำหรับดึง lastValue จาก Mesurement
+const rpm = computed(() => {
+  const measurement = props.selectedBoat?.Mesurement?.find(m => m.measurementname === 'RPM');
+  return {
+    value: measurement?.lastValue !== null ? parseFloat(measurement.lastValue).toFixed(0) : '0',
+    unit: measurement?.measurementunit || 'RPM',
+  };
+});
+
+const speed = computed(() => {
+  const measurement = props.selectedBoat?.Mesurement?.find(m => m.measurementname === 'Speed');
+  return {
+    value: measurement?.lastValue !== null ? parseFloat(measurement.lastValue).toFixed(1) : '0',
+    unit: measurement?.measurementunit || 'km/h',
+  };
+});
+
+const throttle = computed(() => {
+  const measurement = props.selectedBoat?.Mesurement?.find(m => m.measurementname === '%Throttle');
+  return {
+    value: measurement?.lastValue !== null ? parseFloat(measurement.lastValue).toFixed(0) : '0',
+    unit: measurement?.measurementunit || '%',
+  };
+});
+
+const windSpeed = computed(() => {
+  const measurement = props.selectedBoat?.Mesurement?.find(m => m.measurementname === 'Wind-Speed');
+  return {
+    value: measurement?.lastValue !== null ? parseFloat(measurement.lastValue).toFixed(1) : '0',
+    unit: measurement?.measurementunit || 'm/s',
+  };
+});
+
+const isBoatSelected = computed(() => {
+  return localSelectedBoat.value !== null && selectedVessel.value === null;
+});
+
+const isVesselSelected = computed(() => {
+  return selectedVessel.value !== null;
+});
+
+// Methods
+const toggleVessel = (vessel) => {
+  if (selectedVessel.value === vessel) {
+    // ถ้าคลิกที่เรือที่เลือกอยู่แล้ว ให้ยกเลิกการเลือก
+    selectedVessel.value = null;
+    // ถ้ามี selectedBoat จาก props ให้แสดงข้อมูลนั้นแทน
+    if (props.selectedBoat) {
+      localSelectedBoat.value = props.selectedBoat;
     }
-  },
-
-  computed: {
-    isBoatSelected() {
-      return this.localSelectedBoat !== null && this.selectedVessel === null;
-    },
-
-    isVesselSelected() {
-      return this.selectedVessel !== null;
-    }
-  },
-
-  methods: {
-    toggleVessel(vessel) {
-      if (this.selectedVessel === vessel) {
-        // ถ้าคลิกที่เรือที่เลือกอยู่แล้ว ให้ยกเลิกการเลือก
-        this.selectedVessel = null;
-        
-        // ถ้ามี selectedBoat จากพาเรนต์ ให้แสดงข้อมูลนั้นแทน
-        if (this.selectedBoat) {
-          this.localSelectedBoat = this.selectedBoat;
-        }
-      } else {
-        // เลือกเรือใหม่ และซ่อนข้อมูล selectedBoat
-        this.selectedVessel = vessel;
-        this.localSelectedBoat = null;
-      }
-    },
-
-    getVesselData(vessel) {
-      return this.vesselData[vessel] || [];
-    }
+  } else {
+    // เลือกเรือใหม่ และซ่อนข้อมูล selectedBoat
+    selectedVessel.value = vessel;
+    localSelectedBoat.value = null;
   }
-}
+};
+
+const getVesselData = (vessel) => {
+  return vesselData[vessel] || [];
+};
+
+// Watch: อัปเดต localSelectedBoat และรีเซ็ต selectedVessel เมื่อ selectedBoat เปลี่ยน
+watch(
+  () => props.selectedBoat,
+  (newVal) => {
+    if (newVal) {
+      localSelectedBoat.value = newVal;
+      selectedVessel.value = null;
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <style lang="scss" scoped>

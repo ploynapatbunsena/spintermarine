@@ -3,226 +3,312 @@
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
-      <template v-if="loading">
-        <v-row justify="center">
-          <v-col cols="12" class="text-center">
-            <v-progress-circular indeterminate color="primary"></v-progress-circular>
-          </v-col>
-        </v-row>
-      </template>
-      
-      <template v-else-if="deviceData">
-        <v-row>
-          <!-- Title Section -->
-          <v-col cols="12" class="position-relative d-flex align-center">
-            <div style="width: 10vh;"></div>
-            <div class="title flex-grow-1 text-center">{{ deviceData.DeviceLabel }}</div>
-            <div style="width: 10vh;">
-              <AlertFunction :item="deviceData" />
-            </div>
-          </v-col>
-        </v-row>
-    
-        <!-- Gauge Section -->
-        <v-row>
-          <v-col cols="12" lg="6">
-            <v-row>
-              <v-col cols="6">
-                <v-card class="gauge-card">
-                  <GagueChart
-                    title="Act Power"
-                    :value="getMeasurementValue('Actual Power')"
-                    :maxValue="300"
-                    :delimiters="[
-                      (200 / 300) * 100,
-                      (250 / 300) * 100
-                    ]"
-                    :colors="[
-                      '#3DCC5B',
-                      '#FFD54F', 
-                      '#F44336'
-                    ]"
-                    :labels="['200', '250']"
-                    :rangeLabel="['0', '300']"
-                    :centralLabel="`${getMeasurementValue('Actual Power')} kW`"
+      <v-row v-for="device in devices" :key="device.DeviceId">
+        <v-col cols="12" class="position-relative d-flex align-center">
+          <div style="width: 10vh;"></div>
+          <div class="title flex-grow-1 text-center">{{ device.DeviceLabel }}</div>
+          <div style="width: 10vh;">
+            <AlertBadges
+              :warningCount="getWarningCount(device)"
+              :dangerCount="getDangerCount(device)"
+            />
+          </div>
+        </v-col>
+      </v-row>
+      <!-- Gauge Section -->
+      <v-row v-if="devices.length > 0">
+        <v-col cols="12" lg="6">
+          <v-row>
+            <v-col cols="6" sm="6" md="6" lg="6" v-for="(gauge, index) in gauges" :key="index">
+              <v-card class="gauge-card">
+                <v-card-title class="gauge-title text-center">{{ gauge.title }}</v-card-title>
+                <v-card-text class="text-center pa-0">
+                  <vue-gauge
+                    :refid="'_' + Math.random().toString(36).substr(2, 9)"
+                    class="meticsGauge"
+                    :options="getGaugeOptions(gauge.type, devices[0])"
                   />
-                </v-card>
-              </v-col>
-              <v-col cols="6">
-                <v-card class="gauge-card">
-                  <GagueChart
-                    title="Oil Pressure"
-                    :value="getMeasurementValue('Oil Pressure')"
-                    :maxValue="10"
-                    :delimiters="[
-                      (1 / 10) * 100,
-                      (2 / 10) * 100,
-                    ]"
-                    :colors="[
-                      '#F44336',
-                      '#FFD54F', 
-                      '#3DCC5B'
-                    ]"
-                    :labels="['1', '2']"
-                    :rangeLabel="['0', '10']"
-                    :centralLabel="`${getMeasurementValue('Oil Pressure')} bar`"
-                  />
-                </v-card>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="6">
-                <v-card class="gauge-card">
-                  <GagueChart
-                    title="Water Temperature"
-                    :value="getMeasurementValue('Water Temp')" 
-                    :maxValue="100"
-                    :delimiters="[
-                      (92 / 100) * 100,
-                      (95 / 100) * 100,
-                    ]"
-                    :colors="[
-                      '#3DCC5B',
-                      '#FFD54F', 
-                      '#F44336'
-                    ]"
-                    :labels="['92°', '95°']"
-                    :rangeLabel="['0', '100']"
-                    :centralLabel="`${getMeasurementValue('Water Temp')}°`"
-                  />
-                </v-card>
-              </v-col>
-              <v-col cols="6">
-                <v-card class="gauge-card">
-                  <GagueChart
-                    title="RPM"
-                    :value="getMeasurementValue('RPM')"
-                    :maxValue="2000"
-                    :delimiters="[
-                      (1850 / 2000) * 100,
-                      (1900 / 2000) * 100,
-                    ]"
-                    :colors="[
-                      '#3DCC5B',
-                      '#FFD54F',
-                      '#F44336',
-                    ]"
-                    :labels="['1850', '1900']"
-                    :rangeLabel="['0', '2000']"
-                    :centralLabel="`${getMeasurementValue('RPM')} RPM`"
-                  />
-                </v-card>
-              </v-col>
-            </v-row>
-          </v-col>
+                  <v-card-text class="central-label text-center pa-0">
+                    {{ getMeasurementValue(gauge.type) }} {{ gauge.unit }}
+                  </v-card-text>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+        </v-col>
+        <!-- General Info Section -->
+        <v-col cols="12" lg="6">
+          <v-card class="rounded-xl h-100">
+            <v-card-title class="d-flex justify-center header">General Information</v-card-title>
+            <v-card-text class="px-10">
+              <GeneralInfo 
+                :measurements="filteredMeasurements"
+                :status="deviceStatus"
+              />
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
 
-          <!-- General Info Section -->
-          <v-col cols="12" lg="6">
-            <v-card class="rounded-xl h-100">
-              <v-card-title class="d-flex justify-center header">General Information</v-card-title>
-              <v-card-text class="px-10">
-                <GeneralInfo />
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-        
-        <!-- Generator Image -->
-        <v-row>
-          <v-col cols="12" lg="6">
-            <v-card class="rounded-xl gen-img">
-              <GeneratorImage />
-            </v-card>
-          </v-col>
-          <!-- Notice Table -->
-          <v-col cols="12" lg="6">
-            <v-card class="pa-2 rounded-xl h-100">
-              <NoticeTable :deviceId="deviceId" :measurements="deviceData.Measurement" />
-            </v-card> 
-          </v-col>
-        </v-row>
-      </template>
-      
-      <template v-else-if="error">
-        <v-row justify="center">
-          <v-col cols="12" class="text-center">
-            <v-alert type="error">{{ error }}</v-alert>
-          </v-col>
-        </v-row>
-      </template>
-      
-      <template v-else>
-        <v-row justify="center">
-          <v-col cols="12" class="text-center">
-            <v-alert type="warning">No device data available</v-alert>
-          </v-col>
-        </v-row>
-      </template>
+      <!-- Generator Image -->
+      <v-row>
+        <v-col cols="12" lg="6">
+          <v-card class="rounded-xl gen-img">
+            <GeneratorImage 
+              :measurements="filteredMeasurements"
+            />
+          </v-card>
+        </v-col>
+        <!-- Notice Table -->
+        <v-col cols="12" lg="6">
+          <v-card class="pa-2 rounded-xl h-100">
+            <!-- <NoticeTable :deviceId="deviceId" :measurements="deviceData.Measurement" /> -->
+          </v-card> 
+        </v-col>
+      </v-row>
     </v-container>
   </v-app>
 </template>
 
 <script setup>
-import { ref, onMounted, inject } from 'vue'
+import { ref, onMounted, inject, onBeforeUnmount, computed } from 'vue'
 import { useRoute } from 'vue-router'
+import VueGauge from 'vue-gauge'
 import NavigationBar from '@/components/NavigationBar.vue'
 import SpaceBar from '@/components/SpaceBar.vue'
-import GagueChart from '@/components/GeneratorDetails/GagueChart.vue'
+import AlertBadges from '@/components/BargeDetails/AlertBadges.vue'
 import GeneralInfo from '@/components/GeneratorDetails/GeneralInfo.vue'
 import GeneratorImage from '@/components/GeneratorDetails/GeneratorImage.vue'
-import NoticeTable from '@/components/GeneratorDetails/NoticeTable.vue'
-import AlertFunction from '@/components/BargeDetails/AlertFunction.vue'
+// import NoticeTable from '@/components/GeneratorDetails/NoticeTable.vue'
 
 const $api = inject('$api');
 const route = useRoute();
 const loading = ref(true);
-const deviceData = ref(null);
 const error = ref(null);
-const typeDeviceName = route.params.typeDeviceName
-const deviceId = route.params.deviceId
+const chartWidth = ref(0);
+const devices = ref([]);
+const deviceId = ref(route.params.deviceId);
+const gauges = ref([
+  { type: 'Actual Power', title: 'Actual Power', unit: 'kW' },
+  { type: 'Oil Pressure', title: 'Oil Pressure', unit: 'bar' },
+  { type: 'Water Temp', title: 'Water Temperature', unit: '°C' },
+  { type: 'RPM', title: 'RPM', unit: 'RPM' }
+]);
 
-// Fetch device data
 const fetchDeviceData = async () => {
   try {
-    loading.value = true
-    error.value = null
-    
-    const response = await $api.put('/Device/GetDevice', {
-      DeviceId: deviceId
-    })
-    
-    // ตรวจสอบว่า TypeDevicename ตรงกับที่มาจาก route
-    if (response.data.TypeDevicename !== typeDeviceName) {
-      throw new Error('Device type does not match')
-    }
-    
-    deviceData.value = response.data
-  } catch (err) {
-    console.error('Error fetching device data:', err)
-    error.value = err.response?.data?.message || err.message || 'Failed to load device data'
-  } finally {
-    loading.value = false
-  }
-}
+    loading.value = true;
+    error.value = null;
 
-// Get measurement value by name
+    const response = await $api.get('/MachineStatus/GetDeviceByDeviceId', {
+      params: { deviceId: deviceId.value }
+    });
+    devices.value = response.data;
+    console.log('Device data:', devices.value);
+  } catch (err) {
+    console.error('Error fetching device data:', err);
+    error.value = err;
+  } finally {
+    loading.value = false;
+  }
+};
+
 const getMeasurementValue = (measurementName) => {
-  if (!deviceData.value?.Measurement) return 0;
-  const measurement = deviceData.value.Measurement.find(m => 
-    m.MeasurementName === measurementName || 
-    m.MeasurementLabel === measurementName
-  )
-  return Number(measurement?.Value) || 0
-}
-// Fetch data when component mounts
+  if (!devices.value.length) return 0
+  const device = devices.value[0]
+  const measurement = device.Mesurement.find(m => m.measurementname === measurementName)
+  return measurement ? parseFloat(measurement.lastValue) : 0
+};
+
+const getGaugeOptions = (measurementName, device) => {
+  if (!device) return {};
+  
+  const measurement = device.Mesurement.find(m => m.measurementname === measurementName);
+  if (!measurement) return {};
+  
+  let needlePercentage = 0;
+  let colors = [];
+  let delimiters = [];
+  let labels = [];
+  
+  switch (measurementName) {
+    case 'Actual Power':
+      // needlePercentage = เข็มควรอยู่ตรงไหนบน gauge โดยเทียบเป็น 100 ส่วน
+      needlePercentage = (parseFloat(measurement.lastValue) / measurement.valuemax) * 100;
+      colors = ['#3DCC5B', '#FFD54F', '#F44336'];
+      delimiters = [
+        (measurement.thresholdminwarning / measurement.valuemax) * 100,
+        (measurement.thresholdmindanger / measurement.valuemax) * 100,
+      ];
+      labels = [measurement.thresholdminwarning, measurement.thresholdmindanger];
+      break;
+      
+    case 'Oil Pressure':
+      needlePercentage = (parseFloat(measurement.lastValue) / measurement.valuemax) * 100;
+      colors = ['#F44336', '#FFD54F', '#3DCC5B'];
+      delimiters = [
+        (measurement.thresholdmindanger / measurement.valuemax) * 100,
+        (measurement.thresholdminwarning / measurement.valuemax) * 100,
+      ];
+      labels = [measurement.thresholdmindanger, measurement.thresholdminwarning];
+      break;
+      
+    case 'Water Temp':
+      needlePercentage = (parseFloat(measurement.lastValue) / measurement.valuemax) * 100;
+      colors = ['#3DCC5B', '#FFD54F', '#F44336'];
+      delimiters = [
+        (measurement.thresholdminwarning / measurement.valuemax) * 100,
+        (measurement.thresholdmindanger / measurement.valuemax) * 100,
+      ];
+      labels = [measurement.thresholdminwarning, measurement.thresholdmindanger];
+      break;
+      
+    case 'RPM':
+      needlePercentage = (parseFloat(measurement.lastValue) / measurement.valuemax) * 100;
+      colors = ['#3DCC5B', '#FFD54F', '#F44336'];
+      delimiters = [
+        (measurement.thresholdminwarning / measurement.valuemax) * 100,
+        (measurement.thresholdmindanger / measurement.valuemax) * 100,
+      ];
+      labels = [measurement.thresholdminwarning, measurement.thresholdmindanger];
+      break;
+      
+    default:
+      needlePercentage = 0;
+      colors = ['#3DCC5B'];
+      delimiters = [];
+      labels = [];
+  };
+  
+  return {
+    needleValue: needlePercentage,
+    needleColor: '#2c3e50',
+    arcDelimiters: delimiters,
+    arcColors: colors,
+    arcLabels: labels,
+    rangeLabel: ['0', measurementName === 'Actual Power' ? '10000' :
+                measurementName === 'Oil Pressure' ? '5' : 
+                measurementName === 'Water Temp' ? '120' : 
+                measurementName === 'RPM' ? '4000' : 
+                measurement.valuemax.toString()],
+    rangeLabelFontSize: window.innerWidth < 600 ? 8 : 10,
+    arcLabelFontSize: window.innerWidth < 600 ? 6 : 8,
+    arcOverEffect: true,
+    chartWidth: chartWidth.value,
+    hasNeedle: true
+  };
+};
+
+const updateChartSize = () => {
+  const width = window.innerWidth;
+  if (width < 600) {
+    chartWidth.value = width * 0.35;
+  } else if (width < 960) {
+    chartWidth.value = width * 0.25;
+  } else if (width < 1264) {
+    chartWidth.value = width * 0.2;
+  } else {
+    chartWidth.value = width * 0.15;
+  }
+};
+
+const getWarningCount = (device) => {
+  return device?.MeasurementsAlertCount?.find(item => 'AlertWarningTotal' in item)?.AlertWarningTotal || 0;
+};
+
+const getDangerCount = (device) => {
+  return device?.MeasurementsAlertCount?.find(item => 'AlertDangerTotal' in item)?.AlertDangerTotal || 0;
+};
+
+// const filteredMeasurements = computed(() => {
+//   if (!devices.value.length) return {};
+//   const measurements = devices.value[0].Mesurement;
+  
+//   return {
+//     'Hour Meter': measurements.find(m => m.measurementname === 'Hour Meter')?.lastValue || '0',
+//     'Battery Volts': measurements.find(m => m.measurementname === 'Battery Volts')?.lastValue || '0',
+//     'Actual Power': measurements.find(m => m.measurementname === 'Actual Power')?.lastValue || '0',
+//     'Oil Pressure': measurements.find(m => m.measurementname === 'Oil Pressure')?.lastValue || '0',
+//     'Water Temp': measurements.find(m => m.measurementname === 'Water Temp')?.lastValue || '0',
+//     'Total Fuel Consumption': measurements.find(m => m.measurementname === 'Total Fuel Consumption')?.lastValue || '0',
+//     'RPM': measurements.find(m => m.measurementname === 'RPM')?.lastValue || '0'
+//   };
+// });
+
+const filteredMeasurements = computed(() => {
+  if (!devices.value.length) return {};
+  const measurements = devices.value[0].Mesurement;
+  
+  return {
+    'Hour Meter': {
+      value: measurements.find(m => m.measurementname === 'Hour Meter')?.lastValue || '0',
+      unit: measurements.find(m => m.measurementname === 'Hour Meter')?.measurementunit || 'hour'
+    },
+    'Battery Volts': {
+      value: measurements.find(m => m.measurementname === 'Battery Volts')?.lastValue || '0',
+      unit: measurements.find(m => m.measurementname === 'Battery Volts')?.measurementunit || 'Volts'
+    },
+    'Actual Power': {
+      value: measurements.find(m => m.measurementname === 'Actual Power')?.lastValue || '0',
+      unit: measurements.find(m => m.measurementname === 'Actual Power')?.measurementunit || 'kW'
+    },
+    'Oil Pressure': {
+      value: measurements.find(m => m.measurementname === 'Oil Pressure')?.lastValue || '0',
+      unit: measurements.find(m => m.measurementname === 'Oil Pressure')?.measurementunit || 'bar'
+    },
+    'Water Temp': {
+      value: measurements.find(m => m.measurementname === 'Water Temp')?.lastValue || '0',
+      unit: measurements.find(m => m.measurementname === 'Water Temp')?.measurementunit || '°C'
+    },
+    'Total Fuel Consumption': {
+      value: measurements.find(m => m.measurementname === 'Total Fuel Consumption')?.lastValue || '0',
+      unit: measurements.find(m => m.measurementname === 'Total Fuel Consumption')?.measurementunit || 'L'
+    },
+    'RPM': {
+      value: measurements.find(m => m.measurementname === 'RPM')?.lastValue || '0',
+      unit: measurements.find(m => m.measurementname === 'RPM')?.measurementunit || 'RPM'
+    },
+    'Total Fuel ALL': {
+      value: measurements.find(m => m.measurementname === 'Total Fuel ALL')?.lastValue || '0',
+      unit: measurements.find(m => m.measurementname === 'Total Fuel ALL')?.measurementunit || 'L'
+    },
+    'Fuel Rate': {
+      value: measurements.find(m => m.measurementname === 'Fuel Rate')?.lastValue || '0',
+      unit: measurements.find(m => m.measurementname === 'Fuel Rate')?.measurementunit || 'L/hr'
+    }
+  };
+});
+
+const deviceStatus = computed(() => {
+  if (!devices.value.length) return 'N/A';
+  const statusValue = devices.value[0].Mesurement.find(m => m.measurementname === 'Status')?.lastValue;
+  
+  const statusMap = {
+    0: { text: 'Offline'},
+    1: { text: 'Standby'},
+    2: { text: 'Running'},
+    3: { text: 'Standby/Maintenance'},
+    4: { text: 'Running/Maintenance'},
+    5: { text: 'Down'}
+  };
+  
+  return statusMap[statusValue] || { text: 'N/A', color: '#C0C0C0' };
+});
+
 onMounted(() => {
-  fetchDeviceData()
+  updateChartSize();
+  fetchDeviceData();
+  window.addEventListener('resize', updateChartSize);
 })
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateChartSize);
+});
 </script>
 
 <style lang="scss" scoped>
 .title {
-  font-size: 2vh;
+  font-size: 3vh;
   font-weight: 600;
   text-align: center;
 }
@@ -238,6 +324,24 @@ onMounted(() => {
 
 .header {
   font-size: 2.5vh;
-  font-weight: 600;
+  font-weight: bold;
+}
+
+.gauge-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.5vh;
+  font-weight: bold;
+  color: var(--dark-gray)
+}
+
+.central-label {
+  font-size: 3vh;
+  font-weight: bold;
+  margin-top: -10%;
+}
+
+:deep(text) {
+  font-family: 'Inter', sans-serif;
+  font-size: 1  vh;
 }
 </style>

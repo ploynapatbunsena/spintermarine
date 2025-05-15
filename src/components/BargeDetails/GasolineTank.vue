@@ -15,36 +15,23 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from 'vue';
+import { computed } from 'vue';
 
-// const $api = inject('$api');
-// const deviceData = ref(null);
-// const fuelConsumed = ref(0);
-const totalCapacity = ref(3000); // กำหนดค่าเอง เช่น 1500 L
-const remainingVolume = ref(2300); // กำหนดค่าเอง เช่น 800 L
-
-const oilPercentage = computed(() => {
-  if (totalCapacity.value === 0) return 0;
-  const percentage = (remainingVolume.value / totalCapacity.value) * 100;
-  return Math.max(0, Math.min(100, percentage)).toFixed(1);
+const props = defineProps({
+  remainingVolume: {
+    type: Number,
+    required: true
+  },
+  totalCapacity: {
+    type: Number,
+    required: true
+  }
 });
 
-// ฟังก์ชันดึงข้อมูลจาก API (รองรับอนาคต)
-const fetchDeviceData = async () => {
-  try {
-    // ตัวอย่างการเรียก API (ยังไม่ใช้งานจริง)
-    // const response = await $api.get('/device/fuel-data');
-    // deviceData.value = response.data;
-    // totalCapacity.value = deviceData.value.totalCapacity || 1500; // ค่า default หาก API ไม่มีข้อมูล
-    // remainingVolume.value = deviceData.value.remainingVolume || 800; // ค่า default หาก API ไม่มีข้อมูล
-  } catch (error) {
-    console.error('Failed to fetch fuel data:', error);
-    // คงค่าเริ่มต้นที่กำหนดไว้ใน ref หาก API ล้มเหลว
-  }
-};
-
-onMounted(() => {
-  fetchDeviceData();
+const oilPercentage = computed(() => {
+  if (props.totalCapacity <= 0) return 0;
+  const percentage = (props.remainingVolume / props.totalCapacity) * 100;
+  return Math.max(0, Math.min(100, percentage)).toFixed(1);
 });
 </script>
   

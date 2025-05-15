@@ -3,27 +3,24 @@
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
-      <div class="title">{{ report.name }}</div>
-      <div class="title-thai">{{ report.nameThai }}</div>
-
-      <!-- Filter Form -->
+      <div class="title">Report on RPM and Speed and %Throttle Affected by Wind Speed of Tugboat</div>
+      <div class="title-thai">รายงาน RPM และ ความเร็ว และ %คันเร่ง ที่ถูกกระทบด้วยความเร็วลมของเรือยนต์</div>
       <v-card class="mt-4">
         <v-card-text class="mx-16 my-6">
           <v-row>
-            <!-- Device Dropdown -->
             <v-col cols="12" md="3">
               <v-select
-                v-model="selectedTugboat"
-                :items="tugboatList"
-                item-title="title"
-                item-value="id"
+                v-model="selectedTugboats"
+                :items="tugboatOptions"
+                item-title="deviceName"
+                item-value="deviceId"
                 label="Device"
                 variant="outlined"
                 density="compact"
                 multiple
                 clearable
-                :menu-props="{ closeOnContentClick: false }"
-                @update:modelValue="handleSelection"
+                :error-messages="deviceError"
+                :error="!!deviceError"
               >
                 <template v-slot:prepend-item>
                   <v-list-item title="Select All" @click="toggleSelectAll">
@@ -37,67 +34,86 @@
                   </v-list-item>
                 </template>
                 <template v-slot:selection="{ index }">
-                  <span v-if="index === 0">{{ selectedTugboat.length }} selected</span>
+                  <span v-if="index === 0">{{ selectedTugboats.length }} selected</span>
+                </template>
+                <template v-slot:item="{ props, item }">
+                  <v-list-item v-bind="props">
+                    <template v-slot:prepend>
+                      <v-checkbox-btn :model-value="selectedTugboats.includes(item.raw.deviceId)"></v-checkbox-btn>
+                    </template>
+                  </v-list-item>
                 </template>
               </v-select>
             </v-col>
-            <!-- Date Pickers -->
-            <!-- Start Date -->
             <v-col cols="12" md="3">
-              <v-text-field
+              <datePicker
                 v-model="startDate"
                 label="Start Date"
-                type="date"
-                variant="outlined"
-                density="compact"
-              ></v-text-field>
+                :max="endDate || null"
+                enable-seconds
+                teleport
+                format="yyyy-MM-dd HH:mm:ss"
+                placeholder="Select Start Date"
+                :class="{ 'error-border': startDateError }"
+              ></datePicker>
+              <div v-if="startDateError" class="error-message">{{ startDateError }}</div>
             </v-col>
-            <!-- End Date -->
             <v-col cols="12" md="3">
-              <v-text-field
+              <datePicker
                 v-model="endDate"
                 label="End Date"
-                type="date"
-                variant="outlined"
-                density="compact"
-              ></v-text-field>
+                :min="startDate || null"
+                enable-seconds
+                teleport
+                format="yyyy-MM-dd HH:mm:ss"
+                placeholder="Select End Date"
+                :class="{ 'error-border': endDateError }"
+              ></datePicker>
+              <div v-if="endDateError" class="error-message">{{ endDateError }}</div>
             </v-col>
-
-            <v-col cols="6" md="3">
+            <v-col cols="12" md="3">
               <v-row>
-                <v-col cols="6" md="4" class="px-0">
+                <v-col cols="6" md="3">
                   <v-btn
-                    prepend-icon="mdi-close"
-                    class="cancel-btn"
+                    class="cancel-btn elevation-0 text-none"
                     @click="resetFilters"
                   >
                     Cancel
                   </v-btn>
                 </v-col>
-                <v-col cols="6" md="4" class="px-0">
+                <v-col cols="6" md="3">
                   <v-btn
-                    prepend-icon="mdi-magnify"
-                    class="search-btn"
-                    @click="searchRecords"
+                    class="search-btn elevation-0 text-none"
+                    @click="validateAndSearch"
+                    :loading="searchLoading"
                   >
                     Search
                   </v-btn>
                 </v-col>
-                <v-col cols="6" md="4" class="px-0">
+                <!-- <v-col cols="6" md="4" class="px-0">
                   <v-btn
-                    prepend-icon="mdi-arrow-down"
                     class="download-btn"
                     @click="downloadReport"
+                    :disabled="!showResult"
                   >
                     Download
                   </v-btn>
-                </v-col>
+                </v-col> -->
               </v-row>
             </v-col>
           </v-row>
         </v-card-text>
-        <!-- Results -->
-        <v-card-text v-if="showResult">
+
+        <v-card-text v-if="searchLoading" class="text-center">
+          <v-progress-circular indeterminate color="primary"></v-progress-circular>
+          <div>Loading data...</div>
+        </v-card-text>
+
+        <v-card-text v-if="error" class="text-center error--text">
+          Error loading data: {{ error }}
+        </v-card-text>
+
+        <v-card-text v-if="showResult && !searchLoading">
           <apexchart
             type="line"
             height="680"
@@ -110,185 +126,255 @@
   </v-app>
 </template>
 
-<script>
+<script setup>
 import NavigationBar from '@/components/NavigationBar.vue';
 import SpaceBar from '@/components/SpaceBar.vue';
-import { reports, tugboats } from '@/data/config';
-import { computed, ref } from 'vue';
-import '@/assets/colors.scss';
+import { computed, inject, onMounted, ref } from 'vue';
 import VueApexCharts from 'vue3-apexcharts';
+import VueDatePicker from '@vuepic/vue-datepicker';
+import '@/assets/colors.scss';
+import '@vuepic/vue-datepicker/dist/main.css'
 
-export default {
-  name: 'WindSpeedImpactReport',
-  components: {
-    NavigationBar,
-    SpaceBar,
-    apexchart: VueApexCharts,
-  },
+const datePicker = VueDatePicker;
+const apexchart = VueApexCharts;
+const $api = inject('$api');
+const showResult = ref(false);
+const searchLoading = ref(false);
+const error = ref(null);
+const series = ref([]);
+const tugboatDevices = ref([]);
+const selectedTugboats = ref([]);
+const startDate = ref(null);
+const endDate = ref(null);
 
-  setup() {
-    const report = computed(() => reports.find(report => report.id === 'report03'));
-    const selectedTugboat = ref([]); // เก็บรายการที่เลือก
-    const startDate = ref('');
-    const endDate = ref('');
-    const showResult = ref(false);
+const deviceError = ref('');
+const startDateError = ref('');
+const endDateError = ref('');
 
-    const tugboatList = computed(() => {
-      return Array.isArray(tugboats) ? tugboats.map((tugboat) => ({
-        id: tugboat.id,
-        title: tugboat.name,
-      })) : [];
-    });
+const validateForm = () => {
+  let isValid = true;
+  deviceError.value = '';
+  startDateError.value = '';
+  endDateError.value = '';
+  
+  if (selectedTugboats.value.length === 0) {
+    deviceError.value = 'Device is required';
+    isValid = false;
+  }
+  
+  if (!startDate.value) {
+    startDateError.value = 'Start date is required';
+    isValid = false;
+  }
+  
+  if (!endDate.value) {
+    endDateError.value = 'End date is required';
+    isValid = false;
+  }
+  
+  return isValid;
+};
 
-    // เช็กว่าเลือกทั้งหมดหรือไม่
-    const isAllSelected = computed(() => {
-      return selectedTugboat.value?.length === tugboatList.value?.length;
-    });
+const validateAndSearch = () => {
+  if (validateForm()) {
+    searchRecords();
+  }
+};
 
-    // เช็กว่าเลือกบางส่วนหรือไม่
-    const isPartialSelection = computed(() => {
-      return selectedTugboat.value?.length > 0 && !isAllSelected.value;
-    });
+const fetchTugboatData = async () => {
+  try {
+    error.value = null;
 
-    // เลือกทั้งหมด/ยกเลิกทั้งหมด
-    const toggleSelectAll = () => {
-      if (isAllSelected.value) {
-        selectedTugboat.value = [];
-      } else {
-        selectedTugboat.value = tugboatList.value.map((item) => item.id);
-      }
-    };
-
-    // อัปเดตการเลือก
-    const handleSelection = () => {
-      if (selectedTugboat.value.length === tugboatList.value.length) {
-        selectedTugboat.value = tugboatList.value.map((item) => item.id);
-      }
-    };
-
-    const resetFilters = () => {
-      selectedTugboat.value = [];
-      startDate.value = '';
-      endDate.value = '';
-      showResult.value = false;
-    };
-
-    const searchRecords = () => {
-      // ดึงชื่อ tugboat ตาม id ที่เลือก
-      const selectedTugboatNames = selectedTugboat.value.map((id) => {
-        const found = tugboatList.value.find((tugboat) => tugboat.id === id);
-        return found ? found.title : id;
-        
-      });
-
-      // อัปเดต categories ใน xaxis
-      chartOptions.value = {
-        ...chartOptions.value,
-        xaxis: {
-          categories: selectedTugboatNames,
-        },
-      };
-      showResult.value = true;
-    };
-
-    const series = ref([
-      {
-        name: "RPM (RPM)",
-        type: "column",
-        data: [1.4, 2, 2.5, 1.5, 2.5, 2.8, 3.8, 4.6, 3, 3.1, 4, 4.1, 4.9, 6.5, 8.5, 1.4, 2, 2.5, 1.5, 2.5, 2.8, 3.8, 4.6, 3, 3.1],
-      },
-      {
-        name: "Speed (km/h)",
-        type: "column",
-        data: [1.1, 3, 3.1, 4, 4.1, 4.9, 6.5, 8.5, 1.1, 3, 3.1, 4, 4.1, 4.9, 6.5, 8.5, 1.1, 3, 3.1, 4, 4.1, 4.9, 6.5, 8.5, 10],
-      },
-      {
-        name: "%Throttle (%)",
-        type: "column",
-        data: [1.1, 3, 3.1, 4, 4.1, 4.9, 6.5, 8.5, 3, 3.1, 4, 4.1, 4.9, 6.5, 8.5, 1.1, 3, 3.1, 4, 4.1, 4.9, 6.5, 4.6, 3, 3.1],
-      },
-      {
-        name: "Wind Speed (m/s)",
-        type: "line",
-        data: [20, 29, 37, 36, 44, 45, 50, 58, 32, 43, 12, 11, 8, 34, 66, 42, 11, 19, 7, 3, 5, 23, 30, 50, 12],
-      },
+    const [riverResponse, seaResponse] = await Promise.all([
+      $api.get('/MachineStatus/GetTugboatRiver'),
+      $api.get('/MachineStatus/GetTugboatSea')
     ]);
 
-    const chartOptions = ref({
-      chart: {
-        height: 680,
-        type: "line",
-        stacked: false,
-      },
-      colors: ["#352B54", "#FAC12A", "#DC2B2B", "#4D97FF"],
-      fill: { opacity: 1 },
-      dataLabels: { enabled: false },
-      xaxis: { categories: [] },
-      yaxis: [
-        {
-          seriesName: "RPM",
-          axisTicks: { show: true },
-          axisBorder: { show: true, color: "#352B54" },
-          labels: { style: { colors: "#352B54" } },
-          title: { text: "RPM (RPM)", style: { color: "#352B54" } },
-        },
-        {
-          seriesName: "Speed",
-          opposite: true,
-          axisTicks: { show: true },
-          axisBorder: { show: true, color: "#FAC12A" },
-          labels: { style: { colors: "#FAC12A" } },
-          title: { text: "Speed (km/h)", style: { color: "#FAC12A" } },
-        },
-        {
-          seriesName: "%Throttle",
-          axisTicks: { show: true },
-          axisBorder: { show: true, color: "#DC2B2B" },
-          labels: { style: { colors: "#DC2B2B" } },
-          title: { text: "%Throttle", style: { color: "#DC2B2B" } },
-        },
-        {
-          seriesName: "Wind Speed",
-          opposite: true,
-          axisTicks: { show: true },
-          axisBorder: { show: true, color: "#4D97FF" },
-          labels: { style: { colors: "#4D97FF" } },
-          title: { text: "Wind Speed (m/s)", style: { color: "#4D97FF" } },
-        },
-      ],
-      // tooltip: {
-      //   fixed: {
-      //     enabled: true,
-      //     position: "topLeft",
-      //     offsetY: 30,
-      //     offsetX: 60,
-      //   },
-      // },
-      legend: {
-        horizontalAlign: "center",
-        offsetY: 16,
-      },
-    });
+    tugboatDevices.value = [...riverResponse.data, ...seaResponse.data];
+  } catch (err) {
+    console.error('Failed to fetch tugboat data:', err);
+    error.value = 'Failed to load device list. Please try again.';
+  }
+};
 
-    return {
-      report,
-      selectedTugboat,
-      tugboatList,
-      isAllSelected,
-      isPartialSelection,
-      toggleSelectAll,
-      handleSelection,
-      startDate,
-      endDate,
-      searchRecords,
-      resetFilters,
-      showResult,
-      series,
-      chartOptions,
+// Create dropdown options
+const tugboatOptions = computed(() => {
+  return tugboatDevices.value.flatMap(group => 
+    group.Devices.map(device => ({
+      deviceId: device.DeviceId,
+      deviceName: device.DeviceName,
+      type: group.TypeDevicename
+    }))
+  );
+});
+
+// Check if all devices are selected
+const isAllSelected = computed(() => {
+  return selectedTugboats.value.length === tugboatOptions.value.length;
+});
+
+// Check if partial selection exists
+const isPartialSelection = computed(() => {
+  return selectedTugboats.value.length > 0 && !isAllSelected.value;
+});
+
+// Toggle select all devices
+const toggleSelectAll = () => {
+  if (isAllSelected.value) {
+    selectedTugboats.value = [];
+  } else {
+    selectedTugboats.value = tugboatOptions.value.map(option => option.deviceId);
+  }
+};
+
+const resetFilters = () => {
+  selectedTugboats.value = [];
+  startDate.value = null;
+  endDate.value = null;
+  showResult.value = false;
+  error.value = null;
+  deviceError.value = '';
+  startDateError.value = '';
+  endDateError.value = '';
+};
+
+const formatDate = (date) => {
+  if (!date) return '';
+  const pad = n => n.toString().padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+};
+
+const processChartData = (devices) => {
+  const categories = devices.map(device => device.DeviceName);
+  const seriesData = [
+    { name: 'RPM', type: 'bar', data: [] },
+    { name: 'Speed', type: 'bar', data: [] },
+    { name: '%Throttle', type: 'bar', data: [] },
+    { name: 'Wind Speed', type: 'line', data: [] },
+  ];
+
+  devices.forEach(device => {
+    const measurements = device.Measurement || [];
+    seriesData[0].data.push(measurements.find(m => m.measurementname === 'RPM')?.AvgValue ?? 0);
+    seriesData[1].data.push(measurements.find(m => m.measurementname === 'Speed')?.AvgValue ?? 0);
+    seriesData[2].data.push(measurements.find(m => m.measurementname === '%Throttle')?.AvgValue ?? 0);
+    seriesData[3].data.push(measurements.find(m => m.measurementname === 'Wind-Speed')?.AvgValue ?? 0);
+  });
+
+  return { series: seriesData, categories };
+};
+
+const searchRecords = async () => {
+  try {
+    searchLoading.value = true; // Only set loading when searching
+    showResult.value = false;
+    error.value = null;
+
+    const request = {
+      DeviceId: selectedTugboats.value,
+      StartDateTime: formatDate(startDate.value),
+      EndDatetime: formatDate(endDate.value),
     };
+    
+    const response = await $api.put('MachineStatus/RealtimeChartDataReport03/multiple', request);
+    
+    if (!response.data || response.data.length === 0) {
+      error.value = 'No data found for the selected criteria';
+      return;
+    }
+
+    const processedData = processChartData(response.data);
+    
+    series.value = processedData.series;
+    chartOptions.value = {
+      ...chartOptions.value,
+      xaxis: {
+        ...chartOptions.value.xaxis,
+        categories: processedData.categories,
+      },
+    };
+
+    showResult.value = true;
+  } catch (err) {
+    console.error('Error searching records:', err);
+    error.value = 'Failed to load chart data. Please try again.';
+  } finally {
+    searchLoading.value = false;
+  }
+};
+
+// const downloadReport = () => {
+//   // Implement download functionality
+//   console.log('Download report');
+// };
+
+const chartOptions = ref({
+  chart: {
+    height: 680,
+    type: "line",
+    stacked: false,
+    animations: {
+      enabled: false // Disable animations for better performance
+    }
   },
-}
+  colors: ["#352B54", "#FAC12A", "#DC2B2B", "#4D97FF"],
+  fill: { opacity: 1 },
+  dataLabels: { enabled: false },
+  xaxis: { 
+    categories: [],
+    labels: {
+      trim: true,
+      hideOverlappingLabels: true
+    }
+  },
+  yaxis: [
+    {
+      seriesName: "RPM",
+      axisTicks: { show: true },
+      axisBorder: { show: true, color: "#352B54" },
+      labels: { style: { colors: "#352B54" } },
+      title: { text: "RPM (RPM)", style: { color: "#352B54" } },
+    },
+    {
+      seriesName: "Speed",
+      opposite: true,
+      axisTicks: { show: true },
+      axisBorder: { show: true, color: "#FAC12A" },
+      labels: { style: { colors: "#FAC12A" } },
+      title: { text: "Speed (km/h)", style: { color: "#FAC12A" } },
+    },
+    {
+      seriesName: "%Throttle",
+      axisTicks: { show: true },
+      axisBorder: { show: true, color: "#DC2B2B" },
+      labels: { style: { colors: "#DC2B2B" } },
+      title: { text: "%Throttle", style: { color: "#DC2B2B" } },
+    },
+    {
+      seriesName: "Wind Speed",
+      opposite: true,
+      axisTicks: { show: true },
+      axisBorder: { show: true, color: "#4D97FF" },
+      labels: { style: { colors: "#4D97FF" } },
+      title: { text: "Wind Speed (m/s)", style: { color: "#4D97FF" } },
+    },
+  ],
+  legend: {
+    horizontalAlign: "center",
+    offsetY: 16,
+  },
+  tooltip: {
+    enabled: true,
+    shared: true,
+    intersect: false
+  }
+});
+
+onMounted(() => {
+  fetchTugboatData();
+});
 </script>
+
 
 <style scoped>
 .title {
@@ -302,21 +388,38 @@ export default {
   font-weight: 400;
 }
 
-.cancel-btn {
-  background-color: var(--red);
-  color: var(--white);
-  border-radius: 10px;
-}
-
-.search-btn {
-  background-color: var(--light-blue);
-  color: var(--white);
-  border-radius: 10px;  
-}
-
 .download-btn {
   background-color: var(--yellow);
   color: var(--white);
   border-radius: 10px;  
+}
+
+.cancel-btn {
+  color: #000000;
+  border: 1px solid #E3E3E3;
+  border-radius: 24px;
+}
+
+.search-btn {
+  background-color: #223368;
+  color: #ffffff;
+  border-radius: 24px;
+}
+
+.error--text {
+  color: #DC2B2B;
+  font-weight: bold;
+}
+
+.error-border {
+  border: 1px solid #DC2B2B;
+  border-radius: 4px;
+}
+
+.error-message {
+  font-family: 'Inter', sans-serif;
+  color: #DC2B2B;
+  font-size: 12px;
+  margin-top: 4px;
 }
 </style>

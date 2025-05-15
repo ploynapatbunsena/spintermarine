@@ -4,11 +4,12 @@
       <v-app-bar-nav-icon class="nav-icon" variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
       <v-row>
         <v-col cols="8" sm="8" lg="2">
-          <v-img
-            :src="require('@/assets/Images/logo_navbar.png')"
-            class="navbar-logo"
-          >
-          </v-img>
+          <router-link :to="{ name: 'Homepage'}">
+            <v-img
+              :src="require('@/assets/Images/logo_navbar.png')"
+              class="navbar-logo"
+            ></v-img>
+          </router-link>
         </v-col>
       </v-row>
       <template v-if="$vuetify.display.mdAndUp">
@@ -45,7 +46,6 @@
         </v-menu>
       </template>
     </v-app-bar>
-    <!-- Drawer Sidebar -->
     <v-navigation-drawer
       v-model="drawer"
       location="left"
@@ -61,7 +61,6 @@
           class="nav-icon"
           style="padding: 0vw 1vw;"
         ></v-list-item>
-        <!-- Barge Group -->
         <v-list-group value="Barge">
           <template v-slot:activator="{ props }">
             <v-list-item
@@ -80,7 +79,6 @@
             class="nav-icon"
             style="padding: 0vw 1vw;"
           ></v-list-item>
-          <!-- แสดง TypeDevicename ของ Barge -->
           <v-list-group
             v-for="(deviceGroup, typeDeviceName) in bargeDevices"
             :key="typeDeviceName"
@@ -103,11 +101,10 @@
               v-for="device in deviceGroup"
               :key="device.DeviceId"
               :title="device.DeviceLabel"
-              :to="{ name: 'GeneratorDetails', params: { typeDeviceName: typeDeviceName, deviceId: device.DeviceId } }"
+              :to="{ name: 'GeneratorDetails', params: { deviceId: device.DeviceId } }"
             ></v-list-item>
           </v-list-group>
         </v-list-group>
-        <!-- Tugboat Group -->
         <v-list-group value="Tugboat">
           <template v-slot:activator="{ props }">
             <v-list-item
@@ -125,7 +122,6 @@
             class="nav-icon"
             style="padding: 0vw 1vw;"
           ></v-list-item>
-          <!-- Tugboat river going -->
           <v-list-group value="Tugboat river going">
             <template v-slot:activator="{ props }">
               <v-list-item
@@ -143,7 +139,6 @@
               :to="{ name: 'TugboatDetail', params: { deviceId: device.DeviceId } }"
             ></v-list-item>
           </v-list-group>
-          <!-- Tugboat sea going -->
           <v-list-group value="Tugboat sea going">
             <template v-slot:activator="{ props }">
               <v-list-item
@@ -162,8 +157,7 @@
             ></v-list-item>
           </v-list-group>
         </v-list-group>
-        <v-list-item prepend-icon="mdi-map-marker-radius" title="GPS Tracker" class="nav-icon" style="padding: 0vw 1vw;" :to="{ name: 'GPS_Tracker' }"></v-list-item>
-        <!-- Report Group -->
+        <v-list-item prepend-icon="mdi-map-marker-radius" title="Route Tracking" class="nav-icon" style="padding: 0vw 1vw;" :to="{ name: 'RouteTracking' }"></v-list-item>
         <v-list-group>
           <template v-slot:activator="{ props }">
             <v-list-item
@@ -175,7 +169,7 @@
             ></v-list-item>
           </template>
           <v-list-item title="Notification Report" :to="{ name: 'NotificationReport' }"></v-list-item>
-          <v-list-item title="ChartHistorical Report" :to="{ name: 'ChartHistorical' }"></v-list-item>
+          <v-list-item title="ChartHistorical Report" :to="{ name: 'HistoricalChart' }"></v-list-item>
           <v-list-item title="Report on RPM and Speed and %Throttle Affected by Wind Speed of Tugboat" :to="{ name: 'WindSpeedImpactReport' }"></v-list-item>
           <v-list-item title="Report on Tugboats Encountering Storms" :to="{ name: 'EncounteringStormsReport' }"></v-list-item>
           <v-list-item title="Report on Fuel Rate per RPM for Evaluating Engine Efficiency of Motor Barge" :to="{ name: 'FuelRatePerRPMReport' }"></v-list-item>
@@ -183,7 +177,6 @@
           <v-list-item title="Report on Daily Fuel Consumption for the Barge" :to="{ name: 'DailyFuelConsumtionReport' }"></v-list-item>
           <v-list-item title="Report on Barge Tilt" :to="{ name: 'BargeTiltReport' }"></v-list-item>
         </v-list-group>
-        <!-- Setting Group -->
         <v-list-group>
           <template v-slot:activator="{ props }">
             <v-list-item
@@ -272,6 +265,7 @@ const accountName = async () => {
 const logout = () => {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('member');
+  localStorage.removeItem('menuPermission');
   router.push({ name: 'Login' })
     .then(() => {
       console.log('Logged out successfully');

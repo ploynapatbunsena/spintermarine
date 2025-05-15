@@ -1,5 +1,5 @@
 <template>
-  <div class="gauge-container" >
+  <div class="gauge-container">
     <vue-gauge
       :refid="'_' + Math.random().toString(36).substr(2, 9)"
       :class="'metricsGauge'"
@@ -10,70 +10,64 @@
   </div>
 </template>
 
-<script>
-import VueGauge from "vue-gauge";
+<script setup>
+import { computed, onMounted, onBeforeUnmount, ref } from 'vue';
+import VueGauge from 'vue-gauge';
 
-export default {
-  name: "GaugeTiltLevel",
-  components: { VueGauge },
-  props: {
-    label: {
-      type: String,
-      default: "X",
-    },
-    value: {
-      type: Number,
-      default: 0,
-    },
+const props = defineProps({
+  label: {
+    type: String,
+    default: "X",
   },
-  data() {
-    return {
-      chartWidthVw: 10,
-    };
+  value: {
+    type: Number,
+    default: 0,
   },
-  computed: {
-    gaugeOptions() {
-      const needlePercentage = ((this.value + 6) / 12) * 100;
+});
 
-      const delimiters = [
-        (1 / 12) * 100, // -5
-        (3 / 12) * 100, // -3
-        (9 / 12) * 100, // 3
-        (11 / 12) * 100, // 5
-      ];
+const chartWidthVw = ref(10);
 
-      const colors = ["#DC2B2B", "#FFC107", "#28A745", "#FFC107", "#DC2B2B"];
-      const labels = ["-5", "-3", "3", "5"];
+const gaugeOptions = computed(() => {
+  const needlePercentage = ((props.value + 6) / 12) * 100;
 
-      const chartWidth = (this.chartWidthVw / 100) * window.innerWidth;
+  const delimiters = [
+    (1 / 12) * 100, // -5
+    (3 / 12) * 100, // -3
+    (9 / 12) * 100, // 3
+    (11 / 12) * 100, // 5
+  ];
 
-      return {
-        needleValue: needlePercentage,
-        needleColor: "#355F2E",
-        arcDelimiters: delimiters,
-        arcColors: colors,
-        arcLabels: labels,
-        rangeLabelFontSize: 16,
-        arcLabelFontSize: 14,
-        arcOverEffect: true,
-        chartWidth: chartWidth,
-        rangeLabel: ["-6", "6"],
-        hasNeedle: true,
-      };
-    },
-  },
-  mounted() {
-    window.addEventListener("resize", this.updateChartWidth);
-  },
-  beforeUnmount() {
-    window.removeEventListener("resize", this.updateChartWidth);
-  },
-  methods: {
-    updateChartWidth() {
-      this.$forceUpdate();
-    },
-  },
+  const colors = ["#DC2B2B", "#FFC107", "#28A745", "#FFC107", "#DC2B2B"];
+  const labels = ["-5", "-3", "3", "5"];
+
+  const chartWidth = (chartWidthVw.value / 100) * window.innerWidth;
+
+  return {
+    needleValue: needlePercentage,
+    needleColor: "#355F2E",
+    arcDelimiters: delimiters,
+    arcColors: colors,
+    arcLabels: labels,
+    rangeLabelFontSize: 16,
+    arcLabelFontSize: 14,
+    arcOverEffect: true,
+    chartWidth: chartWidth,
+    rangeLabel: ["-6", "6"],
+    hasNeedle: true,
+  };
+});
+
+const updateChartWidth = () => {
+  chartWidthVw.value = chartWidthVw.value;
 };
+
+onMounted(() => {
+  window.addEventListener("resize", updateChartWidth);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", updateChartWidth);
+});
 </script>
 
 <style lang="scss" scoped>
@@ -87,7 +81,7 @@ export default {
 .central-label {
   position: absolute;
   top: 9vh;
-  left: 50%;
+  left: 50%;    
   transform: translateX(-50%);
   font-size: 2vh;
   font-weight: bold;

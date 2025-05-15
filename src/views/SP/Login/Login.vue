@@ -26,7 +26,7 @@
             >
               <v-card-text class="pa-6">
                 <p class="login-title">LOGIN</p>
-                <form @submit.prevent="handleLogin">
+                <form @submit.prevent="fetchMemberData">
                   <div class="form-control">
                     <label for="email">Email</label>
                     <input 
@@ -117,26 +117,31 @@ const togglePassword = () => {
   showPassword.value = !showPassword.value;
 };
 
-const handleLogin = async () => {
+const fetchMemberData = async () => {
   if (!validateForm()) return
   isLoading.value = true;
+
   try {
     const loginData = {
       MemberEmail: email.value,
       MemberPassword: password.value,
     };
 
-    const response = await $api.post('/Member/login', loginData);
-    const { accessToken, member } = response.data;
+    const loginResponse = await $api.post('/Member/login', loginData);
+    const { accessToken, member } = loginResponse.data;
 
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('member', JSON.stringify(member));
 
-    console.log('Login successful');
+    const memberId = member.MemberId;
+    const permissionResponse = await $api.get(`/member/permission/${memberId}`);
+    const { menuPermission } = permissionResponse.data;
+    // localStorage.setItem('menuPermission', JSON.stringify(permissionResponse.data.menuPermission));
+    localStorage.setItem('menuPermission', JSON.stringify(menuPermission));
 
     router.push('/Homepage');
   } catch (error) {
-    console.error('Login failed:', error);
+    console.error('Login or permission fetch failed:', error);
     if (error.response) {
       if (error.response.status === 401) {
         errors.password = 'Email or password is incorrect';
@@ -152,7 +157,157 @@ const handleLogin = async () => {
 };
 </script>
 
-<style lang="scss">
+<!-- <template>
+  <v-app>
+    <v-main>
+      <v-container class="pa-0 ma-0" fluid>
+        <v-row no-gutters>
+          <v-col cols="12" md="6" class="background-section">
+            <v-img
+              :src="require('@/assets/Images/bg_login.jpg')"
+              height="100vh"
+              cover
+              class="pa-16"
+            >
+              <v-img
+                :src="require('@/assets/Images/logo_miiot.png')"
+                width="30vh"
+                height="5vh"
+              />
+            </v-img>
+          </v-col>
+          <v-col cols="12" md="6" class="login-section">
+            <v-card class="login-card" rounded="xl" elevation="0">
+              <v-card-text class="pa-6">
+                <p class="login-title">LOGIN</p>
+                <form @submit.prevent="fetchMemberData">
+                  <v-text-field
+                    v-model="email"
+                    label="Email"
+                    placeholder="Enter your email"
+                    :error-messages="errors.email"
+                    prepend-inner-icon="mdi-email"
+                    variant="outlined"
+                  />
+                  <v-text-field
+                    v-model="password"
+                    label="Password"
+                    :type="showPassword ? 'text' : 'password'"
+                    placeholder="Enter your password"
+                    :error-messages="errors.password"
+                    prepend-inner-icon="mdi-lock"
+                    :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                    @click:append-inner="togglePassword"
+                    variant="outlined"
+                  />
+                  <v-btn
+                    type="submit"
+                    color="primary"
+                    block
+                    :loading="isLoading"
+                    class="mt-4"
+                  >
+                    {{ isLoading ? 'Loading...' : 'Login Now' }}
+                  </v-btn>
+                </form>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
+      <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">
+        {{ snackbar.message }}
+      </v-snackbar>
+    </v-main>
+  </v-app>
+</template>
+
+<script setup>
+import { ref, reactive } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/store/auth';
+import { inject } from 'vue';
+
+const $api = inject('$api');
+const router = useRouter();
+const authStore = useAuthStore();
+
+const email = ref('');
+const password = ref('');
+const showPassword = ref(false);
+const isLoading = ref(false);
+const errors = reactive({
+  email: '',
+  password: '',
+});
+const snackbar = reactive({
+  show: false,
+  message: '',
+  color: 'error',
+});
+
+const validateForm = () => {
+  errors.email = '';
+  errors.password = '';
+  let isValid = true;
+
+  if (!email.value) {
+    errors.email = 'Email is required';
+    isValid = false;
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+    errors.email = 'Please enter a valid email';
+    isValid = false;
+  }
+
+  if (!password.value) {
+    errors.password = 'Password is required';
+    isValid = false;
+  }
+  return isValid;
+};
+
+const togglePassword = () => {
+  showPassword.value = !showPassword.value;
+};
+
+const fetchMemberData = async () => {
+  if (!validateForm()) return;
+  isLoading.value = true;
+
+  try {
+    const loginData = {
+      MemberEmail: email.value,
+      MemberPassword: password.value,
+    };
+
+    const loginResponse = await $api.post('/Member/login', loginData);
+    const { accessToken, member } = loginResponse.data;
+
+    const permissionResponse = await $api.get(`/member/permission/${member.MemberId}`);
+    const { menuPermission } = permissionResponse.data;
+
+    // เก็บข้อมูลใน Pinia และ localStorage
+    authStore.setAuth(member, menuPermission, accessToken);
+
+    snackbar.show = true;
+    snackbar.message = 'Login successful!';
+    snackbar.color = 'success';
+
+    router.push('/Homepage');
+  } catch (error) {
+    console.error('Login or permission fetch failed:', error);
+    snackbar.show = true;
+    snackbar.message =
+      error.response?.status === 401
+        ? 'Email or password is incorrect'
+        : 'Login failed, please try again';
+  } finally {
+    isLoading.value = false;
+  }
+};
+</script> -->
+
+<style lang="scss" scoped>
 .background-section {
   position: fixed;
   width: 100%;

@@ -1,13 +1,11 @@
-
-  <template>
-    <v-app style="background-color: #F7F9FC;">
-      <NavigationBar />
-      <SpaceBar />
-      <v-container fluid class="px-10">
-        <div class="title">Tugboat</div>
-
-        <!-- River Going Section -->
-        <div class="cover mt-3 pa-3">
+<template>
+  <v-app style="background-color: #F7F9FC;">
+    <NavigationBar />
+    <SpaceBar />
+    <v-container fluid class="px-10">
+      <v-row v-if="!isLoading">
+        <v-col cols="12" class="title">Tugboat</v-col>
+        <v-row class="cover mt-3 pa-3">
           <v-img :src="require('@/assets/Images/river_going_cover.png')" class="text-white">
             <div class="text-cover">
               <p class="name-thai">เรือน้ำจืด</p>
@@ -15,8 +13,15 @@
             </div>
           </v-img>
           <v-row class="my-16">
-            <v-col v-for="tugboat in tugboatRiverDevices" :key="tugboat.DeviceId" cols="12" sm="6" lg="4" xxl="3">
-              <v-card class="h-100 rounded-lg" @click="goToTugboatDetails(tugboat.DeviceId)" hover>
+            <v-col 
+              v-for="tugboat in tugboatRiverDevices" 
+              :key="tugboat.TypeDevicename" 
+              cols="12" sm="6" lg="4" xxl="3"
+            >
+              <v-card class="h-100 rounded-lg" 
+                @click="goToTugboatDetails(tugboat.Devices[0].DeviceId)" 
+                hover
+              >
                 <v-row no-gutters>
                   <v-col cols="4">
                     <v-img :src="require('@/assets/Images/overview_barge.jpg')" height="150" cover class="ma-2 rounded-lg"></v-img>
@@ -25,11 +30,14 @@
                     <v-card-item>
                       <div class="d-flex justify-space-between align-center">
                         <div>
-                          <v-card-title class="px-0">{{ tugboat.DeviceLabel }}</v-card-title>
-                          <v-card-subtitle class="px-0 thai-letters">เรือ{{ tugboat.Note }}</v-card-subtitle>
+                          <v-card-title class="px-0">{{ tugboat.TypeDevicename }}</v-card-title>
+                          <v-card-subtitle class="px-0 thai-letters">เรือ{{ tugboat.Devices[0]?.Note ?? 'N/A' }}</v-card-subtitle>
                         </div>
                         <div class="alert-icon mr-4">
-                          <AlertFunction :tugboat="tugboat" />
+                          <AlertBadges
+                            :warningCount="getAlertCount(tugboat.Devices[0], 'warning')"
+                            :dangerCount="getAlertCount(tugboat.Devices[0], 'danger')"
+                          />
                         </div>
                       </div>
                       <div class="mt-6">
@@ -54,10 +62,10 @@
               </v-card>
             </v-col>
           </v-row>
-        </div>
-
+        </v-row>
+  
         <!-- Sea Going Section -->
-        <div class="cover mt-3 pa-3">
+        <v-row class="cover mt-3 pa-3">
           <v-img :src="require('@/assets/Images/sea_going_cover.png')" class="text-white">
             <div class="text-cover">
               <p class="name-thai">เรือน้ำทะเล</p>
@@ -65,8 +73,16 @@
             </div>
           </v-img>
           <v-row class="my-16">
-            <v-col v-for="tugboat in tugboatSeaDevices" :key="tugboat.DeviceId" cols="12" sm="6" lg="4">
-              <v-card class="h-100 rounded-lg" @click="goToTugboatDetails(tugboat.DeviceId)" hover>
+            <v-col 
+              v-for="tugboat in tugboatSeaDevices" 
+              :key="tugboat.TypeDevicename" 
+              cols="12" sm="6" lg="4"
+            >
+              <v-card 
+                class="h-100 rounded-lg" 
+                @click="goToTugboatDetails(tugboat.Devices[0].DeviceId)" 
+                hover
+              >
                 <v-row no-gutters>
                   <v-col cols="4">
                     <v-img :src="require('@/assets/Images/overview_barge.jpg')" height="150" cover class="ma-2 rounded-lg"></v-img>
@@ -75,11 +91,14 @@
                     <v-card-item>
                       <div class="d-flex justify-space-between align-center">
                         <div>
-                          <v-card-title class="px-0">{{ tugboat.DeviceLabel }}</v-card-title>
-                          <v-card-subtitle class="px-0 thai-letters">เรือ{{ tugboat.Note }}</v-card-subtitle>
+                          <v-card-title class="px-0">{{ tugboat.TypeDevicename }}</v-card-title>
+                          <v-card-subtitle class="px-0 thai-letters">เรือ{{ tugboat.Devices[0]?.Note ?? 'N/A' }}</v-card-subtitle>
                         </div>
                         <div class="alert-icon mr-4">
-                          <AlertFunction :tugboat="tugboat" />
+                          <AlertBadges
+                            :warningCount="getAlertCount(tugboat.Devices[0], 'warning')"
+                            :dangerCount="getAlertCount(tugboat.Devices[0], 'danger')"
+                          />
                         </div>
                       </div>
                       <div class="mt-6">
@@ -104,23 +123,34 @@
               </v-card>
             </v-col>
           </v-row>
+        </v-row>
+      </v-row>
+      <v-overlay
+        :model-value="isLoading"
+        class="align-center justify-center"
+        persistent
+      >
+        <div class="pa-6 d-flex flex-column align-center">
+          <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+          <div class="mt-4 text-h6" style="font-family: 'Inter', sans-serif;">Loading data...</div>
         </div>
-      </v-container>
-    </v-app>
-  </template>
+      </v-overlay>
+    </v-container>
+  </v-app>
+</template>
 
 <script setup>
 import NavigationBar from "@/components/NavigationBar.vue";
 import SpaceBar from '@/components/SpaceBar.vue';
-import AlertFunction from "@/components/TugboatDetails/AlertFunction.vue";
+import AlertBadges from "@/components/BargeDetails/AlertBadges.vue";
 import { inject, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 const $api = inject('$api');
 const router = useRouter();
-const devices = ref([]);
 const tugboatRiverDevices = ref([]);
 const tugboatSeaDevices = ref([]);
+const isLoading = ref(true);
 
 // Mock status and date since they’re not in the API response
 const addMockData = (device) => {
@@ -131,21 +161,38 @@ const addMockData = (device) => {
   };
 };
 
-const fetchDeviceList = async () => {
+const fetchTugboatRiver = async () => {
   try {
-    const response = await $api.put('device/GetDeviceListProfile', {
-      DeviceId: ''
-    });
-    devices.value = response.data.map(addMockData); // Add mock status/date
-    groupDevicesByType();
+    isLoading.value = true;
+
+    const response = await $api.get('/MachineStatus/GetTugboatRiver');
+    tugboatRiverDevices.value = response.data.map(addMockData); // Add mock status/date
   } catch (error) {
-    console.error('Failed to fetch device list:', error);
+    console.error('Failed to fetch tugboat river:', error);
+  } finally {
+    isLoading.value = false;
   }
 };
 
-const groupDevicesByType = () => {
-  tugboatRiverDevices.value = devices.value.filter(device => device.TypeVehicle === 'Tugboat river going');
-  tugboatSeaDevices.value = devices.value.filter(device => device.TypeVehicle === 'Tugboat sea going');
+const fetchTugboatSea = async () => {
+  try {
+    isLoading.value = true;
+
+    const response = await $api.get('/MachineStatus/GetTugboatSea');
+    tugboatSeaDevices.value = response.data.map(addMockData); // Add mock status/date
+  } catch (error) {
+    console.error('Failed to fetch tugboat sea:', error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const getAlertCount = (device, type) => {
+  if (!device || !device.MeasurementsAlertCount) return 0;
+  const alert = device.MeasurementsAlertCount.find(
+    (item) => type === 'warning' ? 'AlertWarningTotal' in item : 'AlertDangerTotal' in item
+  );
+  return alert ? (type === 'warning' ? alert.AlertWarningTotal : alert.AlertDangerTotal) : 0;
 };
 
 const getStatusIcon = (status) => {
@@ -176,11 +223,28 @@ const getBottomLineClass = (status) => {
 };
 
 const goToTugboatDetails = (deviceId) => {
-  router.push({ name: 'TugboatDetail', params: { deviceId } });
+  router.push({ name: 'TugboatDetail', params: { deviceId: deviceId } });
+  
+};
+
+const initialize = async () => {
+  const menuPermission = localStorage.getItem('menuPermission');
+  if (!menuPermission) {
+    return router.push('/Homepage');
+  }
+
+  const permissionList = JSON.parse(menuPermission);
+  const permission = permissionList.find(item => item.MenuId === '0101010500');
+
+  if (!permission || !permission.IsActive) {
+    return router.push('/Homepage');
+  }
 };
 
 onMounted(() => {
-  fetchDeviceList();
+  fetchTugboatRiver();
+  fetchTugboatSea();
+  initialize();
 });
 </script>
 
@@ -205,11 +269,11 @@ onMounted(() => {
 
   & .name-thai {
     font-family: 'Sarabun', serif;
-    font-size: 32px;
+    font-size: 2vh;
   }
 
   & .name-eng {
-    font-size: 14px;
+    font-size: 1vh;
     font-weight: 200;
   }
 }

@@ -76,7 +76,7 @@
 </template> 
 
 <script>
-import { tugboats } from '@/data/config';
+import { tugboats } from '@/config/config';
 
 export default {
   name: "TugboatFilter",

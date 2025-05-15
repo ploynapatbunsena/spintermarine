@@ -3,7 +3,7 @@
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
-      <div class="title">ChartHistorical Report</div>
+      <div class="title">Historical Chart Report</div>
 
       <!-- Filter Form -->
       <v-card class="mt-4">
@@ -120,11 +120,11 @@
 import NavigationBar from '@/components/NavigationBar.vue';
 import SpaceBar from '@/components/SpaceBar.vue';
 import { computed, ref } from 'vue';
-import { barges, tugboats } from '@/data/config.js';
+import { barges, tugboats } from '@/config/config.js';
 import '@/assets/colors.scss'
 
 export default {
-  name: 'ChartHistorical',
+  name: 'HistoricalChart',
   components: {
     NavigationBar,
     SpaceBar,
