@@ -3,69 +3,88 @@
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
-      <v-row v-for="device in devices" :key="device.DeviceId">
-        <v-col cols="12" class="position-relative d-flex align-center">
-          <div style="width: 10vh;"></div>
-          <div class="title flex-grow-1 text-center">{{ device.DeviceLabel }}</div>
-          <div style="width: 10vh;">
-            <AlertBadges
-              :warningCount="getWarningCount(device)"
-              :dangerCount="getDangerCount(device)"
-            />
-          </div>
-        </v-col>
-      </v-row>
-      <!-- Gauge Section -->
-      <v-row v-if="devices.length > 0">
-        <v-col cols="12" lg="6">
-          <v-row>
-            <v-col cols="6" sm="6" md="6" lg="6" v-for="(gauge, index) in gauges" :key="index">
-              <v-card class="gauge-card">
-                <v-card-title class="gauge-title text-center">{{ gauge.title }}</v-card-title>
-                <v-card-text class="text-center pa-0">
-                  <vue-gauge
-                    :refid="'_' + Math.random().toString(36).substr(2, 9)"
-                    class="meticsGauge"
-                    :options="getGaugeOptions(gauge.type, devices[0])"
-                  />
-                  <v-card-text class="central-label text-center pa-0">
-                    {{ getMeasurementValue(gauge.type) }} {{ gauge.unit }}
-                  </v-card-text>
-                </v-card-text>
-              </v-card>
-            </v-col>
-          </v-row>
-        </v-col>
-        <!-- General Info Section -->
-        <v-col cols="12" lg="6">
-          <v-card class="rounded-xl h-100">
-            <v-card-title class="d-flex justify-center header">General Information</v-card-title>
-            <v-card-text class="px-10">
-              <GeneralInfo 
-                :measurements="filteredMeasurements"
-                :status="deviceStatus"
+      <div v-if="!loading">
+        <v-row v-for="device in devices" :key="device.DeviceId">
+          <v-col cols="12" class="position-relative d-flex align-center">
+            <div style="width: 10vh;"></div>
+            <div class="title flex-grow-1 text-center">{{ device.DeviceLabel }}</div>
+            <div style="width: 10vh;">
+              <AlertBadges
+                :warningCount="getWarningCount(device)"
+                :dangerCount="getDangerCount(device)"
               />
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-
-      <!-- Generator Image -->
-      <v-row>
-        <v-col cols="12" lg="6">
-          <v-card class="rounded-xl gen-img">
-            <GeneratorImage 
-              :measurements="filteredMeasurements"
-            />
-          </v-card>
-        </v-col>
-        <!-- Notice Table -->
-        <v-col cols="12" lg="6">
-          <v-card class="pa-2 rounded-xl h-100">
-            <!-- <NoticeTable :deviceId="deviceId" :measurements="deviceData.Measurement" /> -->
-          </v-card> 
-        </v-col>
-      </v-row>
+            </div>
+          </v-col>
+        </v-row>
+        <!-- Gauge Section -->
+        <v-row v-if="devices.length > 0">
+          <v-col cols="12" lg="6">
+            <v-row>
+              <v-col cols="6" sm="6" md="6" lg="6" v-for="(gauge, index) in gauges" :key="index">
+                <v-card class="gauge-card">
+                  <v-card-title class="gauge-title text-center">{{ gauge.title }}</v-card-title>
+                  <v-card-text class="text-center pa-0">
+                    <vue-gauge
+                      :refid="'_' + Math.random().toString(36).substr(2, 9)"
+                      class="meticsGauge"
+                      :options="getGaugeOptions(gauge.type, devices[0])"
+                    />
+                    <v-card-text class="central-label text-center pa-0">
+                      {{ getMeasurementValue(gauge.type) }} {{ gauge.unit }}
+                    </v-card-text>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
+          </v-col>
+          <!-- General Info Section -->
+          <v-col cols="12" lg="6">
+            <v-card class="rounded-xl h-100">
+              <v-card-title class="d-flex justify-center header">General Information</v-card-title>
+              <v-card-text class="px-10">
+                <GeneralInfo 
+                  :measurements="filteredMeasurements"
+                  :status="deviceStatus"
+                />
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+        <!-- Generator Image -->
+        <v-row>
+          <v-col cols="12" lg="6">
+            <v-card class="rounded-xl gen-img">
+              <GeneratorImage 
+                :measurements="filteredMeasurements"
+              />
+            </v-card>
+          </v-col>
+          <!-- Notice Table -->
+          <v-col cols="12" lg="6">
+            <v-card class="pa-2 rounded-xl h-100">
+              <div class="notification-header">
+                <v-card-title class="header">Notification</v-card-title>
+                <v-card-title>
+                  <router-link :to="{ name: 'NotificationReport'}">
+                    <v-icon icon="mdi-pencil" class="edit"></v-icon>
+                  </router-link>
+                </v-card-title>
+              </div>
+              <NotificationTable :notices="mappedNotices"/>
+            </v-card>   
+          </v-col>
+        </v-row>
+      </div>
+      <v-overlay
+        :model-value="loading"
+        class="align-center justify-center"
+        persistent
+      >
+        <div class="pa-6 d-flex flex-column align-center">
+          <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+          <div class="mt-4 text-h6" style="font-family: 'Inter', sans-serif;">Loading data...</div>
+        </div>
+      </v-overlay>
     </v-container>
   </v-app>
 </template>
@@ -79,13 +98,15 @@ import SpaceBar from '@/components/SpaceBar.vue'
 import AlertBadges from '@/components/BargeDetails/AlertBadges.vue'
 import GeneralInfo from '@/components/GeneratorDetails/GeneralInfo.vue'
 import GeneratorImage from '@/components/GeneratorDetails/GeneratorImage.vue'
-// import NoticeTable from '@/components/GeneratorDetails/NoticeTable.vue'
+import NotificationTable from '@/components/NotificationTable.vue'
+import { watch } from 'vue'
 
 const $api = inject('$api');
 const route = useRoute();
 const loading = ref(true);
 const error = ref(null);
 const chartWidth = ref(0);
+const noti = ref([]);
 const devices = ref([]);
 const deviceId = ref(route.params.deviceId);
 const gauges = ref([
@@ -94,6 +115,11 @@ const gauges = ref([
   { type: 'Water Temp', title: 'Water Temperature', unit: '°C' },
   { type: 'RPM', title: 'RPM', unit: 'RPM' }
 ]);
+
+watch(() => route.params.deviceId, (newId) => {
+  deviceId.value = newId;
+  fetchDeviceData(newId); // Your data fetching function
+});
 
 const fetchDeviceData = async () => {
   try {
@@ -112,6 +138,47 @@ const fetchDeviceData = async () => {
     loading.value = false;
   }
 };
+
+const fetchNotification = async () => {
+  loading.value = true;
+  if (!devices.value.length) {
+    await fetchDeviceData();
+  }
+  
+  try {
+    for (const device of devices.value) {
+      const requestBody = {
+        DeviceId: device.DeviceId,
+        IsAccept: false
+      };
+
+      try {
+        const response = await $api.put('/device/notificationlistStatus', requestBody);
+        const filteredData = response.data.filter(item =>  item.Title.includes("Danger"));
+        noti.value = [...noti.value, ...filteredData];
+      } catch (err) {
+        console.error(`Failed to fetch notifications for DeviceId ${device.DeviceId}:`, err);
+      }
+    }
+
+    console.log("Notifications:", noti.value);
+  } catch (err) {
+    error.value = 'Failed to fetch notifications. Please try again later.';
+    console.error(err);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const mappedNotices = computed(() => {
+  return noti.value.map(item => ({
+    date: item.AlertTime,
+    name: item.DeviceLabel,
+    measuremnet: item.MeasurementName,
+    details: item.Description,
+    status: item.IsAccept ? 'ดำเนินการเสร็จสิ้น' : 'รอแจ้งซ่อม',
+  }));
+});
 
 const getMeasurementValue = (measurementName) => {
   if (!devices.value.length) return 0
@@ -220,21 +287,6 @@ const getDangerCount = (device) => {
   return device?.MeasurementsAlertCount?.find(item => 'AlertDangerTotal' in item)?.AlertDangerTotal || 0;
 };
 
-// const filteredMeasurements = computed(() => {
-//   if (!devices.value.length) return {};
-//   const measurements = devices.value[0].Mesurement;
-  
-//   return {
-//     'Hour Meter': measurements.find(m => m.measurementname === 'Hour Meter')?.lastValue || '0',
-//     'Battery Volts': measurements.find(m => m.measurementname === 'Battery Volts')?.lastValue || '0',
-//     'Actual Power': measurements.find(m => m.measurementname === 'Actual Power')?.lastValue || '0',
-//     'Oil Pressure': measurements.find(m => m.measurementname === 'Oil Pressure')?.lastValue || '0',
-//     'Water Temp': measurements.find(m => m.measurementname === 'Water Temp')?.lastValue || '0',
-//     'Total Fuel Consumption': measurements.find(m => m.measurementname === 'Total Fuel Consumption')?.lastValue || '0',
-//     'RPM': measurements.find(m => m.measurementname === 'RPM')?.lastValue || '0'
-//   };
-// });
-
 const filteredMeasurements = computed(() => {
   if (!devices.value.length) return {};
   const measurements = devices.value[0].Mesurement;
@@ -298,6 +350,7 @@ const deviceStatus = computed(() => {
 onMounted(() => {
   updateChartSize();
   fetchDeviceData();
+  fetchNotification();
   window.addEventListener('resize', updateChartSize);
 })
 
@@ -343,5 +396,20 @@ onBeforeUnmount(() => {
 :deep(text) {
   font-family: 'Inter', sans-serif;
   font-size: 1  vh;
+}
+
+.edit {
+  width: 2vw;
+  height: 2vh;
+  border-radius: 2vh;
+  font-size: 2vh;
+  color: var(--symbol-blue);
+  background-color: var(--bg-light-tugboat);
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 </style>

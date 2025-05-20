@@ -53,6 +53,7 @@
                 enable-seconds
                 teleport
                 format="yyyy-MM-dd HH:mm:ss"
+                :max-date="new Date()"
                 placeholder="Select Start Date"
                 :class="{ 'error-border': startDateError }"
               ></datePicker>
@@ -66,6 +67,7 @@
                 enable-seconds
                 teleport
                 format="yyyy-MM-dd HH:mm:ss"
+                :max-date="new Date()"
                 placeholder="Select End Date"
                 :class="{ 'error-border': endDateError }"
               ></datePicker>
@@ -90,15 +92,29 @@
                     Search
                   </v-btn>
                 </v-col>
-                <!-- <v-col cols="6" md="4" class="px-0">
-                  <v-btn
-                    class="download-btn"
-                    @click="downloadReport"
-                    :disabled="!showResult"
-                  >
-                    Download
-                  </v-btn>
-                </v-col> -->
+                <v-col cols="6" md="4">
+                  <v-menu>
+                    <template v-slot:activator="{ props }">
+                      <v-btn
+                        class="download-btn elevation-0 text-none"
+                        v-bind="props"
+                        :disabled="!showResult"
+                      >
+                        Download
+                      </v-btn>
+                    </template>
+                    <v-list>
+                      <v-list-item
+                        v-for="format in ['CSV', 'JPG']"
+                        :key="format"
+                        :value="format"
+                        @click="downloadReport(format)"
+                      >
+                        <v-list-item-title>{{ format }}</v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
+                </v-col>
               </v-row>
             </v-col>
           </v-row>
@@ -115,6 +131,7 @@
 
         <v-card-text v-if="showResult && !searchLoading">
           <apexchart
+            ref="chart"
             type="line"
             height="680"
             :options="chartOptions"
@@ -146,6 +163,7 @@ const tugboatDevices = ref([]);
 const selectedTugboats = ref([]);
 const startDate = ref(null);
 const endDate = ref(null);
+const chart = ref(null);
 
 const deviceError = ref('');
 const startDateError = ref('');
@@ -197,7 +215,6 @@ const fetchTugboatData = async () => {
   }
 };
 
-// Create dropdown options
 const tugboatOptions = computed(() => {
   return tugboatDevices.value.flatMap(group => 
     group.Devices.map(device => ({
@@ -208,17 +225,14 @@ const tugboatOptions = computed(() => {
   );
 });
 
-// Check if all devices are selected
 const isAllSelected = computed(() => {
   return selectedTugboats.value.length === tugboatOptions.value.length;
 });
 
-// Check if partial selection exists
 const isPartialSelection = computed(() => {
   return selectedTugboats.value.length > 0 && !isAllSelected.value;
 });
 
-// Toggle select all devices
 const toggleSelectAll = () => {
   if (isAllSelected.value) {
     selectedTugboats.value = [];
@@ -238,10 +252,31 @@ const resetFilters = () => {
   endDateError.value = '';
 };
 
-const formatDate = (date) => {
+const formatTimeShow = (datetime) => {
+  if (datetime==null) {
+    return null
+  } else {
+    var dateTime = new Date(datetime);
+    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
+    var day = ("0" + dateTime.getDate()).slice(-2);
+    var year = dateTime.getFullYear();
+    var hour = ("0" + dateTime.getHours()).slice(-2);
+    var minute = ("0" + dateTime.getMinutes()).slice(-2);
+    var sec = ("0" + dateTime.getSeconds()).slice(-2);
+    return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + sec;
+  }
+};
+
+const formatDateForFilename = (date) => {
   if (!date) return '';
-  const pad = n => n.toString().padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  const dateTime = new Date(date);
+  const year = dateTime.getFullYear();
+  const month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
+  const day = ("0" + dateTime.getDate()).slice(-2);
+  const hour = ("0" + dateTime.getHours()).slice(-2);
+  const minute = ("0" + dateTime.getMinutes()).slice(-2);
+  const second = ("0" + dateTime.getSeconds()).slice(-2);
+  return `${year}${month}${day}_${hour}${minute}${second}`;
 };
 
 const processChartData = (devices) => {
@@ -266,15 +301,19 @@ const processChartData = (devices) => {
 
 const searchRecords = async () => {
   try {
-    searchLoading.value = true; // Only set loading when searching
+    searchLoading.value = true;
     showResult.value = false;
     error.value = null;
 
+    const deviceIds = [...selectedTugboats.value];
+
     const request = {
-      DeviceId: selectedTugboats.value,
-      StartDateTime: formatDate(startDate.value),
-      EndDatetime: formatDate(endDate.value),
+      DeviceId: deviceIds,
+      StartDateTime: formatTimeShow(startDate.value),
+      EndDatetime: formatTimeShow(endDate.value),
     };
+
+    console.log('request', request);
     
     const response = await $api.put('MachineStatus/RealtimeChartDataReport03/multiple', request);
     
@@ -303,10 +342,48 @@ const searchRecords = async () => {
   }
 };
 
-// const downloadReport = () => {
-//   // Implement download functionality
-//   console.log('Download report');
-// };
+const downloadReport = (format) => {
+  if (!showResult.value || !series.value.length) {
+    error.value = 'No data available to download';
+    return;
+  }
+
+  const filename = `${formatDateForFilename(startDate.value)}_${formatDateForFilename(endDate.value)}`;
+
+  if (format === 'CSV') {
+    // CSV Download
+    const categories = chartOptions.value.xaxis.categories;
+    const data = series.value[0].data;
+    const csvRows = ['Barge,Alert Count'];
+
+    categories.forEach((category, index) => {
+      csvRows.push(`"${category}",${data[index]}`);
+    });
+
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${filename}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } else if (format === 'JPG') {
+    // JPG Download
+    if (chart.value) {
+      chart.value.chart.dataURI().then(({ imgURI }) => {
+        const link = document.createElement('a');
+        link.href = imgURI;
+        link.download = `${filename}.jpg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+    }
+  }
+};
 
 const chartOptions = ref({
   chart: {
@@ -391,7 +468,7 @@ onMounted(() => {
 .download-btn {
   background-color: var(--yellow);
   color: var(--white);
-  border-radius: 10px;  
+  border-radius: 24px;  
 }
 
 .cancel-btn {

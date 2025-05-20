@@ -64,7 +64,7 @@
                       <div class="d-flex justify-space-between align-center pb-2">
                         <h2 class="text-h6 text-lg-h6 text-xxl-h4" style="font-family: 'Inter', sans-serif;">Crane</h2>
                         <router-link :to="{ name: 'StatusUpdateForm', params: { typeDeviceName: typeDeviceName } }">
-                          <v-icon icon="mdi-pencil-outline" class="edit"></v-icon>
+                          <v-icon icon="mdi-pencil" class="edit"></v-icon>
                         </router-link>
                       </div>
                       <v-row class="mx-2">
@@ -234,9 +234,9 @@
               <v-col md="4" sm="4" cols="12">
                 <v-card class=" rounded-xl h-100">
                   <div class="notification-header">
-                    <p class="text-h6 text-lg-h6 text-xxl-h4" style="font-family: 'Inter', sans-serif;">Notification</p>
+                    <p class="header">Notification</p>
                     <router-link :to="{ name: 'NotificationReport'}">
-                      <v-icon icon="mdi-pencil-outline" class="edit"></v-icon>
+                      <v-icon icon="mdi-pencil" class="edit"></v-icon>
                     </router-link>
                   </div>
                   <NotificationTable :notices="mappedNotices"/>
@@ -270,7 +270,7 @@ import NotificationTable from '@/components/NotificationTable.vue';
 import AlertBadges from '@/components/BargeDetails/AlertBadges.vue';
 import { fuelCapacityConfig } from '@/config/fuel-capacity-config';
 import '@/assets/colors.scss';
-import { computed, inject, onMounted, ref } from 'vue';
+import { computed, inject, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 const $api = inject('$api');
@@ -350,24 +350,22 @@ const fetchNotification = async () => {
     }
 
     console.log("Notifications:", noti.value);
-  } catch (err) {
+  } catch (error) {
     error.value = 'Failed to fetch notifications. Please try again later.';
-    console.error(err);
+    console.error(error);
   } finally {
     isLoading.value = false;
   }
 };
 
 const mappedNotices = computed(() => {
+  console.log('console.log(mappedNotices);',mappedNotices);
   return noti.value.map(item => ({
-    date: new Date(item.AlertTime).toLocaleString('th-TH', {
-      dateStyle: 'short',
-      timeStyle: 'short'
-    }),
+    date: item.AlertTime,
     name: item.DeviceName,
     measuremnet: item.MeasurementName,
     details: item.Description,
-    status: item.Title
+    status: item.IsAccept ? 'ดำเนินการเสร็จสิ้น' : 'รอแจ้งซ่อม',
   }));
 });
 
@@ -523,6 +521,13 @@ const getStatusCrane = (crane) => {
   }
 };
 
+watch(() => route.params.typeDeviceName, (newName) => {
+  if (newName) {
+    typeDeviceName.value = newName;
+    fetchDeviceBargesGrouped(newName);
+  }
+});
+
 const goToGeneratorDetails = (deviceId) => {
   router.push({ name: 'GeneratorDetails', params: { deviceId: deviceId }});
 };
@@ -598,8 +603,7 @@ onMounted(() => {
 
 .header  {
   font-size: 2.5vh;
-  font-weight: 500;
-  margin-bottom: 1vh;
+  font-weight: bold;
 }
 
 .crane-card {

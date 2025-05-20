@@ -221,6 +221,13 @@ const fetchDeviceList = async () => {
   }
 };
 
+// const navigateToDevice = (deviceId) => {
+//   router.push({ name: 'GeneratorDetails', params: { deviceId } })
+//     .then(() => {
+//       window.location.reload();
+//     });
+// };
+
 const excludedDeviceNames = [
   'Barge CRANE 1',
   'Barge CRANE 2',

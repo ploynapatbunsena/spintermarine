@@ -47,6 +47,7 @@
                 :max="endDate || null"
                 enable-seconds
                 teleport
+                :max-date="new Date()"
                 format="yyyy-MM-dd HH:mm:ss"
                 placeholder="Select Start Date"
                 :class="{ 'error-border': startDateError }"
@@ -60,6 +61,7 @@
                 :min="startDate || null"
                 enable-seconds
                 teleport
+                :max-date="new Date()"
                 format="yyyy-MM-dd HH:mm:ss"
                 placeholder="Select End Date"
                 :class="{ 'error-border': endDateError }"
@@ -85,15 +87,29 @@
                     Search
                   </v-btn>
                 </v-col>
-                <!-- <v-col cols="6" md="4">
-                  <v-btn
-                    class="download-btn elevation-0 text-none"
-                    @click="downloadReport"
-                    :disabled="!showResult"
-                  >
-                    Download
-                  </v-btn>
-                </v-col> -->
+                <v-col cols="6" md="4">
+                  <v-menu>
+                    <template v-slot:activator="{ props }">
+                      <v-btn
+                        class="download-btn elevation-0 text-none"
+                        v-bind="props"
+                        :disabled="!showResult"
+                      >
+                        Download
+                      </v-btn>
+                    </template>
+                    <v-list>
+                      <v-list-item
+                        v-for="format in ['CSV', 'JPG']"
+                        :key="format"
+                        :value="format"
+                        @click="downloadReport(format)"
+                      >
+                        <v-list-item-title>{{ format }}</v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
+                </v-col>
               </v-row>
             </v-col>
           </v-row>
@@ -110,6 +126,7 @@
 
         <v-card-text v-if="showResult && !searchLoading">
           <apexchart
+            ref="chart"
             type="bar"
             height="680"
             :options="chartOptions"
@@ -126,13 +143,13 @@ import NavigationBar from '@/components/NavigationBar.vue';
 import SpaceBar from '@/components/SpaceBar.vue';
 import VueApexCharts from 'vue3-apexcharts';
 import VueDatePicker from '@vuepic/vue-datepicker';
-import '@vuepic/vue-datepicker/dist/main.css'
+import '@vuepic/vue-datepicker/dist/main.css';
 import { computed, inject, onMounted, ref } from 'vue';
 
 const $api = inject('$api');
 const apexchart = ref(VueApexCharts);
 const datePicker = VueDatePicker;
-// Data
+const chart = ref(null);
 const selectedBarges = ref([]);
 const bargeOptions = ref([]);
 const startDate = ref(null);
@@ -147,7 +164,6 @@ const deviceError = ref('');
 const startDateError = ref('');
 const endDateError = ref('');
 
-// Fetch barge data
 const fetchDeviceBargesGrouped = async () => {
   try {
     error.value = null;
@@ -170,12 +186,11 @@ const fetchDeviceBargesGrouped = async () => {
   }
 };
 
-// Form validation
 const validateForm = () => {
   let isValid = true;
-  deviceError.value = false;
-  startDateError.value = false;
-  endDateError.value = false;
+  deviceError.value = '';
+  startDateError.value = '';
+  endDateError.value = '';
   
   if (selectedBarges.value.length === 0) {
     deviceError.value = 'Device is required';
@@ -201,7 +216,6 @@ const validateAndSearch = () => {
   }
 };
 
-// Select all toggle
 const isAllSelected = computed(() => {
   return selectedBarges.value.length === bargeOptions.value.length;
 });
@@ -218,7 +232,6 @@ const toggleSelectAll = () => {
   }
 };
 
-// Reset filters
 const resetFilters = () => {
   selectedBarges.value = [];
   startDate.value = '';
@@ -230,21 +243,43 @@ const resetFilters = () => {
   endDateError.value = '';
 };
 
-// Format date for API
-const formatDate = (dateStr) => {
-  if (!dateStr) return '';
-  const date = new Date(dateStr);
-  const pad = n => n.toString().padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} 00:00:00`;
+const formatTimeShow = (datetime) => {
+  if (datetime == null) {
+    return null;
+  } else {
+    var dateTime = new Date(datetime);
+    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
+    var day = ("0" + dateTime.getDate()).slice(-2);
+    var year = dateTime.getFullYear();
+    var hour = ("0" + dateTime.getHours()).slice(-2);
+    var minute = ("0" + dateTime.getMinutes()).slice(-2);
+    var sec = ("0" + dateTime.getSeconds()).slice(-2);
+    return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + sec;
+  }
 };
 
-// Process chart data from API response
-const processChartData = (data) => {
-  const categories = data.map(item => item.TypeDevicename);
-  const seriesData = data.map(item => {
-    const totalAlert = item.MeasurementAlertCount.find(m => m.Total !== undefined)?.Total || 0;
-    return totalAlert;
-  });
+const formatDateForFilename = (date) => {
+  if (!date) return '';
+  const dateTime = new Date(date);
+  const year = dateTime.getFullYear();
+  const month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
+  const day = ("0" + dateTime.getDate()).slice(-2);
+  const hour = ("0" + dateTime.getHours()).slice(-2);
+  const minute = ("0" + dateTime.getMinutes()).slice(-2);
+  const second = ("0" + dateTime.getSeconds()).slice(-2);
+  return `${year}${month}${day}_${hour}${minute}${second}`;
+};
+
+const processChartData = (devices) => {
+  const deviceData = devices.map(device => ({
+    type: device.TypeDevicename,
+    total: device.MeasurementAlertCount.find(m => m.Total !== undefined)?.Total || 0
+  }));
+
+  deviceData.sort((a, b) => b.total - a.total);
+
+  const categories = deviceData.map(device => device.type);
+  const seriesData = deviceData.map(device => device.total);
 
   return {
     series: [{
@@ -255,18 +290,20 @@ const processChartData = (data) => {
   };
 };
 
-// Search records
 const searchRecords = async () => {
   try {
     searchLoading.value = true;
     showResult.value = false;
     error.value = null;
 
+    const deviceIds = [...selectedBarges.value];
+
     const request = {
-      DeviceId: selectedBarges.value,
-      StartDateTime: formatDate(startDate.value),
-      EndDatetime: formatDate(endDate.value),
+      DeviceId: deviceIds,
+      StartDateTime: formatTimeShow(startDate.value),
+      EndDatetime: formatTimeShow(endDate.value),
     };
+    console.log(request);
     
     const response = await $api.put('MachineStatus/RealtimeChartDataReport08/multiple', request);
     
@@ -295,12 +332,49 @@ const searchRecords = async () => {
   }
 };
 
-// Download report (placeholder)
-// const downloadReport = () => {
-//   console.log('Download report');
-// };
+const downloadReport = (format) => {
+  if (!showResult.value || !series.value.length) {
+    error.value = 'No data available to download';
+    return;
+  }
 
-// Chart options
+  const filename = `${formatDateForFilename(startDate.value)}_${formatDateForFilename(endDate.value)}`;
+
+  if (format === 'CSV') {
+    // CSV Download
+    const categories = chartOptions.value.xaxis.categories;
+    const data = series.value[0].data;
+    const csvRows = ['Barge,Alert Count'];
+
+    categories.forEach((category, index) => {
+      csvRows.push(`"${category}",${data[index]}`);
+    });
+
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${filename}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } else if (format === 'JPG') {
+    // JPG Download
+    if (chart.value) {
+      chart.value.chart.dataURI().then(({ imgURI }) => {
+        const link = document.createElement('a');
+        link.href = imgURI;
+        link.download = `${filename}.jpg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+    }
+  }
+};
+
 const chartOptions = ref({
   chart: {
     height: 680,
@@ -308,7 +382,7 @@ const chartOptions = ref({
     toolbar: { 
       show: true,
       tools: {
-        download: false // We have our own download button
+        download: false
       }
     },
   },
@@ -386,7 +460,7 @@ onMounted(() => {
 .download-btn {
   background-color: #FAC12A;
   color: #ffffff;
-  border-radius: 10px;  
+  border-radius: 24px;  
 }
 
 .cancel-btn {

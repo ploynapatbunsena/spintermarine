@@ -47,6 +47,7 @@
           <v-data-table
             :headers="headers"
             :items="filteredItems"
+            :items-per-page="-1"
             class="elevation-1 mb-12 striped-table custom-table"
           >
             <template v-slot:item="{ item }">
@@ -59,7 +60,7 @@
                   {{ item.IsActive ? 'Active' : 'Inactive' }}
                 </td>
                 <td class="d-flex justify-center align-center">
-                  <v-icon icon="mdi-pencil-outline" class="edit" @click="editDevice(item.DeviceId)"></v-icon>
+                  <v-icon icon="mdi-pencil" class="edit" @click="editDevice(item.DeviceId)"></v-icon>
                 </td>
               </tr>
             </template>

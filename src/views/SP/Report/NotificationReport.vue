@@ -3,251 +3,264 @@
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
-      <div class="title">Notification Report</div>
-      <v-card class="mt-4">
-        <v-card-text class="mx-16 my-6">
-          <v-row>
-            <v-col cols="12" md="6">
-              <v-select
-                v-model="selectedType"
-                :items="typeOptions"
-                item-title="typeDeviceName"
-                item-value="typeDeviceName"
-                label="Vehicle"
-                variant="outlined"
-                density="compact"
-                clearable
-                @update:modelValue="handleTypeChange"
-                :error="vehicleError"
-                :error-messages="vehicleError ? 'Vehicle is required' : ''"
-              ></v-select>
-            </v-col>
-            <v-col cols="12" md="6">
-              <v-select
-                v-model="selectedDevices"
-                :items="deviceOptions"
-                item-title="deviceName"
-                item-value="deviceId"
-                label="Devices"
-                variant="outlined"
-                density="compact"
-                clearable
-                :error="deviceError"
-                :error-messages="deviceError ? 'Device is required' : ''"
-              >
-              </v-select>
-            </v-col>
-            <v-col cols="12" md="3">
-              <v-select
-                v-model="selectedMeasurement"
-                :items="measurementList"
-                item-title="measurementName"
-                item-value="measurementId"
-                label="Measurement"
-                variant="outlined"
-                density="compact"
-                :disabled="!selectedDevices"
-                clearable
-                multiple
-              >
-                <template v-slot:prepend-item>
-                  <v-list-item title="Select All" @click="toggleSelectAll">
-                    <template v-slot:prepend>
-                      <v-checkbox-btn
-                        :color="isPartialSelection ? 'indigo-darken-4' : undefined"
-                        :indeterminate="isPartialSelection"
-                        :model-value="isAllSelected"
-                      ></v-checkbox-btn>
-                    </template>
-                  </v-list-item>
-                </template>
-                <template v-slot:selection="{ index }">
-                  <span v-if="index === 0">{{ selectedMeasurement.length }} selected</span>
-                </template>
-              </v-select>
-            </v-col>
-            <v-col cols="12" md="3">
-              <v-select
-                v-model="selectedStatuses"
-                :items="statusOptions"
-                item-title="text"
-                item-value="value"
-                label="Status"
-                variant="outlined"
-                density="compact"
-                multiple
-                clearable
-              >
-                <template v-slot:prepend-item>
-                  <v-list-item title="Select All" @click="toggleSelectAllStatus">
-                    <template v-slot:prepend>
-                      <v-checkbox-btn
-                        :color="isPartialStatusSelection ? 'indigo-darken-4' : undefined"
-                        :indeterminate="isPartialStatusSelection"
-                        :model-value="isAllStatusSelected"
-                      ></v-checkbox-btn>
-                    </template>
-                  </v-list-item>
-                </template>
-                <template v-slot:selection="{ index }">
-                  <span v-if="index === 0">{{ selectedStatuses.length }} selected</span>
-                </template>
-              </v-select>
-            </v-col>
-            <v-col cols="12" md="3">
-              <datePicker
-                v-model="startDate"
-                label="Start Date"
-                :max="endDate || null"
-                enable-seconds
-                teleport
-                format="yyyy-MM-dd HH:mm:ss"
-                placeholder="Select Start Date"
-              ></datePicker>
-            </v-col>
-            <v-col cols="12" md="3">
-              <datePicker
-                v-model="endDate"
-                label="End Date"
-                :min="startDate || null"
-                enable-seconds
-                teleport
-                format="yyyy-MM-dd HH:mm:ss"
-                placeholder="Select End Date"
-              ></datePicker>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col class="d-flex justify-end">
-              <v-btn
-                class="cancel-button elevation-0 text-none mr-4"
-                @click="resetFilters"
-              >
-                Cancel
-              </v-btn>
-              <v-btn
-                class="search-btn mr-2 elevation-0 text-none"
-                @click="validateAndSearch"
-                :loading="searchLoading"
-              >
-                Search
-              </v-btn>
-              <!-- <v-btn
-                prepend-icon="mdi-arrow-down"
-                class="download-btn"
-                @click="downloadReport"
-              >
-                Download
-              </v-btn> -->
-            </v-col>
-          </v-row>
-        </v-card-text>
-
-        <v-card-text v-if="searchLoading" class="text-center">
-          <v-progress-circular indeterminate color="primary"></v-progress-circular>
-          <div>Loading data...</div>
-        </v-card-text>
-
-        <v-card-text v-if="error" class="text-center error--text">
-          Error loading data: {{ error }}
-        </v-card-text>
-
-        <v-card-text v-if="showResult  && !searchLoading" class="mx-16">
-          <v-data-table
-            :headers="headers"
-            :items="tableData"
-            :items-per-page="-1"
-            class="elevation-1"
-          >
-            <template v-slot:item.date="{ item }">
-              {{ item.date }}
-            </template>
-            <template v-slot:item.status="{ item }">
-              <v-chip :class="getStatusColor(item.status)">
-                {{ item.status }}
-              </v-chip>
-            </template>
-            <template v-slot:item.action="{ item }">
-              <v-icon
-                class="edit mr-2"
-                small
-                @click="editItem(item.originalData)"
-              >
-                mdi-pencil
-              </v-icon>
-            </template>
-          </v-data-table>
-        </v-card-text>
-      </v-card>
-      
-      <!-- Edit Dialog -->
-      <v-dialog v-model="dialog" max-width="906">
-        <v-card class="rounded-lg pa-6">
-          <v-card-title class="card-dialog">แก้ไขรายการ</v-card-title>
-          <v-card-text>
+      <div v-if="!loading">
+        <div class="title">Notification Report</div>
+        <v-card class="mt-4">
+          <v-card-text class="mx-16 my-6">
             <v-row>
               <v-col cols="12" md="6">
-                <div>
-                  <p class="title-field">Date</p>
-                  <v-text-field
-                    density="compact"
-                    style="font-size: 16px; font-family: 'Inter', sans-serif;"
-                    variant="outlined"
-                    disabled
-                    rounded="lg"
-                  >
-                    {{ editedItem.date }}
-                  </v-text-field>
-                </div>
+                <v-select
+                  v-model="selectedType"
+                  :items="typeOptions"
+                  item-title="typeDeviceName"
+                  item-value="typeDeviceName"
+                  label="Vehicle"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                  @update:modelValue="handleTypeChange"
+                  :error-messages="vehicleError"
+                  :error="!!vehicleError"
+                ></v-select>
               </v-col>
               <v-col cols="12" md="6">
-                <div>
-                  <p class="title-field">Device Name</p>
-                  <v-text-field
-                    density="compact"
-                    style="font-size: 16px; font-family: 'Inter', sans-serif;"
-                    variant="outlined"
-                    disabled
-                    rounded="lg"
-                  >
-                    {{ editedItem.deviceName }}
-                  </v-text-field>
-                </div>
+                <v-select
+                  v-model="selectedDevices"
+                  :items="deviceOptions"
+                  item-title="deviceName"
+                  item-value="deviceId"
+                  label="Devices"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                  :error-messages="deviceError"
+                  :error="!!deviceError"
+                ></v-select>
               </v-col>
-              <v-col cols="12" md="6">
-                <div>
-                  <p class="title-field">Measuremnet</p>
-                  <v-text-field
-                    density="compact"
-                    style="font-size: 16px; font-family: 'Inter', sans-serif;"
-                    variant="outlined"
-                    disabled
-                    rounded="lg"
-                  >
-                    {{ editedItem.measurement }}
-                  </v-text-field>
-                </div>
+            
+              <v-col cols="12" md="3">
+                <v-select
+                  v-model="selectedMeasurement"
+                  :items="measurementList"
+                  item-title="measurementName"
+                  item-value="measurementId"
+                  label="Measurement"
+                  variant="outlined"
+                  density="compact"
+                  :disabled="!selectedDevices"
+                  clearable
+                  multiple
+                >
+                  <template v-slot:prepend-item>
+                    <v-list-item title="Select All" @click="toggleSelectAll">
+                      <template v-slot:prepend>
+                        <v-checkbox-btn
+                          :color="isPartialSelection ? 'indigo-darken-4' : undefined"
+                          :indeterminate="isPartialSelection"
+                          :model-value="isAllSelected"
+                        ></v-checkbox-btn>
+                      </template>
+                    </v-list-item>
+                  </template>
+                  <template v-slot:selection="{ index }">
+                    <span v-if="index === 0">{{ selectedMeasurement.length }} selected</span>
+                  </template>
+                </v-select>
               </v-col>
-              <v-col cols="12" md="6">
-                <div>
-                  <p class="title-field-thai">เลขใบแจ้งซ่อม</p>
-                    <v-text-field
-                      v-model="editedItem.solution"
-                      variant="outlined"
-                      require
-                      rounded="lg"
-                      density="compact"
-                    ></v-text-field>
-                </div>
+              <v-col cols="12" md="3">
+                <v-select
+                  v-model="selectedStatuses"
+                  :items="statusOptions"
+                  item-title="text"
+                  item-value="value"
+                  label="Status"
+                  variant="outlined"
+                  density="compact"
+                  multiple
+                  clearable
+                >
+                  <template v-slot:prepend-item>
+                    <v-list-item title="Select All" @click="toggleSelectAllStatus">
+                      <template v-slot:prepend>
+                        <v-checkbox-btn
+                          :color="isPartialStatusSelection ? 'indigo-darken-4' : undefined"
+                          :indeterminate="isPartialStatusSelection"
+                          :model-value="isAllStatusSelected"
+                        ></v-checkbox-btn>
+                      </template>
+                    </v-list-item>
+                  </template>
+                  <template v-slot:selection="{ index }">
+                    <span v-if="index === 0">{{ selectedStatuses.length }} selected</span>
+                  </template>
+                </v-select>
+              </v-col>
+              <v-col cols="12" md="3">
+                <datePicker
+                  v-model="startDate"
+                  label="Start Date"
+                  :max="endDate || null"
+                  enable-seconds
+                  teleport
+                  :max-date="new Date()"
+                  format="yyyy-MM-dd HH:mm:ss"
+                  placeholder="Select Start Date"
+                ></datePicker>
+              </v-col>
+              <v-col cols="12" md="3">
+                <datePicker
+                  v-model="endDate"
+                  label="End Date"
+                  :min="startDate || null"
+                  enable-seconds
+                  teleport
+                  :max-date="new Date()"
+                  format="yyyy-MM-dd HH:mm:ss"
+                  placeholder="Select End Date"
+                ></datePicker>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col class="d-flex justify-end">
+                <v-btn
+                  class="cancel-button elevation-0 text-none mr-4"
+                  @click="resetFilters"
+                >
+                  Cancel
+                </v-btn>
+                <v-btn
+                  class="search-btn mr-4 elevation-0 text-none"
+                  @click="validateAndSearch"
+                  :loading="searchLoading"
+                >
+                  Search
+                </v-btn>
+                <v-btn
+                  class="download-btn elevation-0 text-none"
+                  @click="downloadReport"
+                  :disabled="!showResult"
+                >
+                  Download
+                </v-btn>
               </v-col>
             </v-row>
           </v-card-text>
-          <v-card-actions class="d-flex align-center justify-center mb-8 ga-8">
-            <v-btn class="cancel-btn text-none" @click="closeEditDialog">Cancel</v-btn>
-            <v-btn class="save-btn text-none" @click="saveEditDialog">Save</v-btn>
-          </v-card-actions>
+  
+          <v-card-text v-if="searchLoading" class="text-center">
+            <v-progress-circular indeterminate color="primary"></v-progress-circular>
+            <div>Loading data...</div>
+          </v-card-text>
+  
+          <v-card-text v-if="error" class="text-center error--text">
+            Error loading data: {{ error }}
+          </v-card-text>
+  
+          <v-card-text v-if="showResult && !searchLoading" class="mx-16">
+            <v-data-table
+              :headers="headers"
+              :items="tableData"
+              :items-per-page="-1"
+              class="elevation-1"
+            >
+              <template v-slot:item.date="{ item }">
+                {{ formatTimeShow(item.date) }}
+              </template>
+              <template v-slot:item.status="{ item }">
+                <v-chip :class="getStatusColor(item.status)">
+                  {{ item.status }}
+                </v-chip>
+              </template>
+              <template v-slot:item.action="{ item }">
+                <v-icon
+                  class="edit mr-2"
+                  small
+                  @click="editItem(item.originalData)"
+                >
+                  mdi-pencil
+                </v-icon>
+              </template>
+            </v-data-table>
+          </v-card-text>
         </v-card>
-      </v-dialog>
+        <!-- Edit Dialog -->
+        <v-dialog v-model="dialog" max-width="906">
+          <v-card class="rounded-lg pa-6">
+            <v-card-title class="card-dialog">แก้ไขรายการ</v-card-title>
+            <v-card-text>
+              <v-row>
+                <v-col cols="12" md="6">
+                  <div>
+                    <p class="title-field">Date</p>
+                    <v-text-field
+                      density="compact"
+                      style="font-size: 16px; font-family: 'Inter', sans-serif;"
+                      variant="outlined"
+                      disabled
+                      rounded="lg"
+                    >
+                      {{ formatTimeShow(editedItem.date) }}
+                    </v-text-field>
+                  </div>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <div>
+                    <p class="title-field">Device Name</p>
+                    <v-text-field
+                      density="compact"
+                      style="font-size: 16px; font-family: 'Inter', sans-serif;"
+                      variant="outlined"
+                      disabled
+                      rounded="lg"
+                    >
+                      {{ editedItem.deviceName }}
+                    </v-text-field>
+                  </div>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <div>
+                    <p class="title-field">Measuremnet</p>
+                    <v-text-field
+                      density="compact"
+                      style="font-size: 16px; font-family: 'Inter', sans-serif;"
+                      variant="outlined"
+                      disabled
+                      rounded="lg"
+                    >
+                      {{ editedItem.measurement }}
+                    </v-text-field>
+                  </div>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <div>
+                    <p class="title-field-thai">เลขใบแจ้งซ่อม</p>
+                      <v-text-field
+                        v-model="editedItem.solution"
+                        variant="outlined"
+                        require
+                        rounded="lg"
+                        density="compact"
+                      ></v-text-field>
+                  </div>
+                </v-col>
+              </v-row>
+            </v-card-text>
+            <v-card-actions class="d-flex align-center justify-center mb-8 ga-8">
+              <v-btn class="cancel-btn text-none" @click="closeEditDialog">Cancel</v-btn>
+              <v-btn class="save-btn text-none" @click="saveEditDialog">Save</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </div>
+      <v-overlay
+        :model-value="loading"
+        class="align-center justify-center"
+        persistent
+      >
+        <div class="pa-6 d-flex flex-column align-center">
+          <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+          <div class="mt-4 text-h6" style="font-family: 'Inter', sans-serif;">Loading data...</div>
+        </div>
+      </v-overlay>
     </v-container>
   </v-app>
 </template>
@@ -261,6 +274,7 @@ import '@/assets/colors.scss'
 import '@vuepic/vue-datepicker/dist/main.css'
 
 const $api = inject('$api');
+const loading = ref(true);
 const memberData = ref(JSON.parse(localStorage.getItem('member'))) || {};
 const datePicker = VueDatePicker;
 const bargeGruop = ref([]);
@@ -277,8 +291,9 @@ const showResult = ref(false);
 const startDate = ref(null);
 const endDate = ref(null);
 const dialog = ref(false);
-const vehicleError = ref(false);
-const deviceError = ref(false);
+const vehicleError = ref('');
+const deviceError = ref('');
+const error = ref(null);
 const statusOptions = ref([
   { text: 'รอแจ้งซ่อม', value: false },
   { text: 'ดำเนินการเสร็จสิ้น', value: true }
@@ -293,6 +308,8 @@ const editedItem = ref({
 
 const fetchDeviceData = async () => {
   try {
+    loading.value = true;
+
     const [bargeResponse, riverResponse, seaResponse] = await Promise.all([
       $api.get('/MachineStatus/GetDeviceBargesGrouped'),
       $api.get('/MachineStatus/GetTugboatRiver'),
@@ -310,6 +327,33 @@ const fetchDeviceData = async () => {
   } catch (error) {
     console.error('Failed to fetch device data:', error);
     error.value = 'Failed to load device list. Please try again.';
+  } finally {
+    loading.value = false;
+  }
+};
+
+// const formatTimeASP = (dt) => {
+//   var dateTime = new Date(dt);
+//   var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
+//   var day = ("0" + dateTime.getDate()).slice(-2);
+//   var year = dateTime.getFullYear();
+//   var hour = ("0" + dateTime.getHours()).slice(-2);
+//   var minute = ("0" + dateTime.getMinutes()).slice(-2);
+//   var sec = ("0" + dateTime.getSeconds()).slice(-2);
+//   return year + "-" + month + "-" + day + "T" + hour + ":" + minute + ":" + sec;
+// }
+ 
+const formatTimeShow = (datetime) => {
+  if (datetime==null) {
+    return null
+  } else {
+    var dateTime = new Date(datetime);
+    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
+    var day = ("0" + dateTime.getDate()).slice(-2);
+    var year = dateTime.getFullYear();
+    var hour = ("0" + dateTime.getHours()).slice(-2);
+    var minute = ("0" + dateTime.getMinutes()).slice(-2);
+    return year + "-" + month + "-" + day + " " + hour + ":" + minute;
   }
 };
 
@@ -324,14 +368,13 @@ const fetchMeasurementList = async () => {
     const response = await $api.put('/Device/GetDeviceMeasurementList', {
       DeviceId: selectedDevices.value
     });
-    // console.log('DeviceId:', selectedDevices.value);
 
     measurementList.value = response.data
       .filter(item => item.MeasurementLabel !== "Status")
       .map(item => ({
         measurementId: item.MeasurementId,
         measurementName: item.MeasurementName,
-      }));
+    }));
 
     selectedMeasurement.value = [];
   } catch (error) {
@@ -452,12 +495,6 @@ const resetFilters = () => {
   deviceError.value = false;
 };
 
-// const formatDateTime = (dateString) => {
-//   if (!dateString) return '';
-//   const date = new Date(dateString);
-//   return date.toLocaleString();
-// };
-
 const searchRecords = async () => {
   try {
     searchLoading.value = true;
@@ -502,7 +539,7 @@ const searchRecords = async () => {
     const filteredData = response.data.filter(item => item.Title.includes("Danger"));
 
     tableData.value = filteredData.map(item => ({
-      date: item.AlertTime,
+      date: item.ModifiedDatetime || item.AlertTime,
       deviceName: item.DeviceLabel,
       measurement: `${item.MeasurementLabel} (${item.MeasurementUnit})`,
       solution: item.Solution,
@@ -599,24 +636,47 @@ const closeEditDialog = () => {
   dialog.value = false;
 };
 
+// const validateAndSearch = () => {
+//   let isValid = true;
+  
+//   vehicleError.value = '';
+//   deviceError.value = '';
+  
+//   if (!selectedType.value) {
+//     vehicleError.value = 'Vehicle is required';
+//     isValid = false;
+//   }
+
+//   if (!selectedDevices.value) {
+//     deviceError.value = 'Device is required';
+//     isValid = false;
+//   }
+
+//   if (!vehicleError.value && !deviceError.value) {
+//     searchRecords();
+//   }
+
+//   if (isValid) {
+//     searchRecords();
+//   }
+  
+//   return isValid;
+// };
+
 const validateAndSearch = () => {
   let isValid = true;
   
-  vehicleError.value = false;
-  deviceError.value = false;
+  vehicleError.value = '';
+  deviceError.value = '';
   
   if (!selectedType.value) {
-    vehicleError.value = 'Please select at least one vehicle';
+    vehicleError.value = 'Vehicle is required';
     isValid = false;
   }
 
   if (!selectedDevices.value) {
-    deviceError.value = 'Please select device';
+    deviceError.value = 'Device is required';
     isValid = false;
-  }
-
-  if (!vehicleError.value && !deviceError.value) {
-    searchRecords();
   }
 
   if (isValid) {
@@ -699,7 +759,7 @@ watch(selectedDevices, (newVal) => {
 .download-btn {
   background-color: var(--yellow);
   color: var(--white);
-  border-radius: 10px;  
+  border-radius: 24px;  
 }
 
 .card-dialog {

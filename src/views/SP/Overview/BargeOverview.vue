@@ -3,7 +3,7 @@
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
-      <v-row v-if="!isLoading">
+      <v-row v-if="!loading">
         <v-col cols="12" class="title">Barge</v-col>
         <v-row class="mt-3">
           <v-col
@@ -19,7 +19,7 @@
               <v-row no-gutters>
                 <v-col cols="12" lg="4" style="padding: 1vh;">
                   <v-img
-                    :src="require('@/assets/Images/overview_barge.jpg')"
+                    :src="getCurrentDeviceImage(device)"
                     cover
                     class="rounded-lg"
                   ></v-img>
@@ -124,7 +124,7 @@
         </v-row>
       </v-row>
       <v-overlay
-        :model-value="isLoading"
+        :model-value="loading"
         class="align-center justify-center"
         persistent
       >
@@ -141,32 +141,42 @@
 import NavigationBar from "@/components/NavigationBar.vue";
 import SpaceBar from '@/components/SpaceBar.vue';
 import AlertBadges from "@/components/BargeDetails/AlertBadges.vue";
-import { inject, onMounted, ref } from "vue";
+import { computed, inject, onMounted, ref } from "vue";
 import { useRouter } from 'vue-router';
 
 const $api = inject('$api');
 const router = useRouter();
 const devices = ref([]);
-const isLoading = ref(true);
+const loading = ref(true);
 
 const fetchDeviceBargesGrouped = async () => {
   try {
-    isLoading.value = true;
+    loading.value = true;
 
     const response = await $api.get('/MachineStatus/GetDeviceBargesGrouped');
     const rawData = response.data;
-    
     const processedData = rawData.map(processGroupData);
     
     devices.value = processedData;
     console.log('Processed DeviceBargesGrouped:', devices.value);
+
   } catch (error) {
     error.value = 'Failed to fetch DeviceBargesGrouped. Please try again later.';
     console.error(error);
   } finally {
-    isLoading.value = false;
+    loading.value = false;
   }
 };
+
+const getCurrentDeviceImage = computed(() => {
+  return (device) => {
+    const masterDevice = device.Devices?.find(d => d.DeviceName === 'Barge Master');
+    
+    return masterDevice?.DeviceImage 
+      ? require(`@/assets/ImageForm/${masterDevice.DeviceImage}`)
+      : require('@/assets/Images/profile_barge.jpg');
+  };
+});
 
 const calculateAlerts = (devices) => {
   let totalWarning = 0;
@@ -208,8 +218,8 @@ const goToBargeDetails = (typeDeviceName) => {
   router.push({ name: 'BargeDetail', params: { typeDeviceName: typeDeviceName } });
 };
 
-onMounted(() => {
-  fetchDeviceBargesGrouped();
+onMounted(async () => {
+  await fetchDeviceBargesGrouped();
 });
 </script>
 

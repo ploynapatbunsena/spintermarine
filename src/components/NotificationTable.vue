@@ -6,17 +6,17 @@
           :headers="headers"
           :items="notices"
           item-value="name"
-          items-per-page="5"
+          items-per-page="4"
           hide-default-footer
           class="elevation-0 striped-table custom-table custom-scroll"
-          style="font-size: 1.2vh;"
+          style="font-size: 1.5vh;"
         >
           <template v-slot:item="{ item }">
-            <tr>
-              <td style="font-size: 1.2vh;">{{ item.date }}</td>
-              <td style="font-size: 1.2vh;">{{ item.name }}</td>
-              <td style="font-size: 1.2vh;">{{ item.measuremnet }}</td>
-              <td style="font-size: 1.2vh;" class="details">{{ item.details }}</td>
+            <tr class="custom-row">
+              <td>{{ formatTimeShow(item.date) }}</td>
+              <td>{{ item.name }}</td>
+              <td>{{ item.measuremnet }}</td>
+              <td>{{ item.details }}</td>
               <td>
                 <v-chip style="font-size: 1.2vh;" class="notice-status">
                   {{ item.status }}
@@ -31,6 +31,7 @@
 </template>
 
 <script setup>
+
 const props = defineProps({
   notices: {
     type: Array,
@@ -44,10 +45,34 @@ const headers = [
   { title: 'Measurement', key: 'measuremnet' },
   { title: 'Details', key: 'details' },
   { title: 'Status', key: 'status' },
-]
+];
+
+const formatTimeShow = (datetime) => {
+  if (datetime==null) {
+    return null
+  } else {
+    var dateTime = new Date(datetime);
+    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
+    var day = ("0" + dateTime.getDate()).slice(-2);
+    var year = dateTime.getFullYear();
+    var hour = ("0" + dateTime.getHours()).slice(-2);
+    var minute = ("0" + dateTime.getMinutes()).slice(-2);
+    return year + "-" + month + "-" + day + " " + hour + ":" + minute;
+  }
+};
 </script>
 
 <style scoped>
+
+.custom-row :deep(tbody tr){
+  height: 10px !important; /* ปรับค่าตามต้องการ */
+}
+
+/* ลด padding ของ cell */
+.custom-table >>> td {
+  padding: 4px 16px !important; /* ปรับค่าตามต้องการ */
+}
+
 .striped-table :deep(tbody tr:nth-child(odd)) {
   background-color: var(--bg-row); /* สีสำหรับแถวคี่ */
 }
@@ -55,21 +80,6 @@ const headers = [
 .striped-table :deep(tbody tr:nth-child(even)) {
   background-color: #ffffff; /* สีสำหรับแถวคู่ */
 }
-
-/* .custom-table :deep(thead th) {
-  color: var(--black);
-  font-weight: bold;
-  font-size: 1.5vh;
-}
-
-.custom-table :deep(tbody td) {
-  color: var(--dark-gray);
-  font-size: 1vh;
-}
-
-.custom-table :deep(tbody tr:hover td) {
-  color: var(--black);
-} */
 
 .custom-scroll :deep(.v-table__wrapper) {
   overflow-y: auto;
@@ -81,11 +91,6 @@ const headers = [
 
 .v-card-text {
   padding: 0;
-}
-
-.details {
-  font-family: 'Sarabun', serif;
-  font-size: 1vh;
 }
 
 .notice-status {

@@ -3,99 +3,119 @@
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
-      <v-row v-for="device in devices" :key="device.DeviceId">
-        <v-col cols="12" class="position-relative d-flex align-center">
-          <div style="width: 10vh;"></div>
-          <div class="title flex-grow-1 text-center">{{ device.DeviceLabel }}</div>
-          <div style="width: 10vh;">
-            <AlertBadges
-              :warningCount="getWarningCount(device)"
-              :dangerCount="getDangerCount(device)"
-            />
-          </div>
-        </v-col>
-        <v-col cols="12"> 
-          <v-row v-if="devices.length > 0">
-            <v-col cols="3" class="d5-flex justify-center align-center">
-              <v-card class="card-map rounded-xl" elevation="1" @click="navigateToGPSVessel(device.DeviceId)">
-                <p class="card-title">ตำแหน่งเรือ</p>
-                <div id="mapContainer" >
-                  <v-img :src="require('@/assets/Icons/compass_map.svg')" style="z-index: 999; width: 7vw; top: 3vh;"></v-img>
-                </div>
-              </v-card>
-            </v-col>
-            <v-col cols="9">
-              <v-row>
-                <v-col cols="4" v-for="(gauge, index) in gauges" :key="index">
-                  <v-card class="gauge-card">
-                    <v-card-title class="gauge-title text-center">{{ gauge.title }}</v-card-title>
-                    <v-card-text class="text-center pa-0">
-                      <vue-gauge
-                        v-if="isDataLoaded"
-                        :refid="'_' + Math.random().toString(36).substr(2, 9)"
-                        class="meticsGauge"
-                        :options="getGaugeOptions(gauge.type, devices[0])"
-                      />
-                      <v-card-text class="central-label text-center pa-0">
-                        {{ getMeasurementValue(gauge.type) }} {{ gauge.unit }}
-                      </v-card-text>
-                    </v-card-text>
-                  </v-card>
-                </v-col>
-              </v-row>
-              <v-row>
-                <v-col cols="12">
-                  <v-card class="tugboat-info rounded-xl h-100">
-                    <GeneralInfo 
-                      :measurements="filteredMeasurements"
-                    />
-                  </v-card>
-                </v-col>
-              </v-row>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="6">
-              <v-card class="pa-2 rounded-xl h-100">
+      <div v-if="!loading">
+        <v-row v-for="device in devices" :key="device.DeviceId">
+          <v-col cols="12" class="position-relative d-flex align-center">
+            <div style="width: 10vh;"></div>
+            <div class="title flex-grow-1 text-center">{{ device.DeviceLabel }}</div>
+            <div style="width: 10vh;">
+              <AlertBadges
+                :warningCount="getWarningCount(device)"
+                :dangerCount="getDangerCount(device)"
+              />
+            </div>
+          </v-col>
+          <v-col cols="12"> 
+            <v-row v-if="devices.length > 0">
+              <v-col cols="3" class="d5-flex justify-center align-center">
+                <v-card class="card-map rounded-xl" elevation="1" @click="navigateToGPSVessel(device.DeviceId)">
+                  <p class="card-title">ตำแหน่งเรือ</p>
+                  <div id="mapContainer">
+                    <v-img :src="require('@/assets/Icons/compass_map.svg')" style="z-index: 999; width: 7vw; top: 3vh;"></v-img>
+                  </div>
+                </v-card>
+              </v-col>
+              <v-col cols="9">
                 <v-row>
-                  <v-col cols="4">
-                    <FuelTank
-                      title="Main Tank"
-                      :remaining-volume="mainTankRemaining"
-                      :total-capacity="mainTankCapacity"
-                    />
-                  </v-col>
-                  <v-col cols="4">
-                    <FuelTank
-                      title="Feed Tank"
-                      :remaining-volume="feedTankRemaining"
-                      :total-capacity="feedTankCapacity"
-                    />
-                  </v-col>
-                  <v-col cols="4">
-                    <FuelTank
-                      title="Total Tank"
-                      :remaining-volume="totalTankRemaining"
-                      :total-capacity="totalTankCapacity"
-                    />
+                  <v-col cols="4" v-for="(gauge, index) in gauges" :key="index">
+                    <v-card class="gauge-card">
+                      <v-card-title class="gauge-title text-center">{{ gauge.title }}</v-card-title>
+                      <v-card-text class="text-center pa-0">
+                        <vue-gauge
+                          v-if="isDataLoaded"
+                          :refid="'_' + Math.random().toString(36).substr(2, 9)"
+                          class="meticsGauge"
+                          :options="getGaugeOptions(gauge.type, devices[0])"
+                        />
+                        <v-card-text class="central-label text-center pa-0">
+                          {{ getMeasurementValue(gauge.type) }} {{ gauge.unit }}
+                        </v-card-text>
+                      </v-card-text>
+                    </v-card>
                   </v-col>
                 </v-row>
-              </v-card>
-            </v-col>
-            <v-col cols="6">
-              <v-card class="pa-2 rounded-xl h-100">
-                <NoticeTable />
-              </v-card>
-            </v-col>
-          </v-row>
-        </v-col>
-      </v-row>
+                <v-row>
+                  <v-col cols="12">
+                    <v-card class="tugboat-info rounded-xl h-100">
+                      <GeneralInfo 
+                        :measurements="filteredMeasurements"
+                      />
+                    </v-card>
+                  </v-col>
+                </v-row>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="6">
+                <v-card class="pa-2 rounded-xl h-100">
+                  <v-row class="h-100 align-center">
+                    <v-col cols="4">
+                      <FuelTank
+                        title="Main Tank"
+                        :remaining-volume="mainTankRemaining"
+                        :total-capacity="mainTankCapacity"
+                      />
+                    </v-col>
+                    <v-col cols="4">
+                      <FuelTank
+                        title="Feed Tank"
+                        :remaining-volume="feedTankRemaining"
+                        :total-capacity="feedTankCapacity"
+                      />
+                    </v-col>
+                    <v-col cols="4">
+                      <FuelTank
+                        title="Total Tank"
+                        :remaining-volume="totalTankRemaining"
+                        :total-capacity="totalTankCapacity"
+                      />
+                    </v-col>
+                  </v-row>
+                </v-card>
+              </v-col>
+              <v-col cols="12" lg="6">
+                <v-card class="pa-2 rounded-xl h-100">
+                  <div class="notification-header">
+                    <v-card-title class="header">Notification</v-card-title>
+                    <v-card-title>
+                      <router-link :to="{ name: 'NotificationReport'}">
+                        <v-icon icon="mdi-pencil" class="edit"></v-icon>
+                      </router-link>
+                    </v-card-title>
+                  </div>
+                  <NotificationTable :notices="mappedNotices"/>
+                </v-card>   
+              </v-col>
+            </v-row>
+          </v-col>
+        </v-row>
+      </div>
+      <v-overlay
+        :model-value="loading"
+        class="align-center justify-center"
+        persistent
+      >
+        <div class="pa-6 d-flex flex-column align-center">
+          <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+          <div class="mt-4 text-h6" style="font-family: 'Inter', sans-serif;">Loading data...</div>
+        </div>
+      </v-overlay>
     </v-container>
   </v-app>
 </template>
 
 <script setup>
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -105,10 +125,10 @@ import NavigationBar from '@/components/NavigationBar.vue';
 import SpaceBar from '@/components/SpaceBar.vue';
 import GeneralInfo from '@/components/TugboatDetails/GeneralInfo.vue';
 import FuelTank from '@/components/TugboatDetails/FuelTank.vue';
-import NoticeTable from '@/components/GeneratorDetails/NoticeTable.vue';
 import AlertBadges from '@/components/BargeDetails/AlertBadges.vue';
 import markerIconUrl from '@/assets/Images/ship_location.png';
 import { fuelCapacityTugboat } from '@/config/fuel-capacity-config';
+import NotificationTable from '@/components/NotificationTable.vue';
 
 const $api = inject('$api');
 const router = useRouter();
@@ -123,6 +143,7 @@ const devices = ref([]);
 const deviceId = ref(route.params.deviceId);
 const chartWidth = ref(0);
 const isDataLoaded = ref(false);
+const noti = ref([])
 const gauges = ref([
   { type: 'Water Temp', title: 'Water Temperature', unit: '°C' },
   { type: 'Oil Pressure', title: 'Oil Pressure', unit: 'bar' },
@@ -148,6 +169,47 @@ const fetchDeviceData = async () => {
     loading.value = false;
   }
 };
+
+const fetchNotification = async () => {
+  loading.value = true;
+  if (!devices.value.length) {
+    await fetchDeviceData();
+  }
+  
+  try {
+    for (const device of devices.value) {
+      const requestBody = {
+        DeviceId: device.DeviceId,
+        IsAccept: false
+      };
+
+      try {
+        const response = await $api.put('/device/notificationlistStatus', requestBody);
+        const filteredData = response.data.filter(item =>  item.Title.includes("Danger"));
+        noti.value = [...noti.value, ...filteredData];
+      } catch (err) {
+        console.error(`Failed to fetch notifications for DeviceId ${device.DeviceId}:`, err);
+      }
+    }
+
+    console.log("Notifications:", noti.value);
+  } catch (err) {
+    error.value = 'Failed to fetch notifications. Please try again later.';
+    console.error(err);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const mappedNotices = computed(() => {
+  return noti.value.map(item => ({
+    date: item.AlertTime,
+    name: item.DeviceLabel,
+    measuremnet: item.MeasurementName,
+    details: item.Description,
+    status: item.IsAccept ? 'ดำเนินการเสร็จสิ้น' : 'รอแจ้งซ่อม',
+  }));
+});
 
 const updateDevicePosition = () => {
   if (devices.value.length > 0) {
@@ -194,7 +256,6 @@ const initializeMap = () => {
     marker.value.bindPopup(`ตำแหน่งเรือ: ${position.value[0].toFixed(4)}, ${position.value[1].toFixed(4)}`);
     mapInitialized.value = true;
   }, 100);
-  
 };
 
 const updatePosition = () => {
@@ -283,7 +344,7 @@ const getGaugeOptions = (measurementName, device) => {
       colors = ['#3DCC5B'];
       delimiters = [];
       labels = [];
-  };
+  }
   
   return {
     needleValue: needlePercentage,
@@ -413,6 +474,7 @@ onMounted(async () => {
   initialize();
   initializeMap();
   updateChartSize();
+  fetchNotification();
   window.addEventListener('resize', updateChartSize);
 });
 
@@ -424,6 +486,11 @@ onBeforeUnmount(() => {
 watch(position, () => {
   updatePosition();
 }, { deep: true });
+
+watch(() => route.params.deviceId, (newId) => {
+  deviceId.value = newId;
+  fetchDeviceData(newId); // Your data fetching function
+});
 
 // ตรวจจับการเปลี่ยนแปลงของ deviceId
 // watch(() => route.params.deviceId, async (newDeviceId) => {
@@ -495,5 +562,25 @@ watch(position, () => {
 :deep(text) {
   font-family: 'Inter', sans-serif;
   font-size: 1  vh;
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.edit {
+  width: 2vw;
+  height: 2vh;
+  border-radius: 2vh;
+  font-size: 2vh;
+  color: var(--symbol-blue);
+  background-color: var(--bg-light-tugboat);
+}
+
+.header {
+  font-size: 2.5vh;
+  font-weight: bold;
 }
 </style>

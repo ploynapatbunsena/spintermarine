@@ -1,19 +1,9 @@
-DeviceManagementForm
-
 <template>
   <v-app style="background-color: #F7F9FC;">
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
       <div class="title">Device Management</div>
-      <!-- <v-alert
-        v-model="showAlert"
-        :type="alertType"
-        class="mb-4"
-        transition="fade-transition"
-      >
-        {{ alertMessage }}
-      </v-alert> -->
       <v-card class="mt-4">
         <v-card-text class="card-text">
           <v-row>
@@ -40,7 +30,7 @@ DeviceManagementForm
                   variant="outlined" 
                   density="compact" 
                   class="input-field"
-                  disabled
+                  readonly
                 ></v-text-field>
               </div>
               <div class="device-detail">
@@ -197,6 +187,7 @@ DeviceManagementForm
         <v-data-table
           :headers="headers"
           :items="measurementAll"
+          items-per-page="-1"
           hide-default-footer
           class="striped-table custom-table"
         >
@@ -212,7 +203,7 @@ DeviceManagementForm
               <td class="action">{{ item.IsActive ? 'Active' : 'Inactive' }}</td>
               <td>
                 <v-icon
-                  icon="mdi-pencil-outline" 
+                  icon="mdi-pencil" 
                   class="edit"
                   @click="editMeasurement(item)"
                 ></v-icon>
@@ -274,6 +265,7 @@ const showUploadDialog = ref(false);
 const deviceImage = ref(null);
 const preview = ref('https://picsum.photos/id/11/10/6');
 const originalPreview = ref('https://picsum.photos/id/11/10/6');
+const loading = ref(true);
 
 const headers = ref([
   { title: 'Measurement', value: 'MeasurementName', align: 'start' },
@@ -301,52 +293,10 @@ const showErrorAlert = (message) => {
   alertIcon.value = 'mdi-alert-circle'
 }
 
-// Old version🐸🐧🎈
-// const fetchDeviceProfile = async () => {
-//   try {
-//     const filename = `device_${deviceId.value}.jpg`;
-//     const response = await $api.get(`/Device/Image/${filename}`);
-//     if (response.data && response.data.src) {
-//       preview.value = response.data.src;
-//       originalPreview.value = response.data.src;
-//       deviceImage.value = filename;
-//     } else {
-//       preview.value = 'https://picsum.photos/id/11/10/6';
-//       originalPreview.value = 'https://picsum.photos/id/11/10/6';
-//       deviceImage.value = null;
-//     }
-//   } catch (error) {
-//     console.error('Failed to fetch image:', error);
-//     preview.value = 'https://picsum.photos/id/11/10/6';
-//     originalPreview.value = 'https://picsum.photos/id/11/10/6';
-//     deviceImage.value = null;
-//   }
-// };
-
-// New Version but not work💻🐧🎈
-// const fetchDeviceProfile = async () => {
-//   try {
-//     const response = await $api.get(`/Device/GetImageInfo?deviceId=${deviceId.value}`);
-//     if (response.data && response.data.filename) {
-//       const filename = response.data.filename; // เช่น device_00000018.png
-//       preview.value = `/Device/Image/${filename}`; // URL ของภาพ
-//       originalPreview.value = `/Device/Image/${filename}`; // เก็บ preview เดิม
-//       deviceImage.value = filename; // เก็บชื่อไฟล์
-//     } else {
-//       preview.value = 'https://picsum.photos/id/11/10/6';
-//       originalPreview.value = 'https://picsum.photos/id/11/10/6';
-//       deviceImage.value = null;
-//     }
-//   } catch (error) {
-//     console.error('Failed to fetch image:', error);
-//     preview.value = 'https://picsum.photos/id/11/10/6';
-//     originalPreview.value = 'https://picsum.photos/id/11/10/6';
-//     deviceImage.value = null;
-//   }
-// };
-
 const fetchDeviceData = async () => {
   try {
+    loading.value = true;
+
     const response = await $api.put('/Device/GetDevice', {
       DeviceId: deviceId.value
     });
@@ -365,11 +315,19 @@ const fetchDeviceData = async () => {
       DeviceLabel: response.data.DeviceLabel,
       Note: response.data.Note,
       TypeDevicename: response.data.TypeDevicename,
+      DeviceImage: response.data.DeviceImage
     };
     measurementAll.value = response.data.Measurement.map(m => ({ ...m })) || [];
+
+    console.log(measurementAll.value);
+    
+    console.log('response.data:', response.data);
+    
   } catch (error) {
     console.error('Failed to fetch device data:', error);
     measurementAll.value = [];
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -398,9 +356,12 @@ const fetchDeviceList = async () => {
 
 const fetchDeviceProfile = async () => {
   try {
-    const filename = deviceImage.value || `device_${deviceId.value}.jpg`;
-    const response = await $api.get(`/Device/Image/${filename}`);
+    loading.value = true;
 
+    const filename = await deviceData.value?.DeviceImage
+    console.log(filename);
+    const response = await $api.get('/Device/Image/' + filename);
+    
     if (response.data && response.data.src) {
       preview.value = response.data.src;
       originalPreview.value = response.data.src;
@@ -412,6 +373,8 @@ const fetchDeviceProfile = async () => {
     console.error('Failed to fetch image:', error);
     preview.value = 'https://picsum.photos/id/11/10/6';
     originalPreview.value = 'https://picsum.photos/id/11/10/6';
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -461,7 +424,7 @@ const handleFileSelected = (file) => {
     };
     reader.readAsDataURL(file);
     dropzoneFile.value = file;
-    deviceImage.value = null; // รอจนกว่าจะอัปโหลดสำเร็จ
+    deviceImage.value = null;
   } else {
     dropzoneFile.value = null;
     preview.value = originalPreview.value;
@@ -474,7 +437,7 @@ const confirmUpload = () => {
     showErrorAlert('Please select an image');
     return;
   }
-  showSuccessAlert('Upload image successfully!')
+  // showSuccessAlert('Upload image successfully!')
   showUploadDialog.value = false;
 };
 
@@ -485,25 +448,101 @@ const cancelUpload = () => {
   showUploadDialog.value = false;
 };
 
+// const saveRecord = async () => {
+//   try {
+//     const memberData = JSON.parse(localStorage.getItem('member'));
+//     const memberId = memberData.MemberId;
+//     const modifiedDatetime = new Date().toISOString();
+
+//     if (dropzoneFile.value) {
+//       const formData = new FormData();
+//       formData.append('image', dropzoneFile.value);
+//       formData.append('deviceId', deviceId.value);
+//       const uploadResponse = await $api.post('/Device/Upload/Image', formData, {
+//         headers: {
+//           'Content-Type': 'multipart/form-data'
+//         }
+//       });
+      
+//       if (uploadResponse.data) {
+//         deviceImage.value = uploadResponse.data;
+//         deviceData.value.DeviceImage = uploadResponse.data;
+//       }
+//     }
+
+//     const index = measurementAll.value.findIndex(m => m.MeasurementId === selectedMeasurement.value.MeasurementId);
+//     if (index !== -1) {
+//       measurementAll.value[index] = {
+//         ...measurementAll.value[index],
+//         ValueMin: selectedMeasurement.value.ValueMin,
+//         ValueMax: selectedMeasurement.value.ValueMax,
+//         ThresholdMinWarning: selectedMeasurement.value.ThresholdMinWarning,
+//         ThresholdMaxWarning: selectedMeasurement.value.ThresholdMaxWarning,
+//         ThresholdMinDanger: selectedMeasurement.value.ThresholdMinDanger,
+//         ThresholdMaxDanger: selectedMeasurement.value.ThresholdMaxDanger,
+//         ModifiedBy: memberId,
+//         ModifiedDatetime: modifiedDatetime
+//       };
+//     }
+
+//     const payload = {
+//       ...originalDeviceData.value,
+//       DeviceLabel: deviceData.value.DeviceLabel,
+//       Note: deviceData.value.Note,
+//       ModifiedBy: memberId,
+//       ModifiedDatetime: modifiedDatetime,
+//       Measurement: measurementAll.value.map(m => ({
+//         ...m,
+//         ValueMin: m.ValueMin,
+//         ValueMax: m.ValueMax,
+//         ThresholdMinWarning: m.ThresholdMinWarning,
+//         ThresholdMaxWarning: m.ThresholdMaxWarning,
+//         ThresholdMinDanger: m.ThresholdMinDanger,
+//         ThresholdMaxDanger: m.ThresholdMaxDanger,
+//         ModifiedBy: m.MeasurementId === selectedMeasurement.value.MeasurementId ? memberId : m.ModifiedBy,
+//         ModifiedDatetime: m.MeasurementId === selectedMeasurement.value.MeasurementId ? modifiedDatetime : m.ModifiedDatetime
+//       }))
+//     };
+
+//     await $api.put('/Device/Update', payload);
+//     showSuccessAlert('Device updated successfully!', payload);
+
+//     await fetchDeviceData();
+    
+//     if (deviceData.value.DeviceImage) {
+//       await fetchDeviceProfile();
+//     }
+
+//     resetForm();
+
+//   } catch (error) {
+//     console.error('Failed to save device data:', error);
+//     showErrorAlert('Failed to update device information: ' + (error.message || 'Unknown error'));
+//   }
+// };
+
 const saveRecord = async () => {
   try {
     const memberData = JSON.parse(localStorage.getItem('member'));
     const memberId = memberData.MemberId;
     const modifiedDatetime = new Date().toISOString();
+    let newImageName = null;
 
     // อัปโหลดรูปภาพถ้ามี
     if (dropzoneFile.value) {
       const formData = new FormData();
       formData.append('image', dropzoneFile.value);
       formData.append('deviceId', deviceId.value);
-      const response = await $api.post('/Device/Upload/Image', formData, {
+      const uploadResponse = await $api.post('/Device/Upload/Image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
-      if (response.data) {
-        deviceImage.value = response.data;
-        await fetchDeviceProfile();
+      
+      if (uploadResponse.data) {
+        newImageName = uploadResponse.data; // เก็บชื่อไฟล์ใหม่
+        deviceImage.value = newImageName;
+        deviceData.value.DeviceImage = newImageName;
       }
     }
 
@@ -526,6 +565,7 @@ const saveRecord = async () => {
       ...originalDeviceData.value,
       DeviceLabel: deviceData.value.DeviceLabel,
       Note: deviceData.value.Note,
+      DeviceImage: newImageName || originalDeviceData.value.DeviceImage, // ใช้รูปใหม่หรือรูปเดิม
       ModifiedBy: memberId,
       ModifiedDatetime: modifiedDatetime,
       Measurement: measurementAll.value.map(m => ({
@@ -541,10 +581,17 @@ const saveRecord = async () => {
       }))
     };
 
-    await $api.put('/Device/Update', payload);
+    const updateResponse = await $api.put('/Device/Update', payload);
+    console.log('Update response:', updateResponse.data);
+    
     showSuccessAlert('Device updated successfully!');
 
     await fetchDeviceData();
+    
+    if (deviceData.value.DeviceImage) {
+      await fetchDeviceProfile();
+    }
+
     resetForm();
 
   } catch (error) {
@@ -553,10 +600,10 @@ const saveRecord = async () => {
   }
 };
 
-onMounted(() => {
-  fetchDeviceData();
-  fetchDeviceProfile ();
-  fetchDeviceList();
+onMounted(async () => {
+  await fetchDeviceData();
+  await fetchDeviceList();
+  await fetchDeviceProfile();
 });
 </script>
 

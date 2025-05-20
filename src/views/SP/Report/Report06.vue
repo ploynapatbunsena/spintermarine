@@ -52,6 +52,7 @@
                 :max="endDate || null"
                 enable-seconds
                 teleport
+                :max-date="new Date()"
                 format="yyyy-MM-dd HH:mm:ss"
                 placeholder="Select Start Date"
                 :class="{ 'error-border': startDateError }"
@@ -65,6 +66,7 @@
                 :min="startDate || null"
                 enable-seconds
                 teleport
+                :max-date="new Date()"
                 format="yyyy-MM-dd HH:mm:ss"
                 placeholder="Select End Date"
                 :class="{ 'error-border': endDateError }"
@@ -90,7 +92,7 @@
                     Search
                   </v-btn>
                 </v-col>
-                <!-- <v-col cols="6" md="4" class="px-0">
+                <v-col cols="6" md="4">
                   <v-btn
                     class="download-btn"
                     @click="downloadReport"
@@ -98,7 +100,7 @@
                   >
                     Download
                   </v-btn>
-                </v-col> -->
+                </v-col>
               </v-row>
             </v-col>
           </v-row>
@@ -153,9 +155,9 @@ const endDateError = ref('');
 
 const validateForm = () => {
   let isValid = true;
-  deviceError.value = false;
-  startDateError.value = false;
-  endDateError.value = false;
+  deviceError.value = '';
+  startDateError.value = '';
+  endDateError.value = '';
   
   if (selectedTugboats.value.length === 0) {
     deviceError.value = 'กรุณาเลือกอุปกรณ์อย่างน้อย 1 รายการ';
@@ -238,10 +240,19 @@ const resetFilters = () => {
   endDateError.value = '';
 };
 
-const formatDate = (date) => {
-  if (!date) return '';
-  const pad = n => n.toString().padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+const formatTimeShow = (datetime) => {
+  if (datetime==null) {
+    return null
+  } else {
+    var dateTime = new Date(datetime);
+    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
+    var day = ("0" + dateTime.getDate()).slice(-2);
+    var year = dateTime.getFullYear();
+    var hour = ("0" + dateTime.getHours()).slice(-2);
+    var minute = ("0" + dateTime.getMinutes()).slice(-2);
+    var sec = ("0" + dateTime.getSeconds()).slice(-2);
+    return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + sec;
+  }
 };
 
 const processChartData = (devices) => {
@@ -269,7 +280,6 @@ const processChartData = (devices) => {
   // แปลง Set เป็น Array และเรียงลำดับเวลา
   const allTimes = Array.from(allSeriesData.times).sort((a, b) => new Date(a) - new Date(b));
 
-  // เตรียมข้อมูลสำหรับแต่ละจุดเวลา
   allTimes.forEach(time => {
     // หาค่า RPM ที่ตรงกับเวลานี้
     const rpmValue = devices.flatMap(device => {
@@ -335,11 +345,16 @@ const searchRecords = async () => {
     showResult.value = false;
     error.value = null;
 
+    const deviceIds = [...selectedTugboats.value];
+
     const request = {
-      DeviceId: selectedTugboats.value,
-      StartDateTime: formatDate(startDate.value),
-      EndDatetime: formatDate(endDate.value),
+      DeviceId: deviceIds,
+      StartDateTime: formatTimeShow(startDate.value),
+      EndDatetime: formatTimeShow(endDate.value),
     };
+
+    console.log(request);
+    
     
     const response = await $api.put('MachineStatus/RealtimeChartDataReport06/multiple', request);
     
@@ -360,10 +375,10 @@ const searchRecords = async () => {
   }
 };
 
-// const downloadReport = () => {
-//   // Implement download functionality
-//   console.log('Download report');
-// };
+const downloadReport = () => {
+  // Implement download functionality
+  console.log('Download report');
+};
 
 const chartOptions = ref({
   chart: {
@@ -475,7 +490,7 @@ onMounted(() => {
 .download-btn {
   background-color: var(--yellow);
   color: var(--white);
-  border-radius: 10px;  
+  border-radius: 24px;  
 }
 
 .cancel-btn {

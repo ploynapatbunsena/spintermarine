@@ -18,7 +18,7 @@
               hide-default-footer
             >
               <template #item.lastTimestamp="{ item }">
-                {{ formatDate(item.statusData.lastTimestamp) }}
+                {{ formatTimeShow(item.statusData.lastTimestamp) }}
               </template>
               <template #item.status="{ item }">
                 <v-chip :class="getGeneratorStatusClass(item.statusData.statusValue)">
@@ -48,7 +48,7 @@
               hide-default-footer
             >
               <template #item.lastTimestamp="{ item }">
-                {{ formatDate(item.statusData.lastTimestamp) }}
+                {{ formatTimeShow(item.statusData.lastTimestamp) }}
               </template>
               <template #item.status="{ item }">
                 <v-chip :class="getCraneStatusClass(item.statusData.statusValue)">
@@ -80,7 +80,7 @@
                     readonly
                     rounded="lg"
                   >
-                    {{ formatDate(editedItem.lastTimestamp) || '-' }}
+                    {{ formatTimeShow(editedItem.lastTimestamp) || '-' }}
                   </v-text-field>
                 </div>
               </v-col>
@@ -270,10 +270,34 @@ const fetchDeviceBargesGrouped = async () => {
   }
 };
 
-const formatDate = (dateString) => {
-  if (!dateString) return '';
-  const date = new Date(dateString);
-  return date.toLocaleString();
+// const formatTimeShow = (datetime) => {
+//   if (datetime==null) {
+//     return null
+//   } else {
+//     var dateTime = new Date(datetime);
+//     var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
+//     var day = ("0" + dateTime.getDate()).slice(-2);
+//     var year = dateTime.getFullYear();
+//     var hour = ("0" + dateTime.getHours()).slice(-2);
+//     var minute = ("0" + dateTime.getMinutes()).slice(-2);
+//     return year + "-" + month + "-" + day + " " + hour + ":" + minute;
+//   }
+// };
+
+const formatTimeShow = (datetime) => {
+  if (datetime==null) {
+    return null
+  } else {
+    var dateTime = new Date(datetime);
+    dateTime.setHours(dateTime.getHours() - 7); // ปรับเวลาลง 7 ชั่วโมง
+    
+    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
+    var day = ("0" + dateTime.getDate()).slice(-2);
+    var year = dateTime.getFullYear();
+    var hour = ("0" + dateTime.getHours()).slice(-2);
+    var minute = ("0" + dateTime.getMinutes()).slice(-2);
+    return year + "-" + month + "-" + day + " " + hour + ":" + minute;
+  }
 };
 
 const openEditDialog = (item, deviceType) => {

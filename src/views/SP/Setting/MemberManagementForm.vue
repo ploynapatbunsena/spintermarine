@@ -21,7 +21,7 @@
                       variant="outlined"
                       density="compact"
                       class="input-field"
-                      disabled
+                      readonly
                     ></v-text-field>
                   </div>
                   <div class="device-detail">
@@ -52,7 +52,7 @@
                       variant="outlined"
                       density="compact"
                       class="input-field"
-                      disabled
+                      readonly
                       style="font-family: 'Sarabun', sans-serif;"
                     ></v-text-field>
                   </div>
@@ -63,7 +63,7 @@
                       variant="outlined"
                       density="compact"
                       class="input-field"
-                      disabled
+                      readonly
                     ></v-text-field>
                   </div>
                   <div class="device-detail">
@@ -89,7 +89,7 @@
               :headers="headers"
               :items="permissionCheck"
               hide-default-footer
-              :items-per-page="-1"                  
+              :items-per-page="-1"
               class="striped-table custom-table"
             >
               <template v-slot:[`body.prepend`]>

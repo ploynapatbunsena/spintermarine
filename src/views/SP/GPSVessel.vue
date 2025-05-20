@@ -190,10 +190,10 @@ const getStatusText = (tugboat) => {
 const getStatusColor = (tugboat) => {
   const status = tugboat.Mesurement?.find(m => m.measurementname === 'Status')?.lastValue;
   switch (status) {
-    case '1': return '#009688'; // Running
+    case '1': return '#1CC042'; // Running
     case '2': return '#DC2B2B'; // Maintenance
     case '3': return '#FAC12A'; // Pending
-    case '5': return '#979a9a'; // Active
+    case '5': return '#979a9a'; // ยกเลิกใช้งาน
     default: return '#000000';
   }
 };

@@ -24,7 +24,12 @@
               >
                 <v-row no-gutters>
                   <v-col cols="4">
-                    <v-img :src="require('@/assets/Images/overview_barge.jpg')" height="150" cover class="ma-2 rounded-lg"></v-img>
+                    <v-img 
+                      :src="getDeviceImage(tugboat.Devices[0])"
+                      height="150" 
+                      cover 
+                      class="ma-2 rounded-lg"
+                    ></v-img>
                   </v-col>
                   <v-col cols="8">
                     <v-card-item>
@@ -85,7 +90,12 @@
               >
                 <v-row no-gutters>
                   <v-col cols="4">
-                    <v-img :src="require('@/assets/Images/overview_barge.jpg')" height="150" cover class="ma-2 rounded-lg"></v-img>
+                    <v-img 
+                      :src="getDeviceImage(tugboat.Devices[0])"
+                      height="150" 
+                      cover 
+                      class="ma-2 rounded-lg"
+                    ></v-img>
                   </v-col>
                   <v-col cols="8">
                     <v-card-item>
@@ -143,7 +153,7 @@
 import NavigationBar from "@/components/NavigationBar.vue";
 import SpaceBar from '@/components/SpaceBar.vue';
 import AlertBadges from "@/components/BargeDetails/AlertBadges.vue";
-import { inject, onMounted, ref } from "vue";
+import { computed, inject, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 const $api = inject('$api');
@@ -152,7 +162,6 @@ const tugboatRiverDevices = ref([]);
 const tugboatSeaDevices = ref([]);
 const isLoading = ref(true);
 
-// Mock status and date since they’re not in the API response
 const addMockData = (device) => {
   return {
     ...device,
@@ -166,7 +175,9 @@ const fetchTugboatRiver = async () => {
     isLoading.value = true;
 
     const response = await $api.get('/MachineStatus/GetTugboatRiver');
-    tugboatRiverDevices.value = response.data.map(addMockData); // Add mock status/date
+    tugboatRiverDevices.value = response.data.map(addMockData);
+    
+    console.log(tugboatRiverDevices.value);
   } catch (error) {
     console.error('Failed to fetch tugboat river:', error);
   } finally {
@@ -179,12 +190,20 @@ const fetchTugboatSea = async () => {
     isLoading.value = true;
 
     const response = await $api.get('/MachineStatus/GetTugboatSea');
-    tugboatSeaDevices.value = response.data.map(addMockData); // Add mock status/date
+    tugboatSeaDevices.value = response.data.map(addMockData);
+    console.log(tugboatSeaDevices.value);
+    
   } catch (error) {
     console.error('Failed to fetch tugboat sea:', error);
   } finally {
     isLoading.value = false;
   }
+};
+
+const getDeviceImage = (device) => {
+  return device?.DeviceImage 
+    ? require(`@/assets/ImageForm/${device.DeviceImage}`)
+    : require('@/assets/ImageForm/default.jpg');
 };
 
 const getAlertCount = (device, type) => {
@@ -269,11 +288,11 @@ onMounted(() => {
 
   & .name-thai {
     font-family: 'Sarabun', serif;
-    font-size: 2vh;
+    font-size: 3vh;
   }
 
   & .name-eng {
-    font-size: 1vh;
+    font-size: 2vh;
     font-weight: 200;
   }
 }

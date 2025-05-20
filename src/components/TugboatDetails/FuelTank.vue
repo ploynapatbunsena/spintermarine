@@ -1,5 +1,5 @@
 <template>
-  <div class="gasolineTank">
+  <v-card class="gasolineTank" elevation="0">
     <p class="gasoline-title">{{ title }}</p>
     <div class="tank-container">
       <div class="tank">
@@ -10,7 +10,7 @@
         <p>ปริมาณน้ำมัน: {{ formattedRemainingVolume }} / {{ formattedTotalCapacity }} L</p>
       </div>
     </div>
-  </div>
+  </v-card>
 </template>
 
 <script setup>
@@ -71,7 +71,7 @@ const formattedTotalCapacity = computed(() => {
 }
 
 .gasoline-title {
-  font-weight: 500;
+  font-weight: bold;
   text-align: center;
   padding: 2.5vh 0px;
   font-size: 1.5vh;
