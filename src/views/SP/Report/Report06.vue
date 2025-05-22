@@ -93,13 +93,27 @@
                   </v-btn>
                 </v-col>
                 <v-col cols="6" md="4">
-                  <v-btn
-                    class="download-btn"
-                    @click="downloadReport"
-                    :disabled="!showResult"
-                  >
-                    Download
-                  </v-btn>
+                  <v-menu>
+                    <template v-slot:activator="{ props }">
+                      <v-btn
+                        class="download-btn elevation-0 text-none"
+                        v-bind="props"
+                        :disabled="!showResult"
+                      >
+                        Download
+                      </v-btn>
+                    </template>
+                    <v-list>
+                      <v-list-item
+                        v-for="format in ['CSV', 'JPG']"
+                        :key="format"
+                        :value="format"
+                        @click="downloadReport(format)"
+                      >
+                        <v-list-item-title>{{ format }}</v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
                 </v-col>
               </v-row>
             </v-col>
@@ -117,6 +131,7 @@
 
         <v-card-text v-if="showResult && !searchLoading">
           <apexchart
+            ref="chart"
             type="line"
             height="680"
             :options="chartOptions"
@@ -136,10 +151,12 @@ import VueApexCharts from 'vue3-apexcharts';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@/assets/colors.scss';
 import '@vuepic/vue-datepicker/dist/main.css'
+import { useRouter } from 'vue-router';
 
 const datePicker = VueDatePicker;
 const apexchart = VueApexCharts;
 const $api = inject('$api');
+const router = useRouter()
 const showResult = ref(false);
 const searchLoading = ref(false);
 const error = ref(null);
@@ -148,6 +165,7 @@ const tugboatDevices = ref([]);
 const selectedTugboats = ref([]);
 const startDate = ref(null);
 const endDate = ref(null);
+const chart = ref(null);
 
 const deviceError = ref('');
 const startDateError = ref('');
@@ -183,6 +201,20 @@ const validateAndSearch = () => {
   }
 };
 
+const initialize = async () => {
+  const menuPermission = localStorage.getItem('menuPermission');
+  if (!menuPermission) {
+    return router.push('/Homepage');
+  }
+
+  const permissionList = JSON.parse(menuPermission);
+  const permission = permissionList.find(item => item.MenuId === '0101020600');
+
+  if (!permission || !permission.IsActive) {
+    return router.push('/Homepage');
+  }
+};
+
 const fetchTugboatData = async () => {
   try {
     error.value = null;
@@ -199,7 +231,6 @@ const fetchTugboatData = async () => {
   }
 };
 
-// Create dropdown options
 const tugboatOptions = computed(() => {
   return tugboatDevices.value.flatMap(group => 
     group.Devices.map(device => ({
@@ -210,17 +241,14 @@ const tugboatOptions = computed(() => {
   );
 });
 
-// Check if all devices are selected
 const isAllSelected = computed(() => {
   return selectedTugboats.value.length === tugboatOptions.value.length;
 });
 
-// Check if partial selection exists
 const isPartialSelection = computed(() => {
   return selectedTugboats.value.length > 0 && !isAllSelected.value;
 });
 
-// Toggle select all devices
 const toggleSelectAll = () => {
   if (isAllSelected.value) {
     selectedTugboats.value = [];
@@ -255,33 +283,41 @@ const formatTimeShow = (datetime) => {
   }
 };
 
+const formatDateForFilename = (date) => {
+  if (!date) return '';
+  const dateTime = new Date(date);
+  const year = dateTime.getFullYear();
+  const month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
+  const day = ("0" + dateTime.getDate()).slice(-2);
+  const hour = ("0" + dateTime.getHours()).slice(-2);
+  const minute = ("0" + dateTime.getMinutes()).slice(-2);
+  const second = ("0" + dateTime.getSeconds()).slice(-2);
+  return `${year}${month}${day}_${hour}${minute}${second}`;
+};
+
 const processChartData = (devices) => {
   const allSeriesData = {
     rpm: [],
     fuel: [],
     throttle: [],
-    times: new Set() // ใช้ Set เพื่อเก็บเวลาทั้งหมดโดยไม่ซ้ำ
+    times: new Set()
   };
 
   devices.forEach(device => {
     const measurements = device.Measurement || [];
     
-    // ดึงข้อมูลแต่ละ measurement
     const rpmMeas = measurements.find(m => m.measurementname === 'RPM');
     const fuelMeas = measurements.find(m => m.measurementname === 'Fuel Rate');
     const throttleMeas = measurements.find(m => m.measurementname === '%Throttle');
 
-    // เก็บ Xdata จากทุก measurement
     if (rpmMeas?.Xdata) rpmMeas.Xdata.forEach(time => allSeriesData.times.add(time));
     if (fuelMeas?.Xdata) fuelMeas.Xdata.forEach(time => allSeriesData.times.add(time));
     if (throttleMeas?.Xdata) throttleMeas.Xdata.forEach(time => allSeriesData.times.add(time));
   });
 
-  // แปลง Set เป็น Array และเรียงลำดับเวลา
   const allTimes = Array.from(allSeriesData.times).sort((a, b) => new Date(a) - new Date(b));
 
   allTimes.forEach(time => {
-    // หาค่า RPM ที่ตรงกับเวลานี้
     const rpmValue = devices.flatMap(device => {
       const meas = device.Measurement?.find(m => m.measurementname === 'RPM');
       if (!meas) return null;
@@ -289,7 +325,6 @@ const processChartData = (devices) => {
       return index !== -1 ? meas.Ydata[0]?.data[index] : null;
     }).find(val => val !== null) || null;
 
-    // หาค่า Fuel Rate ที่ตรงกับเวลานี้
     const fuelValue = devices.flatMap(device => {
       const meas = device.Measurement?.find(m => m.measurementname === 'Fuel Rate');
       if (!meas) return null;
@@ -297,7 +332,6 @@ const processChartData = (devices) => {
       return index !== -1 ? meas.Ydata[0]?.data[index] : null;
     }).find(val => val !== null) || null;
 
-    // หาค่า %Throttle ที่ตรงกับเวลานี้
     const throttleValue = devices.flatMap(device => {
       const meas = device.Measurement?.find(m => m.measurementname === '%Throttle');
       if (!meas) return null;
@@ -305,7 +339,6 @@ const processChartData = (devices) => {
       return index !== -1 ? meas.Ydata[0]?.data[index] : null;
     }).find(val => val !== null) || null;
 
-    // เพิ่มข้อมูลถ้ามีค่าอย่างน้อย 1 ค่าไม่ใช่ null
     if (rpmValue !== null || fuelValue !== null || throttleValue !== null) {
       allSeriesData.rpm.push(rpmValue);
       allSeriesData.fuel.push(fuelValue);
@@ -353,9 +386,6 @@ const searchRecords = async () => {
       EndDatetime: formatTimeShow(endDate.value),
     };
 
-    console.log(request);
-    
-    
     const response = await $api.put('MachineStatus/RealtimeChartDataReport06/multiple', request);
     
     if (!response.data || response.data.length === 0) {
@@ -375,9 +405,56 @@ const searchRecords = async () => {
   }
 };
 
-const downloadReport = () => {
-  // Implement download functionality
-  console.log('Download report');
+const downloadReport = (format) => {
+  if (!showResult.value || !series.value.length) {
+    error.value = 'No data available to download';
+    return;
+  }
+
+  const filename = `รายงาน %คันเร่ง ต่อ RPM ต่อ อัตราการใช้ชื้อเพลิง สำหรับเรือยนต์_${formatDateForFilename(startDate.value)}_${formatDateForFilename(endDate.value)}`;
+
+  if (format === 'CSV') {
+    const headers = ['Time,RPM,Fuel Rate,%Throttle'];
+    const rows = [];
+    
+    const times = chartOptions.value.xaxis.categories || [];
+    
+    const rpmData = series.value.find(s => s.name === 'RPM')?.data || [];
+    const fuelData = series.value.find(s => s.name === 'Fuel Rate')?.data || [];
+    const throttleData = series.value.find(s => s.name === '%Throttle')?.data || [];
+    
+    times.forEach((time, index) => {
+      const row = [
+        `"${time}"`,
+        rpmData[index] !== null ? rpmData[index] : '',
+        fuelData[index] !== null ? fuelData[index] : '',
+        throttleData[index] !== null ? throttleData[index] : ''
+      ].join(',');
+      rows.push(row);
+    });
+
+    const csvContent = headers.concat(rows).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${filename}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } else if (format === 'JPG') {
+    if (chart.value) {
+      chart.value.chart.dataURI().then(({ imgURI }) => {
+        const link = document.createElement('a');
+        link.href = imgURI;
+        link.download = `${filename}.jpg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+    }
+  }
 };
 
 const chartOptions = ref({
@@ -406,8 +483,8 @@ const chartOptions = ref({
   xaxis: {
     type: 'datetime',
     labels: {
-      datetimeUTC: false, // เพื่อแสดงเวลาตาม timezone ท้องถิ่น
-      format: 'dd MMM yyyy HH:mm' // รูปแบบการแสดงเวลา
+      datetimeUTC: false,
+      format: 'dd MMM yyyy HH:mm'
     }
   },
   yaxis: [
@@ -417,7 +494,7 @@ const chartOptions = ref({
       labels: { 
         style: { colors: "#352B54" },
         formatter: function(val) {
-          return val.toFixed(0); // แสดงเป็นจำนวนเต็ม
+          return val.toFixed(0);
         }
       },
       title: { text: "RPM (RPM)", style: { color: "#352B54" } },
@@ -429,7 +506,7 @@ const chartOptions = ref({
       labels: { 
         style: { colors: "#FAC12A" },
         formatter: function(val) {
-          return val.toFixed(2); // แสดงทศนิยม 2 ตำแหน่ง
+          return val.toFixed(2);
         }
       },
       title: { text: "Fuel Rate (L/hr)", style: { color: "#FAC12A" } },
@@ -440,7 +517,7 @@ const chartOptions = ref({
       labels: { 
         style: { colors: "#DC2B2B" },
         formatter: function(val) {
-          return val.toFixed(0) + '%'; // แสดงเป็นเปอร์เซ็นต์
+          return val.toFixed(0) + '%';
         }
       },
       title: { text: "%Throttle", style: { color: "#DC2B2B" } },
@@ -469,8 +546,9 @@ const chartOptions = ref({
   }
 });
 
-onMounted(() => {
-  fetchTugboatData();
+onMounted(async() => {
+  await initialize();
+  await fetchTugboatData();
 });
 </script>
 

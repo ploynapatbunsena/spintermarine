@@ -286,6 +286,24 @@ const yValue = computed(() => tiltValues.value.y);
 const xRotation = computed(() => (xValue.value / 6) * 10);
 const yRotation = computed(() => (yValue.value / 6) * 10);
 
+const audioPlayed = ref(false);
+const prevDangerCount = ref(0);
+const alertSound = ref(null);
+
+const initialize = async () => {
+  const menuPermission = localStorage.getItem('menuPermission');
+  if (!menuPermission) {
+    return router.push('/Homepage');
+  }
+
+  const permissionList = JSON.parse(menuPermission);
+  const permission = permissionList.find(item => item.MenuId === '0101010200');
+
+  if (!permission || !permission.IsActive) {
+    return router.push('/Homepage');
+  }
+};
+
 const fetchDeviceBargesGrouped = async () => {
   try {
     isLoading.value = true;
@@ -313,9 +331,7 @@ const fetchDeviceBargesGrouped = async () => {
         AlertDangerTotalSum: dangerTotal
       };
     });
-
     devices.value = processedDevices;
-    console.log(devices.value);
     
   } catch (error) {
     console.error('Fetch error:', error);
@@ -348,8 +364,6 @@ const fetchNotification = async () => {
         console.error(`Failed to fetch notifications for DeviceId ${device.DeviceId}:`, err);
       }
     }
-
-    console.log("Notifications:", noti.value);
   } catch (error) {
     error.value = 'Failed to fetch notifications. Please try again later.';
     console.error(error);
@@ -359,7 +373,6 @@ const fetchNotification = async () => {
 };
 
 const mappedNotices = computed(() => {
-  console.log('console.log(mappedNotices);',mappedNotices);
   return noti.value.map(item => ({
     date: item.AlertTime,
     name: item.DeviceName,
@@ -377,6 +390,39 @@ const totalAlerts = computed(() => {
     };
   }, { warning: 0, danger: 0 });
 });
+
+const totalDangerCount = computed(() => {
+  if (!devices.value.length) return 0;
+  return devices.value.reduce((total, device) => {
+    return total + (device?.AlertDangerTotalSum || 0);
+  }, 0);
+});
+
+const playAlertSound = () => {
+  if (!alertSound.value) {
+    alertSound.value = new Audio('/alert-sound.mp3');
+    alertSound.value.volume = 0.5;
+  }
+  
+  alertSound.value.play().catch(e => console.error('Error playing sound:', e));
+};
+
+watch(totalDangerCount, (newCount, oldCount) => {
+  if (!audioPlayed.value && newCount > 0) {
+    playAlertSound();
+    audioPlayed.value = true;
+  }
+  else if (newCount > oldCount) {
+    playAlertSound();
+  }
+  
+  prevDangerCount.value = newCount;
+}, { immediate: true });
+
+watch(devices, (newDevices) => {
+  const hasDanger = newDevices.some(device => device?.AlertDangerTotalSum > 0);
+  audioPlayed.value = hasDanger;
+}, { deep: true });
 
 const filteredDevices = computed(() => {
   return devices.value.filter(device => device.DeviceName.includes("GEN"));
@@ -532,9 +578,10 @@ const goToGeneratorDetails = (deviceId) => {
   router.push({ name: 'GeneratorDetails', params: { deviceId: deviceId }});
 };
 
-onMounted(() => {
-  fetchDeviceBargesGrouped();
-  fetchNotification();
+onMounted(async () => {
+  await initialize();
+  await fetchDeviceBargesGrouped();
+  await fetchNotification();
 });
 </script>
 

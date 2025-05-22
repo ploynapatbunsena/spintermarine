@@ -159,10 +159,11 @@
 import NavigationBar from '@/components/NavigationBar.vue';
 import SpaceBar from '@/components/SpaceBar.vue';
 import { inject, onMounted, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const $api = inject('$api');
 const route = useRoute();
+const router = useRouter();
 const profileDetail = ref({});
 const permissionCheck = ref([]);
 const selected = ref([]);
@@ -212,6 +213,20 @@ const showErrorAlert = (message) => {
   alertType.value = 'error';
   alertMessage.value = message;
   alertIcon.value = 'mdi-alert-circle'
+};
+
+const initialize = async () => {
+  const menuPermission = localStorage.getItem('menuPermission');
+  if (!menuPermission) {
+    return router.push('/Homepage');
+  }
+
+  const permissionList = JSON.parse(menuPermission);
+  const permission = permissionList.find(item => item.MenuId === '0101030600');
+
+  if (!permission || !permission.IsActive) {
+    return router.push('/Homepage');
+  }
 };
 
 const fetchProfileDetail = async () => {
@@ -321,8 +336,9 @@ watch(permissionCheck, () => {
   updateSelectAllState();
 }, { deep: true });
 
-onMounted(() => {
-  fetchProfileDetail();
+onMounted(async() => {
+  await initialize();
+  await fetchProfileDetail();
 });
 </script>
 

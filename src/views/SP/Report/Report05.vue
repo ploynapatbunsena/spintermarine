@@ -3,148 +3,154 @@
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
-      <div class="title">Report on Fuel Rate per RPM for Evaluating Engine Efficiency of Motor Barge</div>
-      <div class="title-thai">รายงานอัตราการใช้ชื้อเพลิง ต่อ RPM เพื่อดูประสิทธิภาพเครื่องยนต์ของทุ่น</div>
-      <v-card class="mt-4">
-        <v-card-text class="mx-16 my-6">
-          <v-row>
-            <!-- TypeDevicename Dropdown -->
-            <v-col cols="12" md="3">
-              <v-select
-                v-model="selectedType"
-                :items="typeOptions"
-                item-title="typeDevicename"
-                item-value="typeDevicename"
-                label="Barge"
-                variant="outlined"
-                density="compact"
-                clearable
-                :error-messages="typeError"
-                :error="!!typeError"
-                @update:modelValue="handleTypeChange"
-              ></v-select>
-            </v-col>
-            <!-- Device Dropdown -->
-            <v-col cols="12" md="3">
-              <v-select
-                v-model="selectedDevices"
-                :items="deviceOptions"
-                item-title="deviceName"
-                item-value="deviceId"
-                label="Generator Devices"
-                variant="outlined"
-                density="compact"
-                multiple
-                clearable
-                :error-messages="deviceError"
-                :error="!!deviceError"
-              >
-                <template v-slot:prepend-item>
-                  <v-list-item title="Select All" @click="toggleSelectAll">
-                    <template v-slot:prepend>
-                      <v-checkbox-btn
-                        :color="isPartialSelection ? 'indigo-darken-4' : undefined"
-                        :indeterminate="isPartialSelection"
-                        :model-value="isAllSelected"
-                      ></v-checkbox-btn>
-                    </template>
-                  </v-list-item>
-                </template>
-                <template v-slot:selection="{ index }">
-                  <span v-if="index === 0">{{ selectedDevices.length }} selected</span>
-                </template>
-              </v-select>
-            </v-col>
-
-            <!-- Date Pickers -->
-            <v-col cols="12" md="2">
-              <datePicker
-                v-model="startDate"
-                label="Start Date"
-                :max="endDate || null"
-                enable-seconds
-                teleport
-                :max-date="new Date()"
-                format="yyyy-MM-dd HH:mm:ss"
-                placeholder="Select Start Date"
-                :class="{ 'error-border': startDateError }"
-              ></datePicker>
-              <div v-if="startDateError" class="error-message">{{ startDateError }}</div>
-            </v-col>
-            <v-col cols="12" md="2">
-              <datePicker
-                v-model="endDate"
-                label="End Date"
-                :min="startDate || null"
-                enable-seconds
-                teleport
-                :max-date="new Date()"
-                format="yyyy-MM-dd HH:mm:ss"
-                placeholder="Select End Date"
-                :class="{ 'error-border': endDateError }"
-              ></datePicker>
-              <div v-if="endDateError" class="error-message">{{ endDateError }}</div>
-            </v-col>
-          <!-- </v-row> -->
-          <!-- <v-row> -->
-            <v-col cols="12" md="3">
-              <v-btn
-                class="cancel-btn elevation-0 text-none mr-4"
-                @click="resetFilters"
-              >
-                Cancel
-              </v-btn>
-              <v-btn
-                class="search-btn elevation-0 text-none mr-4"
-                @click="validateAndSearch"
-                :loading="searchLoading"
-              >
-                Search
-              </v-btn>
-              <v-menu>
-                <template v-slot:activator="{ props }">
-                  <v-btn
-                    class="download-btn elevation-0 text-none"
-                    v-bind="props"
-                    :disabled="!showResult"
-                  >
-                    Download
-                  </v-btn>
-                </template>
-                <v-list>
-                  <v-list-item
-                    v-for="format in ['CSV', 'JPG']"
-                    :key="format"
-                    :value="format"
-                    @click="downloadReport(format)"
-                  >
-                    <v-list-item-title>{{ format }}</v-list-item-title>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
-            </v-col>
-          </v-row>
-        </v-card-text>
-
-        <v-card-text v-if="searchLoading" class="text-center">
-          <v-progress-circular indeterminate color="primary"></v-progress-circular>
-          <div>Loading data...</div>
-        </v-card-text>
-
-        <v-card-text v-if="error" class="text-center error--text">
-          Error loading data: {{ error }}
-        </v-card-text>
-
-        <v-card-text v-if="showResult && !searchLoading">
-          <apexchart
-            ref="chart"
-            type="bar"
-            height="680"
-            :options="chartOptions"
-            :series="series"
-          ></apexchart>
-        </v-card-text>
-      </v-card>
+      <div v-if="!loading">
+        <div class="title">Report on Fuel Rate per RPM for Evaluating Engine Efficiency of Motor Barge</div>
+        <div class="title-thai">รายงานอัตราการใช้ชื้อเพลิง ต่อ RPM เพื่อดูประสิทธิภาพเครื่องยนต์ของทุ่น</div>
+        <v-card class="mt-4">
+          <v-card-text class="mx-16 my-6">
+            <v-row>
+              <v-col cols="12" md="3">
+                <v-select
+                  v-model="selectedType"
+                  :items="typeOptions"
+                  item-title="typeDevicename"
+                  item-value="typeDevicename"
+                  label="Barge"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                  :error-messages="typeError"
+                  :error="!!typeError"
+                  @update:modelValue="handleTypeChange"
+                ></v-select>
+              </v-col>
+              <v-col cols="12" md="3">
+                <v-select
+                  v-model="selectedDevices"
+                  :items="deviceOptions"
+                  item-title="deviceName"
+                  item-value="deviceId"
+                  label="Generator Devices"
+                  variant="outlined"
+                  density="compact"
+                  multiple
+                  clearable
+                  :error-messages="deviceError"
+                  :error="!!deviceError"
+                >
+                  <template v-slot:prepend-item>
+                    <v-list-item title="Select All" @click="toggleSelectAll">
+                      <template v-slot:prepend>
+                        <v-checkbox-btn
+                          :color="isPartialSelection ? 'indigo-darken-4' : undefined"
+                          :indeterminate="isPartialSelection"
+                          :model-value="isAllSelected"
+                        ></v-checkbox-btn>
+                      </template>
+                    </v-list-item>
+                  </template>
+                  <template v-slot:selection="{ index }">
+                    <span v-if="index === 0">{{ selectedDevices.length }} selected</span>
+                  </template>
+                </v-select>
+              </v-col>
+              <v-col cols="12" md="2">
+                <datePicker
+                  v-model="startDate"
+                  label="Start Date"
+                  :max="endDate || null"
+                  enable-seconds
+                  teleport
+                  :max-date="new Date()"
+                  format="yyyy-MM-dd HH:mm:ss"
+                  placeholder="Select Start Date"
+                  :class="{ 'error-border': startDateError }"
+                ></datePicker>
+                <div v-if="startDateError" class="error-message">{{ startDateError }}</div>
+              </v-col>
+              <v-col cols="12" md="2">
+                <datePicker
+                  v-model="endDate"
+                  label="End Date"
+                  :min="startDate || null"
+                  enable-seconds
+                  teleport
+                  :max-date="new Date()"
+                  format="yyyy-MM-dd HH:mm:ss"
+                  placeholder="Select End Date"
+                  :class="{ 'error-border': endDateError }"
+                ></datePicker>
+                <div v-if="endDateError" class="error-message">{{ endDateError }}</div>
+              </v-col>
+              <v-col cols="12" md="3">
+                <v-btn
+                  class="cancel-btn elevation-0 text-none mr-4"
+                  @click="resetFilters"
+                >
+                  Cancel
+                </v-btn>
+                <v-btn
+                  class="search-btn elevation-0 text-none mr-4"
+                  @click="validateAndSearch"
+                  :loading="searchLoading"
+                >
+                  Search
+                </v-btn>
+                <v-menu>
+                  <template v-slot:activator="{ props }">
+                    <v-btn
+                      class="download-btn elevation-0 text-none"
+                      v-bind="props"
+                      :disabled="!showResult"
+                    >
+                      Download
+                    </v-btn>
+                  </template>
+                  <v-list>
+                    <v-list-item
+                      v-for="format in ['CSV', 'JPG']"
+                      :key="format"
+                      :value="format"
+                      @click="downloadReport(format)"
+                    >
+                      <v-list-item-title>{{ format }}</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </v-col>
+            </v-row>
+          </v-card-text>
+  
+          <v-card-text v-if="searchLoading" class="text-center">
+            <v-progress-circular indeterminate color="primary"></v-progress-circular>
+            <div>Loading data...</div>
+          </v-card-text>
+  
+          <v-card-text v-if="error" class="text-center error--text">
+            Error loading data: {{ error }}
+          </v-card-text>
+  
+          <v-card-text v-if="showResult && !searchLoading">
+            <apexchart
+              ref="chart"
+              type="bar"
+              height="680"
+              :options="chartOptions"
+              :series="series"
+            ></apexchart>
+          </v-card-text>
+        </v-card>
+      </div>
+      <v-overlay
+        :model-value="loading"
+        class="align-center justify-center"
+        persistent
+      >
+        <div class="pa-6 d-flex flex-column align-center">
+          <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+          <div class="mt-4 text-h6" style="font-family: 'Inter', sans-serif;">Loading data...</div>
+        </div>
+      </v-overlay>
     </v-container>
   </v-app>
 </template>
@@ -156,12 +162,12 @@ import VueApexCharts from 'vue3-apexcharts';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import { computed, inject, onMounted, ref } from 'vue';
 import '@vuepic/vue-datepicker/dist/main.css'
+import { useRouter } from 'vue-router';
 
 const $api = inject('$api');
-const apexchart = ref(VueApexCharts);
+const router = useRouter()
+const apexchart = VueApexCharts;
 const datePicker = VueDatePicker;
-
-// Data
 const bargeData = ref([]);
 const selectedType = ref(null);
 const selectedDevices = ref([]);
@@ -172,22 +178,39 @@ const searchLoading = ref(false);
 const error = ref(null);
 const series = ref([]);
 const chart = ref(null);
-
-// Error handling
+const loading = ref(true);
 const typeError = ref('');
 const deviceError = ref('');
 const startDateError = ref('');
 const endDateError = ref('');
 
-// Fetch barge data
+
+const initialize = async () => {
+  const menuPermission = localStorage.getItem('menuPermission');
+  if (!menuPermission) {
+    return router.push('/Homepage');
+  }
+
+  const permissionList = JSON.parse(menuPermission);
+  const permission = permissionList.find(item => item.MenuId === '0101020500');
+
+  if (!permission || !permission.IsActive) {
+    return router.push('/Homepage');
+  }
+};
+
 const fetchDeviceBargesGrouped = async () => {
   try {
+    loading.value = true;
+
     const response = await $api.get('/MachineStatus/GetDeviceBargesGrouped');
     bargeData.value = response.data;
 
   } catch (error) {
     console.error('Failed to fetch barge data:', error);
     error.value = 'Failed to load barge list. Please try again.';
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -214,12 +237,10 @@ const deviceOptions = computed(() => {
     }));
 });
 
-// Handle type selection change
 const handleTypeChange = () => {
   selectedDevices.value = [];
 };
 
-// Select all toggle
 const isAllSelected = computed(() => {
   return selectedDevices.value.length === deviceOptions.value.length;
 });
@@ -236,7 +257,6 @@ const toggleSelectAll = () => {
   }
 };
 
-// Form validation
 const validateForm = () => {
   let isValid = true;
   typeError.value = '';
@@ -273,7 +293,6 @@ const validateAndSearch = () => {
   }
 };
 
-// Reset filters
 const resetFilters = () => {
   selectedType.value = null;
   selectedDevices.value = [];
@@ -314,7 +333,6 @@ const formatDateForFilename = (date) => {
   return `${year}${month}${day}_${hour}${minute}${second}`;
 };
 
-// Process chart data from API response
 const processChartData = (data) => {
   const categories = [];
   const rpmData = [];
@@ -351,7 +369,6 @@ const processChartData = (data) => {
   };
 };
 
-// Search records
 const searchRecords = async () => {
   try {
     searchLoading.value = true;
@@ -365,7 +382,6 @@ const searchRecords = async () => {
       StartDateTime: formatTimeShow(startDate.value),
       EndDatetime: formatTimeShow(endDate.value),
     };
-    console.log(request);
     
     const response = await $api.put('MachineStatus/RealtimeChartDataReport05/multiple', request);
     
@@ -400,19 +416,28 @@ const downloadReport = (format) => {
     return;
   }
 
-  const filename = `${formatDateForFilename(startDate.value)}_${formatDateForFilename(endDate.value)}`;
+  const start = startDate.value ? formatDateForFilename(startDate.value) : 'nodate';
+  const end = endDate.value ? formatDateForFilename(endDate.value) : 'nodate';
+  const filename = `รายงานอัตราการใช้ชื้อเพลิงต่อ_RPM_เพื่อดูประสิทธิภาพเครื่องยนต์ของทุ่น_${start}_${end}`;
 
   if (format === 'CSV') {
-    // CSV Download
-    const categories = chartOptions.value.xaxis.categories;
-    const data = series.value[0].data;
-    const csvRows = ['Barge,Alert Count'];
-
-    categories.forEach((category, index) => {
-      csvRows.push(`"${category}",${data[index]}`);
+    const headers = ['Device Name,RPM (RPM),Fuel Rate (L/hr)'];
+    const rows = [];
+    
+    const categories = chartOptions.value.xaxis.categories || [];
+    const rpmData = series.value.find(s => s.name === 'RPM')?.data || [];
+    const fuelData = series.value.find(s => s.name === 'Fuel Rate')?.data || [];
+    
+    categories.forEach((deviceName, index) => {
+      const row = [
+        `"${deviceName}"`,
+        rpmData[index] !== null ? rpmData[index] : '',
+        fuelData[index] !== null ? fuelData[index] : ''
+      ].join(',');
+      rows.push(row);
     });
 
-    const csvContent = csvRows.join('\n');
+    const csvContent = headers.concat(rows).join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -423,7 +448,6 @@ const downloadReport = (format) => {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   } else if (format === 'JPG') {
-    // JPG Download
     if (chart.value) {
       chart.value.chart.dataURI().then(({ imgURI }) => {
         const link = document.createElement('a');
@@ -445,16 +469,16 @@ const chartOptions = ref({
     toolbar: { 
       show: true,
       tools: {
-        download: false // We have our own download button
+        download: false
       }
     },
   },
   colors: ["#352B54", "#FAC12A"],
   plotOptions: {
     bar: {
-      horizontal: false,
-      columnWidth: '55%',
+      horizontal: true,
       borderRadius: 4,
+      columnWidth: '60%',
     },
   },
   dataLabels: {
@@ -475,37 +499,20 @@ const chartOptions = ref({
       }
     }
   },
-  yaxis: [
-    {
-      title: {
-        text: "RPM",
-        style: {
-          color: "#352B54",
-          fontSize: '14px'
-        }
-      },
-      labels: {
-        style: {
-          colors: "#352B54"
-        }
+  yaxis: {
+    title: {
+      text: "Device Name",
+      style: {
+        color: "#333",
+        fontSize: '14px'
       }
     },
-    {
-      opposite: true,
-      title: {
-        text: "Fuel Rate (L/hr)",
-        style: {
-          color: "#FAC12A",
-          fontSize: '14px'
-        }
-      },
-      labels: {
-        style: {
-          colors: "#FAC12A"
-        }
+    labels: {
+      style: {
+        colors: "#333"
       }
     }
-  ],
+  },
   tooltip: {
     enabled: true,
     y: {
@@ -530,8 +537,9 @@ const chartOptions = ref({
   }
 });
 
-onMounted(() => {
-  fetchDeviceBargesGrouped();
+onMounted(async() => {
+  await initialize();
+  await fetchDeviceBargesGrouped();
 });
 </script>
 

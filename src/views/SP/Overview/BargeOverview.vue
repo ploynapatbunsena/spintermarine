@@ -149,6 +149,20 @@ const router = useRouter();
 const devices = ref([]);
 const loading = ref(true);
 
+const initialize = async () => {
+  const menuPermission = localStorage.getItem('menuPermission');
+  if (!menuPermission) {
+    return router.push('/Homepage');
+  }
+
+  const permissionList = JSON.parse(menuPermission);
+  const permission = permissionList.find(item => item.MenuId === '0101010100');
+
+  if (!permission || !permission.IsActive) {
+    return router.push('/Homepage');
+  }
+};
+
 const fetchDeviceBargesGrouped = async () => {
   try {
     loading.value = true;
@@ -156,9 +170,7 @@ const fetchDeviceBargesGrouped = async () => {
     const response = await $api.get('/MachineStatus/GetDeviceBargesGrouped');
     const rawData = response.data;
     const processedData = rawData.map(processGroupData);
-    
     devices.value = processedData;
-    console.log('Processed DeviceBargesGrouped:', devices.value);
 
   } catch (error) {
     error.value = 'Failed to fetch DeviceBargesGrouped. Please try again later.';
@@ -219,6 +231,7 @@ const goToBargeDetails = (typeDeviceName) => {
 };
 
 onMounted(async () => {
+  await initialize();
   await fetchDeviceBargesGrouped();
 });
 </script>

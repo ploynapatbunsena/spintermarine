@@ -32,7 +32,7 @@
 
 <script setup>
 
-const props = defineProps({
+defineProps({
   notices: {
     type: Array,
     default: () => []
@@ -65,20 +65,19 @@ const formatTimeShow = (datetime) => {
 <style scoped>
 
 .custom-row :deep(tbody tr){
-  height: 10px !important; /* ปรับค่าตามต้องการ */
+  height: 10px !important;
 }
 
-/* ลด padding ของ cell */
-.custom-table >>> td {
-  padding: 4px 16px !important; /* ปรับค่าตามต้องการ */
+.custom-table :deep(td) {
+  padding: 4px 16px !important;
 }
 
 .striped-table :deep(tbody tr:nth-child(odd)) {
-  background-color: var(--bg-row); /* สีสำหรับแถวคี่ */
+  background-color: var(--bg-row);
 }
 
 .striped-table :deep(tbody tr:nth-child(even)) {
-  background-color: #ffffff; /* สีสำหรับแถวคู่ */
+  background-color: #ffffff;
 }
 
 .custom-scroll :deep(.v-table__wrapper) {
@@ -86,7 +85,7 @@ const formatTimeShow = (datetime) => {
 }
 
 .custom-table :deep(tbody tr:hover) {
-  background-color: #f0f0f0; /* สีเทาอ่อน */
+  background-color: #f0f0f0;
 }
 
 .v-card-text {

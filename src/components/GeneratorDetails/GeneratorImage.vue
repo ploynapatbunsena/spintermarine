@@ -38,7 +38,7 @@
 
 <script setup>
 
-const props = defineProps({
+defineProps({
   measurements: {
     type: Object,
     required: true,

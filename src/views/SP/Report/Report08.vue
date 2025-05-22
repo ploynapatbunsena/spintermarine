@@ -3,137 +3,147 @@
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
-      <div class="title">Report on Barge Tilt</div>
-      <div class="title-thai">รายงานความเอียงทุ่น (แนวแกน X)</div>
-      <v-card class="mt-4">
-        <v-card-text class="mx-16 my-6">
-          <v-row>
-            <!-- Device Dropdown -->
-            <v-col cols="12" md="3">
-              <v-select
-                v-model="selectedBarges"
-                :items="bargeOptions"
-                item-title="typeDevicename"
-                item-value="deviceId"
-                label="Barge"
-                variant="outlined"
-                density="compact"
-                multiple
-                clearable
-                :error-messages="deviceError ? 'Device is required' : ''"
-                :error="!!deviceError"
-              >
-                <template v-slot:prepend-item>
-                  <v-list-item title="Select All" @click="toggleSelectAll">
-                    <template v-slot:prepend>
-                      <v-checkbox-btn
-                        :color="isPartialSelection ? 'indigo-darken-4' : undefined"
-                        :indeterminate="isPartialSelection"
-                        :model-value="isAllSelected"
-                      ></v-checkbox-btn>
-                    </template>
-                  </v-list-item>
-                </template>
-                <template v-slot:selection="{ index }">
-                  <span v-if="index === 0">{{ selectedBarges.length }} selected</span>
-                </template>
-              </v-select>
-            </v-col>
-            <!-- Date Pickers -->
-            <v-col cols="12" md="3">
-              <datePicker
-                v-model="startDate"
-                label="Start Date"
-                :max="endDate || null"
-                enable-seconds
-                teleport
-                :max-date="new Date()"
-                format="yyyy-MM-dd HH:mm:ss"
-                placeholder="Select Start Date"
-                :class="{ 'error-border': startDateError }"
-              ></datePicker>
-              <div v-if="startDateError" class="error-message">{{ startDateError }}</div>
-            </v-col>
-            <v-col cols="12" md="3">
-              <datePicker
-                v-model="endDate"
-                label="End Date"
-                :min="startDate || null"
-                enable-seconds
-                teleport
-                :max-date="new Date()"
-                format="yyyy-MM-dd HH:mm:ss"
-                placeholder="Select End Date"
-                :class="{ 'error-border': endDateError }"
-              ></datePicker>
-              <div v-if="endDateError" class="error-message">{{ endDateError }}</div>
-            </v-col>
-            <v-col cols="12" md="3">
-              <v-row>
-                <v-col cols="6" md="3">
-                  <v-btn
-                    class="cancel-btn elevation-0 text-none"
-                    @click="resetFilters"
-                  >
-                    Cancel
-                  </v-btn>
-                </v-col>
-                <v-col cols="6" md="3">
-                  <v-btn
-                    class="search-btn elevation-0 text-none"
-                    @click="validateAndSearch"
-                    :loading="searchLoading"
-                  >
-                    Search
-                  </v-btn>
-                </v-col>
-                <v-col cols="6" md="4">
-                  <v-menu>
-                    <template v-slot:activator="{ props }">
-                      <v-btn
-                        class="download-btn elevation-0 text-none"
-                        v-bind="props"
-                        :disabled="!showResult"
-                      >
-                        Download
-                      </v-btn>
-                    </template>
-                    <v-list>
-                      <v-list-item
-                        v-for="format in ['CSV', 'JPG']"
-                        :key="format"
-                        :value="format"
-                        @click="downloadReport(format)"
-                      >
-                        <v-list-item-title>{{ format }}</v-list-item-title>
-                      </v-list-item>
-                    </v-list>
-                  </v-menu>
-                </v-col>
-              </v-row>
-            </v-col>
-          </v-row>
-        </v-card-text>
-
-        <v-card-text v-if="searchLoading" class="text-center">
-          <v-progress-circular indeterminate color="primary"></v-progress-circular>
-          <div>Loading data...</div>
-        </v-card-text>
-
-        <v-card-text v-if="error" class="text-center error--text">
-          Error loading data: {{ error }}
-        </v-card-text>
-
-        <v-card-text v-if="showResult && !searchLoading">
-          <apexchart
-            ref="chart"
-            type="bar"
-            height="680"
-            :options="chartOptions"
-            :series="series"
-          ></apexchart>
-        </v-card-text>
-      </v-card>
+      <div v-if="!loading">
+        <div class="title">Report on Barge Tilt</div>
+        <div class="title-thai">รายงานความเอียงทุ่น</div>
+        <v-card class="mt-4">
+          <v-card-text class="mx-16 my-6">
+            <v-row>
+              <v-col cols="12" md="3">
+                <v-select
+                  v-model="selectedBarges"
+                  :items="bargeOptions"
+                  item-title="typeDevicename"
+                  item-value="deviceId"
+                  label="Barge"
+                  variant="outlined"
+                  density="compact"
+                  multiple
+                  clearable
+                  :error-messages="deviceError ? 'Device is required' : ''"
+                  :error="!!deviceError"
+                >
+                  <template v-slot:prepend-item>
+                    <v-list-item title="Select All" @click="toggleSelectAll">
+                      <template v-slot:prepend>
+                        <v-checkbox-btn
+                          :color="isPartialSelection ? 'indigo-darken-4' : undefined"
+                          :indeterminate="isPartialSelection"
+                          :model-value="isAllSelected"
+                        ></v-checkbox-btn>
+                      </template>
+                    </v-list-item>
+                  </template>
+                  <template v-slot:selection="{ index }">
+                    <span v-if="index === 0">{{ selectedBarges.length }} selected</span>
+                  </template>
+                </v-select>
+              </v-col>
+              <v-col cols="12" md="3">
+                <datePicker
+                  v-model="startDate"
+                  label="Start Date"
+                  :max="endDate || null"
+                  enable-seconds
+                  teleport
+                  :max-date="new Date()"
+                  format="yyyy-MM-dd HH:mm:ss"
+                  placeholder="Select Start Date"
+                  :class="{ 'error-border': startDateError }"
+                ></datePicker>
+                <div v-if="startDateError" class="error-message">{{ startDateError }}</div>
+              </v-col>
+              <v-col cols="12" md="3">
+                <datePicker
+                  v-model="endDate"
+                  label="End Date"
+                  :min="startDate || null"
+                  enable-seconds
+                  teleport
+                  :max-date="new Date()"
+                  format="yyyy-MM-dd HH:mm:ss"
+                  placeholder="Select End Date"
+                  :class="{ 'error-border': endDateError }"
+                ></datePicker>
+                <div v-if="endDateError" class="error-message">{{ endDateError }}</div>
+              </v-col>
+              <v-col cols="12" md="3">
+                <v-row>
+                  <v-col cols="6" md="3">
+                    <v-btn
+                      class="cancel-btn elevation-0 text-none"
+                      @click="resetFilters"
+                    >
+                      Cancel
+                    </v-btn>
+                  </v-col>
+                  <v-col cols="6" md="3">
+                    <v-btn
+                      class="search-btn elevation-0 text-none"
+                      @click="validateAndSearch"
+                      :loading="searchLoading"
+                    >
+                      Search
+                    </v-btn>
+                  </v-col>
+                  <v-col cols="6" md="4">
+                    <v-menu>
+                      <template v-slot:activator="{ props }">
+                        <v-btn
+                          class="download-btn elevation-0 text-none"
+                          v-bind="props"
+                          :disabled="!showResult"
+                        >
+                          Download
+                        </v-btn>
+                      </template>
+                      <v-list>
+                        <v-list-item
+                          v-for="format in ['CSV', 'JPG']"
+                          :key="format"
+                          :value="format"
+                          @click="downloadReport(format)"
+                        >
+                          <v-list-item-title>{{ format }}</v-list-item-title>
+                        </v-list-item>
+                      </v-list>
+                    </v-menu>
+                  </v-col>
+                </v-row>
+              </v-col>
+            </v-row>
+          </v-card-text>
+  
+          <v-card-text v-if="searchLoading" class="text-center">
+            <v-progress-circular indeterminate color="primary"></v-progress-circular>
+            <div>Loading data...</div>
+          </v-card-text>
+  
+          <v-card-text v-if="error" class="text-center error--text">
+            Error loading data: {{ error }}
+          </v-card-text>
+  
+          <v-card-text v-if="showResult && !searchLoading">
+            <apexchart
+              ref="chart"
+              type="bar"
+              height="680"
+              :options="chartOptions"
+              :series="series"
+            ></apexchart>
+          </v-card-text>
+        </v-card>
+      </div>
+      <v-overlay
+        :model-value="loading"
+        class="align-center justify-center"
+        persistent
+      >
+        <div class="pa-6 d-flex flex-column align-center">
+          <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+          <div class="mt-4 text-h6" style="font-family: 'Inter', sans-serif;">Loading data...</div>
+        </div>
+      </v-overlay>
     </v-container>
   </v-app>
 </template>
@@ -145,9 +155,11 @@ import VueApexCharts from 'vue3-apexcharts';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import { computed, inject, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 const $api = inject('$api');
-const apexchart = ref(VueApexCharts);
+const router = useRouter()
+const apexchart = VueApexCharts;
 const datePicker = VueDatePicker;
 const chart = ref(null);
 const selectedBarges = ref([]);
@@ -158,15 +170,31 @@ const showResult = ref(false);
 const searchLoading = ref(false);
 const error = ref(null);
 const series = ref([]);
+const loading = ref(true);
 
-// Error handling
 const deviceError = ref('');
 const startDateError = ref('');
 const endDateError = ref('');
 
+const initialize = async () => {
+  const menuPermission = localStorage.getItem('menuPermission');
+  if (!menuPermission) {
+    return router.push('/Homepage');
+  }
+
+  const permissionList = JSON.parse(menuPermission);
+  const permission = permissionList.find(item => item.MenuId === '0101020800');
+
+  if (!permission || !permission.IsActive) {
+    return router.push('/Homepage');
+  }
+};
+
 const fetchDeviceBargesGrouped = async () => {
   try {
+    loading.value = true;
     error.value = null;
+
     const response = await $api.get('/MachineStatus/GetDeviceBargesGrouped');
     
     bargeOptions.value = response.data.flatMap(group => {
@@ -183,6 +211,8 @@ const fetchDeviceBargesGrouped = async () => {
   } catch (err) {
     console.error('Failed to fetch barge data:', err);
     error.value = 'Failed to load barge list. Please try again.';
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -303,7 +333,6 @@ const searchRecords = async () => {
       StartDateTime: formatTimeShow(startDate.value),
       EndDatetime: formatTimeShow(endDate.value),
     };
-    console.log(request);
     
     const response = await $api.put('MachineStatus/RealtimeChartDataReport08/multiple', request);
     
@@ -338,7 +367,7 @@ const downloadReport = (format) => {
     return;
   }
 
-  const filename = `${formatDateForFilename(startDate.value)}_${formatDateForFilename(endDate.value)}`;
+  const filename = `รายงานความเอียงทุ่น_${formatDateForFilename(startDate.value)}_${formatDateForFilename(endDate.value)}`;
 
   if (format === 'CSV') {
     // CSV Download
@@ -440,8 +469,9 @@ const chartOptions = ref({
   }
 });
 
-onMounted(() => {
-  fetchDeviceBargesGrouped();
+onMounted(async () => {
+  await initialize();
+  await fetchDeviceBargesGrouped();
 });
 </script>
 

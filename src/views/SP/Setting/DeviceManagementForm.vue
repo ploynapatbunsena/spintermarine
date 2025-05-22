@@ -236,10 +236,11 @@ import NavigationBar from '@/components/NavigationBar.vue';
 import SpaceBar from '@/components/SpaceBar.vue';
 import DropZone from '../DropZone.vue';
 import { inject, onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const $api = inject('$api');
 const route = useRoute();
+const router = useRouter();
 const deviceData = ref({});
 const deviceId = ref(route.params.deviceId);
 const measurementAll = ref([]);
@@ -291,7 +292,21 @@ const showErrorAlert = (message) => {
   alertType.value = 'error';
   alertMessage.value = message;
   alertIcon.value = 'mdi-alert-circle'
-}
+};
+
+const initialize = async () => {
+  const menuPermission = localStorage.getItem('menuPermission');
+  if (!menuPermission) {
+    return router.push('/Homepage');
+  }
+
+  const permissionList = JSON.parse(menuPermission);
+  const permission = permissionList.find(item => item.MenuId === '0101030400');
+
+  if (!permission || !permission.IsActive) {
+    return router.push('/Homepage');
+  }
+};
 
 const fetchDeviceData = async () => {
   try {
@@ -318,10 +333,6 @@ const fetchDeviceData = async () => {
       DeviceImage: response.data.DeviceImage
     };
     measurementAll.value = response.data.Measurement.map(m => ({ ...m })) || [];
-
-    console.log(measurementAll.value);
-    
-    console.log('response.data:', response.data);
     
   } catch (error) {
     console.error('Failed to fetch device data:', error);
@@ -338,17 +349,18 @@ const fetchDeviceList = async () => {
     });
     deviceList.value = response.data;
     const uniqueVehicles = new Set();
-    vehicleItems.value = deviceList.value.map(device => {
-      if (device.TypeVehicle === 'Barge') {
-        return { name: device.TypeDevicename };
-      } else if (device.TypeVehicle === 'Tugboat river going') {
-        return { name: 'Tugboat River going' };
-      } else if (device.TypeVehicle === 'Tugboat sea going') {
-        return { name: 'Tugboat Sea going' };
-      }
-      return null;
-    })
-    .filter(item => item && !uniqueVehicles.has(item.name) && uniqueVehicles.add(item.name));
+    vehicleItems.value = deviceList.value
+      .map(device => {
+        if (device.TypeVehicle === 'Barge') {
+          return { name: device.TypeDevicename };
+        } else if (device.TypeVehicle === 'Tugboat river going') {
+          return { name: 'Tugboat River going' };
+        } else if (device.TypeVehicle === 'Tugboat sea going') {
+          return { name: 'Tugboat Sea going' };
+        }
+        return null;
+      })
+      .filter(item => item && !uniqueVehicles.has(item.name) && uniqueVehicles.add(item.name));
   } catch (error) {
     console.error('Failed to fetch device list:', error);
   }
@@ -359,7 +371,6 @@ const fetchDeviceProfile = async () => {
     loading.value = true;
 
     const filename = await deviceData.value?.DeviceImage
-    console.log(filename);
     const response = await $api.get('/Device/Image/' + filename);
     
     if (response.data && response.data.src) {
@@ -448,79 +459,6 @@ const cancelUpload = () => {
   showUploadDialog.value = false;
 };
 
-// const saveRecord = async () => {
-//   try {
-//     const memberData = JSON.parse(localStorage.getItem('member'));
-//     const memberId = memberData.MemberId;
-//     const modifiedDatetime = new Date().toISOString();
-
-//     if (dropzoneFile.value) {
-//       const formData = new FormData();
-//       formData.append('image', dropzoneFile.value);
-//       formData.append('deviceId', deviceId.value);
-//       const uploadResponse = await $api.post('/Device/Upload/Image', formData, {
-//         headers: {
-//           'Content-Type': 'multipart/form-data'
-//         }
-//       });
-      
-//       if (uploadResponse.data) {
-//         deviceImage.value = uploadResponse.data;
-//         deviceData.value.DeviceImage = uploadResponse.data;
-//       }
-//     }
-
-//     const index = measurementAll.value.findIndex(m => m.MeasurementId === selectedMeasurement.value.MeasurementId);
-//     if (index !== -1) {
-//       measurementAll.value[index] = {
-//         ...measurementAll.value[index],
-//         ValueMin: selectedMeasurement.value.ValueMin,
-//         ValueMax: selectedMeasurement.value.ValueMax,
-//         ThresholdMinWarning: selectedMeasurement.value.ThresholdMinWarning,
-//         ThresholdMaxWarning: selectedMeasurement.value.ThresholdMaxWarning,
-//         ThresholdMinDanger: selectedMeasurement.value.ThresholdMinDanger,
-//         ThresholdMaxDanger: selectedMeasurement.value.ThresholdMaxDanger,
-//         ModifiedBy: memberId,
-//         ModifiedDatetime: modifiedDatetime
-//       };
-//     }
-
-//     const payload = {
-//       ...originalDeviceData.value,
-//       DeviceLabel: deviceData.value.DeviceLabel,
-//       Note: deviceData.value.Note,
-//       ModifiedBy: memberId,
-//       ModifiedDatetime: modifiedDatetime,
-//       Measurement: measurementAll.value.map(m => ({
-//         ...m,
-//         ValueMin: m.ValueMin,
-//         ValueMax: m.ValueMax,
-//         ThresholdMinWarning: m.ThresholdMinWarning,
-//         ThresholdMaxWarning: m.ThresholdMaxWarning,
-//         ThresholdMinDanger: m.ThresholdMinDanger,
-//         ThresholdMaxDanger: m.ThresholdMaxDanger,
-//         ModifiedBy: m.MeasurementId === selectedMeasurement.value.MeasurementId ? memberId : m.ModifiedBy,
-//         ModifiedDatetime: m.MeasurementId === selectedMeasurement.value.MeasurementId ? modifiedDatetime : m.ModifiedDatetime
-//       }))
-//     };
-
-//     await $api.put('/Device/Update', payload);
-//     showSuccessAlert('Device updated successfully!', payload);
-
-//     await fetchDeviceData();
-    
-//     if (deviceData.value.DeviceImage) {
-//       await fetchDeviceProfile();
-//     }
-
-//     resetForm();
-
-//   } catch (error) {
-//     console.error('Failed to save device data:', error);
-//     showErrorAlert('Failed to update device information: ' + (error.message || 'Unknown error'));
-//   }
-// };
-
 const saveRecord = async () => {
   try {
     const memberData = JSON.parse(localStorage.getItem('member'));
@@ -528,7 +466,7 @@ const saveRecord = async () => {
     const modifiedDatetime = new Date().toISOString();
     let newImageName = null;
 
-    // อัปโหลดรูปภาพถ้ามี
+    // Upload image if exists
     if (dropzoneFile.value) {
       const formData = new FormData();
       formData.append('image', dropzoneFile.value);
@@ -540,12 +478,13 @@ const saveRecord = async () => {
       });
       
       if (uploadResponse.data) {
-        newImageName = uploadResponse.data; // เก็บชื่อไฟล์ใหม่
+        newImageName = uploadResponse.data;
         deviceImage.value = newImageName;
         deviceData.value.DeviceImage = newImageName;
       }
     }
 
+    // Update measurement data
     const index = measurementAll.value.findIndex(m => m.MeasurementId === selectedMeasurement.value.MeasurementId);
     if (index !== -1) {
       measurementAll.value[index] = {
@@ -561,11 +500,13 @@ const saveRecord = async () => {
       };
     }
 
+    // Prepare payload including Vehicle Type
     const payload = {
       ...originalDeviceData.value,
       DeviceLabel: deviceData.value.DeviceLabel,
       Note: deviceData.value.Note,
-      DeviceImage: newImageName || originalDeviceData.value.DeviceImage, // ใช้รูปใหม่หรือรูปเดิม
+      TypeDevicename: deviceData.value.TypeDevicename, // Include Vehicle Type
+      DeviceImage: newImageName || originalDeviceData.value.DeviceImage,
       ModifiedBy: memberId,
       ModifiedDatetime: modifiedDatetime,
       Measurement: measurementAll.value.map(m => ({
@@ -601,6 +542,7 @@ const saveRecord = async () => {
 };
 
 onMounted(async () => {
+  await initialize();
   await fetchDeviceData();
   await fetchDeviceList();
   await fetchDeviceProfile();

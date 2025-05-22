@@ -151,10 +151,12 @@ import VueApexCharts from 'vue3-apexcharts';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@/assets/colors.scss';
 import '@vuepic/vue-datepicker/dist/main.css'
+import { useRouter } from 'vue-router';
 
 const datePicker = VueDatePicker;
 const apexchart = VueApexCharts;
 const $api = inject('$api');
+const router = useRouter()
 const showResult = ref(false);
 const searchLoading = ref(false);
 const error = ref(null);
@@ -164,56 +166,48 @@ const selectedTugboats = ref([]);
 const startDate = ref(null);
 const endDate = ref(null);
 const chart = ref(null);
-
 const deviceError = ref('');
 const startDateError = ref('');
 const endDateError = ref('');
 
-const validateForm = () => {
-  let isValid = true;
-  deviceError.value = '';
-  startDateError.value = '';
-  endDateError.value = '';
-  
-  if (selectedTugboats.value.length === 0) {
-    deviceError.value = 'Device is required';
-    isValid = false;
+const chartOptions = ref({
+  chart: {
+    height: 680,
+    type: "line",
+    stacked: false,
+    animations: {
+      enabled: false
+    }
+  },
+  colors: ["#352B54", "#FAC12A", "#DC2B2B", "#4D97FF"],
+  fill: { opacity: 1 },
+  dataLabels: { enabled: false },
+  xaxis: { 
+    categories: [],
+    labels: {
+      trim: true,
+      hideOverlappingLabels: true
+    }
+  },
+  yaxis: [
+    {
+      seriesName: "RPM",
+      axisTicks: { show: true },
+      axisBorder: { show: true, color: "#352B54" },
+      labels: { style: { colors: "#352B54" } },
+      title: { text: "RPM (RPM)", style: { color: "#352B54" } },
+    },
+  ],
+  legend: {
+    horizontalAlign: "center",
+    offsetY: 16,
+  },
+  tooltip: {
+    enabled: true,
+    shared: true,
+    intersect: false
   }
-  
-  if (!startDate.value) {
-    startDateError.value = 'Start date is required';
-    isValid = false;
-  }
-  
-  if (!endDate.value) {
-    endDateError.value = 'End date is required';
-    isValid = false;
-  }
-  
-  return isValid;
-};
-
-const validateAndSearch = () => {
-  if (validateForm()) {
-    searchRecords();
-  }
-};
-
-const fetchTugboatData = async () => {
-  try {
-    error.value = null;
-
-    const [riverResponse, seaResponse] = await Promise.all([
-      $api.get('/MachineStatus/GetTugboatRiver'),
-      $api.get('/MachineStatus/GetTugboatSea')
-    ]);
-
-    tugboatDevices.value = [...riverResponse.data, ...seaResponse.data];
-  } catch (err) {
-    console.error('Failed to fetch tugboat data:', err);
-    error.value = 'Failed to load device list. Please try again.';
-  }
-};
+});
 
 const tugboatOptions = computed(() => {
   return tugboatDevices.value.flatMap(group => 
@@ -232,25 +226,6 @@ const isAllSelected = computed(() => {
 const isPartialSelection = computed(() => {
   return selectedTugboats.value.length > 0 && !isAllSelected.value;
 });
-
-const toggleSelectAll = () => {
-  if (isAllSelected.value) {
-    selectedTugboats.value = [];
-  } else {
-    selectedTugboats.value = tugboatOptions.value.map(option => option.deviceId);
-  }
-};
-
-const resetFilters = () => {
-  selectedTugboats.value = [];
-  startDate.value = null;
-  endDate.value = null;
-  showResult.value = false;
-  error.value = null;
-  deviceError.value = '';
-  startDateError.value = '';
-  endDateError.value = '';
-};
 
 const formatTimeShow = (datetime) => {
   if (datetime==null) {
@@ -299,6 +274,74 @@ const processChartData = (devices) => {
   return { series: seriesData, categories };
 };
 
+const toggleSelectAll = () => {
+  if (isAllSelected.value) {
+    selectedTugboats.value = [];
+  } else {
+    selectedTugboats.value = tugboatOptions.value.map(option => option.deviceId);
+  }
+};
+
+const validateForm = () => {
+  let isValid = true;
+  deviceError.value = '';
+  startDateError.value = '';
+  endDateError.value = '';
+  
+  if (selectedTugboats.value.length === 0) {
+    deviceError.value = 'Device is required';
+    isValid = false;
+  }
+  
+  if (!startDate.value) {
+    startDateError.value = 'Start date is required';
+    isValid = false;
+  }
+  
+  if (!endDate.value) {
+    endDateError.value = 'End date is required';
+    isValid = false;
+  }
+  
+  return isValid;
+};
+
+const validateAndSearch = () => {
+  if (validateForm()) {
+    searchRecords();
+  }
+};
+
+const initialize = async () => {
+  const menuPermission = localStorage.getItem('menuPermission');
+  if (!menuPermission) {
+    return router.push('/Homepage');
+  }
+
+  const permissionList = JSON.parse(menuPermission);
+  const permission = permissionList.find(item => item.MenuId === '0101020300');
+
+  if (!permission || !permission.IsActive) {
+    return router.push('/Homepage');
+  }
+};
+
+const fetchTugboatData = async () => {
+  try {
+    error.value = null;
+
+    const [riverResponse, seaResponse] = await Promise.all([
+      $api.get('/MachineStatus/GetTugboatRiver'),
+      $api.get('/MachineStatus/GetTugboatSea')
+    ]);
+
+    tugboatDevices.value = [...riverResponse.data, ...seaResponse.data];
+  } catch (err) {
+    console.error('Failed to fetch tugboat data:', err);
+    error.value = 'Failed to load device list. Please try again.';
+  }
+};
+
 const searchRecords = async () => {
   try {
     searchLoading.value = true;
@@ -312,8 +355,6 @@ const searchRecords = async () => {
       StartDateTime: formatTimeShow(startDate.value),
       EndDatetime: formatTimeShow(endDate.value),
     };
-
-    console.log('request', request);
     
     const response = await $api.put('MachineStatus/RealtimeChartDataReport03/multiple', request);
     
@@ -334,8 +375,8 @@ const searchRecords = async () => {
     };
 
     showResult.value = true;
-  } catch (err) {
-    console.error('Error searching records:', err);
+  } catch (error) {
+    console.error('Error searching records:', error);
     error.value = 'Failed to load chart data. Please try again.';
   } finally {
     searchLoading.value = false;
@@ -348,19 +389,32 @@ const downloadReport = (format) => {
     return;
   }
 
-  const filename = `${formatDateForFilename(startDate.value)}_${formatDateForFilename(endDate.value)}`;
+  const start = startDate.value ? formatDateForFilename(startDate.value) : 'nodate';
+    const end = endDate.value ? formatDateForFilename(endDate.value) : 'nodate';
+  const filename = `รายงาน_RPM_และ_ความเร็ว_และ_%คันเร่ง_ที่ถูกกระทบด้วยความเร็วลมของเรือยนต์_${start}_${end}`;
 
   if (format === 'CSV') {
-    // CSV Download
-    const categories = chartOptions.value.xaxis.categories;
-    const data = series.value[0].data;
-    const csvRows = ['Barge,Alert Count'];
-
-    categories.forEach((category, index) => {
-      csvRows.push(`"${category}",${data[index]}`);
+    const headers = ['Device Name,RPM,Speed,%Throttle,Wind Speed'];
+    const rows = [];
+    
+    const categories = chartOptions.value.xaxis.categories || [];
+    const rpmData = series.value.find(s => s.name === 'RPM')?.data || [];
+    const speedData = series.value.find(s => s.name === 'Speed')?.data || [];
+    const throttleData = series.value.find(s => s.name === '%Throttle')?.data || [];
+    const windSpeedData = series.value.find(s => s.name === 'Wind Speed')?.data || [];
+    
+    categories.forEach((deviceName, index) => {
+      const row = [
+        `"${deviceName}"`,
+        rpmData[index] !== null ? rpmData[index] : '',
+        speedData[index] !== null ? speedData[index] : '',
+        throttleData[index] !== null ? throttleData[index] : '',
+        windSpeedData[index] !== null ? windSpeedData[index] : ''
+      ].join(',');
+      rows.push(row);
     });
 
-    const csvContent = csvRows.join('\n');
+    const csvContent = headers.concat(rows).join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -371,7 +425,6 @@ const downloadReport = (format) => {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   } else if (format === 'JPG') {
-    // JPG Download
     if (chart.value) {
       chart.value.chart.dataURI().then(({ imgURI }) => {
         const link = document.createElement('a');
@@ -380,78 +433,30 @@ const downloadReport = (format) => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+      }).catch(err => {
+        console.error('Error generating chart image:', err);
+        error.value = 'Failed to generate image for download';
       });
     }
   }
 };
 
-const chartOptions = ref({
-  chart: {
-    height: 680,
-    type: "line",
-    stacked: false,
-    animations: {
-      enabled: false // Disable animations for better performance
-    }
-  },
-  colors: ["#352B54", "#FAC12A", "#DC2B2B", "#4D97FF"],
-  fill: { opacity: 1 },
-  dataLabels: { enabled: false },
-  xaxis: { 
-    categories: [],
-    labels: {
-      trim: true,
-      hideOverlappingLabels: true
-    }
-  },
-  yaxis: [
-    {
-      seriesName: "RPM",
-      axisTicks: { show: true },
-      axisBorder: { show: true, color: "#352B54" },
-      labels: { style: { colors: "#352B54" } },
-      title: { text: "RPM (RPM)", style: { color: "#352B54" } },
-    },
-    {
-      seriesName: "Speed",
-      opposite: true,
-      axisTicks: { show: true },
-      axisBorder: { show: true, color: "#FAC12A" },
-      labels: { style: { colors: "#FAC12A" } },
-      title: { text: "Speed (km/h)", style: { color: "#FAC12A" } },
-    },
-    {
-      seriesName: "%Throttle",
-      axisTicks: { show: true },
-      axisBorder: { show: true, color: "#DC2B2B" },
-      labels: { style: { colors: "#DC2B2B" } },
-      title: { text: "%Throttle", style: { color: "#DC2B2B" } },
-    },
-    {
-      seriesName: "Wind Speed",
-      opposite: true,
-      axisTicks: { show: true },
-      axisBorder: { show: true, color: "#4D97FF" },
-      labels: { style: { colors: "#4D97FF" } },
-      title: { text: "Wind Speed (m/s)", style: { color: "#4D97FF" } },
-    },
-  ],
-  legend: {
-    horizontalAlign: "center",
-    offsetY: 16,
-  },
-  tooltip: {
-    enabled: true,
-    shared: true,
-    intersect: false
-  }
-});
+const resetFilters = () => {
+  selectedTugboats.value = [];
+  startDate.value = null;
+  endDate.value = null;
+  showResult.value = false;
+  error.value = null;
+  deviceError.value = '';
+  startDateError.value = '';
+  endDateError.value = '';
+};
 
-onMounted(() => {
-  fetchTugboatData();
+onMounted(async() => {
+  await initialize();
+  await fetchTugboatData();
 });
 </script>
-
 
 <style scoped>
 .title {

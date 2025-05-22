@@ -17,15 +17,15 @@
               :items-per-page="-1"
               hide-default-footer
             >
-              <template #item.lastTimestamp="{ item }">
+              <template v-slot:[`item.lastTimestamp`]="{ item }">
                 {{ formatTimeShow(item.statusData.lastTimestamp) }}
               </template>
-              <template #item.status="{ item }">
+              <template v-slot:[`item.status`]="{ item }">
                 <v-chip :class="getGeneratorStatusClass(item.statusData.statusValue)">
                   {{ getGeneratorStatusText(item.statusData.statusValue) }}
                 </v-chip>
               </template>
-              <template #item.actions="{ item }">
+              <template v-slot:[`item.actions`]="{ item }">
                 <v-icon class="mr-2 edit" @click="openEditDialog(item, 'generator')">
                   mdi-pencil
                 </v-icon>
@@ -47,15 +47,15 @@
               :items-per-page="-1"
               hide-default-footer
             >
-              <template #item.lastTimestamp="{ item }">
+              <template v-slot:[`item.lastTimestamp`]="{ item }">
                 {{ formatTimeShow(item.statusData.lastTimestamp) }}
               </template>
-              <template #item.status="{ item }">
+              <template v-slot:[`item.status`]="{ item }">
                 <v-chip :class="getCraneStatusClass(item.statusData.statusValue)">
                   {{ getCraneStatusText(item.statusData.statusValue) }}
                 </v-chip>
               </template>
-              <template #item.actions="{ item }">
+              <template v-slot:[`item.actions`]="{ item }">
                 <v-icon small class="mr-2 edit" @click="openEditDialog(item, 'crane')">
                   mdi-pencil
                 </v-icon>
@@ -140,10 +140,11 @@ import NavigationBar from '@/components/NavigationBar.vue';
 import SpaceBar from '@/components/SpaceBar.vue';
 import '@/assets/colors.scss';
 import { ref, computed, onMounted, inject } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const $api = inject('$api');
 const route = useRoute();
+const router = useRouter();
 const typeDeviceName = ref(route.params.typeDeviceName);
 const devices = ref([]);
 const loading = ref(false);
@@ -157,7 +158,13 @@ const editedItem = ref({
   originalItem: null
 });
 
-// Status options for different device types
+const headers = [
+  { title: 'Last Updated', value: 'lastTimestamp', sortable: true, width: '12.15vw' },
+  { title: 'Device Name', value: 'DeviceLabel', sortable: true, width: '43.6vw' },
+  { title: 'Status', value: 'status', sortable: true, width: '16.3vw' },
+  { title: 'Actions', value: 'actions', sortable: false, width: '9.3vw' }
+];
+
 const craneStatusOptions = [
   { text: 'Offline', value: 0, color: '#C0C0C0' },
   { text: 'Standby', value: 1, color: '#00B8F2' },
@@ -174,20 +181,33 @@ const generatorStatusOptions = [
   { text: 'Down', value: 5, color: '#000000' },
 ];
 
-const headers = [
-  { title: 'Last Updated', value: 'lastTimestamp', sortable: true, width: '12.15vw' },
-  { title: 'Device Name', value: 'DeviceLabel', sortable: true, width: '43.6vw' },
-  { title: 'Status', value: 'status', sortable: true, width: '16.3vw' },
-  { title: 'Actions', value: 'actions', sortable: false, width: '9.3vw' }
-];
+const initialize = async () => {
+  const menuPermission = localStorage.getItem('menuPermission');
+  if (!menuPermission) {
+    return router.push('/Homepage');
+  }
 
-const craneDevices = computed(() => {
-  return processedDevices.value.filter(device => device.DeviceName.includes('CRANE'));
-});
+  const permissionList = JSON.parse(menuPermission);
+  const permission = permissionList.find(item => item.MenuId === '0101010400');
 
-const generatorDevices = computed(() => {
-  return processedDevices.value.filter(device => device.DeviceName.includes('GEN'));
-});
+  if (!permission || !permission.IsActive) {
+    return router.push('/Homepage');
+  }
+};
+
+const fetchDeviceBargesGrouped = async () => {
+  try {
+    loading.value = true;
+    const response = await $api.get('/MachineStatus/GetDeviceByTypeDeviceName', {
+      params: { typeDeviceName: typeDeviceName.value }
+    });
+    devices.value = response.data;
+  } catch (error) {
+    console.error('Fetch error:', error);
+  } finally {
+    loading.value = false;
+  }
+};
 
 const processedDevices = computed(() => {
   return devices.value.map(device => {
@@ -204,14 +224,37 @@ const processedDevices = computed(() => {
   });
 });
 
+const craneDevices = computed(() => {
+  return processedDevices.value.filter(device => device.DeviceName.includes('CRANE'));
+});
+
+const generatorDevices = computed(() => {
+  return processedDevices.value.filter(device => device.DeviceName.includes('GEN'));
+});
+
 const filteredStatusOptions = computed(() => {
   const options = currentDeviceType.value === 'crane' 
     ? craneStatusOptions 
     : generatorStatusOptions;
   
-  //ไม่แสดงสถานะ 0 (Offline) ในปุ่ม
   return options.filter(option => option.value !== 0);
 });
+
+const formatTimeShow = (datetime) => {
+  if (datetime==null) {
+    return null
+  } else {
+    var dateTime = new Date(datetime);
+    dateTime.setHours(dateTime.getHours() - 7); // ปรับเวลาลง 7 ชั่วโมง
+    
+    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
+    var day = ("0" + dateTime.getDate()).slice(-2);
+    var year = dateTime.getFullYear();
+    var hour = ("0" + dateTime.getHours()).slice(-2);
+    var minute = ("0" + dateTime.getMinutes()).slice(-2);
+    return year + "-" + month + "-" + day + " " + hour + ":" + minute;
+  }
+};
 
 const getCraneStatusText = (status) => {
   switch (status) {
@@ -253,50 +296,6 @@ const getGeneratorStatusClass = (status) => {
     case 4: return 'status-running-maintenance';
     case 5: return 'status-down';
     default: return 'status-unknown';
-  }
-};
-
-const fetchDeviceBargesGrouped = async () => {
-  try {
-    loading.value = true;
-    const response = await $api.get('/MachineStatus/GetDeviceByTypeDeviceName', {
-      params: { typeDeviceName: typeDeviceName.value }
-    });
-    devices.value = response.data;
-  } catch (error) {
-    console.error('Fetch error:', error);
-  } finally {
-    loading.value = false;
-  }
-};
-
-// const formatTimeShow = (datetime) => {
-//   if (datetime==null) {
-//     return null
-//   } else {
-//     var dateTime = new Date(datetime);
-//     var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
-//     var day = ("0" + dateTime.getDate()).slice(-2);
-//     var year = dateTime.getFullYear();
-//     var hour = ("0" + dateTime.getHours()).slice(-2);
-//     var minute = ("0" + dateTime.getMinutes()).slice(-2);
-//     return year + "-" + month + "-" + day + " " + hour + ":" + minute;
-//   }
-// };
-
-const formatTimeShow = (datetime) => {
-  if (datetime==null) {
-    return null
-  } else {
-    var dateTime = new Date(datetime);
-    dateTime.setHours(dateTime.getHours() - 7); // ปรับเวลาลง 7 ชั่วโมง
-    
-    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
-    var day = ("0" + dateTime.getDate()).slice(-2);
-    var year = dateTime.getFullYear();
-    var hour = ("0" + dateTime.getHours()).slice(-2);
-    var minute = ("0" + dateTime.getMinutes()).slice(-2);
-    return year + "-" + month + "-" + day + " " + hour + ":" + minute;
   }
 };
 
@@ -349,8 +348,9 @@ const saveEditDialog = async () => {
   }
 };
 
-onMounted(() => {
-  fetchDeviceBargesGrouped();
+onMounted(async() => {
+  await initialize();
+  await fetchDeviceBargesGrouped();
 });
 </script>
 

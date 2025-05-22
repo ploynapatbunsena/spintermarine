@@ -143,12 +143,26 @@ const devices = ref([]);
 const deviceId = ref(route.params.deviceId);
 const chartWidth = ref(0);
 const isDataLoaded = ref(false);
-const noti = ref([])
+const noti = ref([]);
 const gauges = ref([
   { type: 'Water Temp', title: 'Water Temperature', unit: '°C' },
   { type: 'Oil Pressure', title: 'Oil Pressure', unit: 'bar' },
   { type: 'RPM', title: 'RPM', unit: 'RPM' }
 ]);
+
+const initialize = async () => {
+  const menuPermission = localStorage.getItem('menuPermission');
+  if (!menuPermission) {
+    return router.push('/Homepage');
+  }
+
+  const permissionList = JSON.parse(menuPermission);
+  const permission = permissionList.find(item => item.MenuId === '0101010600');
+
+  if (!permission || !permission.IsActive) {
+    return router.push('/Homepage');
+  }
+};
 
 const fetchDeviceData = async () => {
   try {
@@ -160,6 +174,7 @@ const fetchDeviceData = async () => {
     });
 
     devices.value = response.data;
+    console.log(devices.value);
     updateDevicePosition();
     
   } catch (err) {
@@ -201,40 +216,6 @@ const fetchNotification = async () => {
   }
 };
 
-const mappedNotices = computed(() => {
-  return noti.value.map(item => ({
-    date: item.AlertTime,
-    name: item.DeviceLabel,
-    measuremnet: item.MeasurementName,
-    details: item.Description,
-    status: item.IsAccept ? 'ดำเนินการเสร็จสิ้น' : 'รอแจ้งซ่อม',
-  }));
-});
-
-const updateDevicePosition = () => {
-  if (devices.value.length > 0) {
-    const device = devices.value[0];
-    
-    const longitudeMeasurement = device.Measurements?.find(
-      m => m.measurementname === "Longitude" || m.measurementlabel === "Longitude"
-    );
-    
-    const latitudeMeasurement = device.Measurements?.find(
-      m => m.measurementname === "Latitude" || m.measurementlabel === "Latitude"
-    );
-    
-    if (longitudeMeasurement && latitudeMeasurement) {
-      const longitude = parseFloat(longitudeMeasurement.measurementvalue);
-      const latitude = parseFloat(latitudeMeasurement.measurementvalue);
-      
-      if (!isNaN(longitude) && !isNaN(latitude)) {
-        position.value = [latitude, longitude];
-        updatePosition();
-      }
-    }
-  }
-};
-
 const initializeMap = () => {
   if (mapInitialized.value || !document.getElementById('mapContainer')) return;
 
@@ -258,6 +239,29 @@ const initializeMap = () => {
   }, 100);
 };
 
+const updateDevicePosition = () => {
+  if (devices.value.length > 0) {
+    const device = devices.value[0];
+
+    const longitudeMeasurement = device.Mesurement?.find(m => m.measurementname === "Longitude" || m.measurementlabel === "Longitude");
+    const latitudeMeasurement = device.Mesurement?.find(m => m.measurementname === "Latitude" || m.measurementlabel === "Latitude");
+    console.log("พิกัด", latitudeMeasurement, longitudeMeasurement);
+    
+    if (longitudeMeasurement && latitudeMeasurement) {
+      const longitude = parseFloat(longitudeMeasurement.lastValue);
+      const latitude = parseFloat(latitudeMeasurement.lastValue);
+
+      const lat = parseFloat(latitude) / 1000000;
+      const lng = parseFloat(longitude) / 1000000;
+
+      if (!isNaN(lng) && !isNaN(lat)) {
+        position.value = [ lat, lng ];
+        updatePosition();
+      }
+    }
+  }
+};
+
 const updatePosition = () => {
   if (!position.value || !Array.isArray(position.value) || position.value.length !== 2) {
     console.error('Invalid position:', position.value);
@@ -274,6 +278,104 @@ const updatePosition = () => {
   }
 };
 
+const updateChartSize = () => {
+  const width = window.innerWidth;
+  if (width < 600) {
+    chartWidth.value = width * 0.35;
+  } else if (width < 960) {
+    chartWidth.value = width * 0.25;
+  } else if (width < 1264) {
+    chartWidth.value = width * 0.2;
+  } else {
+    chartWidth.value = width * 0.15;
+  }
+};
+
+const navigateToGPSVessel = (deviceId) => {
+  router.push({ name: 'GPSVessel', params: { deviceId: deviceId } });
+};
+
+const mappedNotices = computed(() => {
+  return noti.value.map(item => ({
+    date: item.AlertTime,
+    name: item.DeviceLabel,
+    measuremnet: item.MeasurementName,
+    details: item.Description,
+    status: item.IsAccept ? 'ดำเนินการเสร็จสิ้น' : 'รอแจ้งซ่อม',
+  }));
+});
+
+const filteredMeasurements = computed(() => {
+  if (!devices.value.length) return {};
+  const measurements = devices.value[0].Mesurement;
+  
+  return {
+    'Hour Meter': {
+      value: measurements.find(m => m.measurementname === 'Hour Meter')?.lastValue || '0',
+      unit: measurements.find(m => m.measurementname === 'Hour Meter')?.measurementunit || 'hour'
+    },
+    'Battery Volts': {
+      value: measurements.find(m => m.measurementname === 'Battery Volts')?.lastValue || '0',
+      unit: measurements.find(m => m.measurementname === 'Battery Volts')?.measurementunit || 'Volts'
+    },
+    'Wind-Speed': {
+      value: measurements.find(m => m.measurementname === 'Oil Pressure')?.lastValue || '0',
+      unit: measurements.find(m => m.measurementname === 'Oil Pressure')?.measurementunit || 'm/s'
+    },
+    '%Throttle': {
+      value: measurements.find(m => m.measurementname === 'Water Temp')?.lastValue || '0',
+      unit: measurements.find(m => m.measurementname === 'Water Temp')?.measurementunit || ''
+    },
+    'Total Fuel Consumption': {
+      value: measurements.find(m => m.measurementname === 'Total Fuel Consumption')?.lastValue || '0',
+      unit: measurements.find(m => m.measurementname === 'Total Fuel Consumption')?.measurementunit || 'L'
+    },
+    'Fuel Rate': {
+      value: measurements.find(m => m.measurementname === 'Fuel Rate')?.lastValue || '0',
+      unit: measurements.find(m => m.measurementname === 'Fuel Rate')?.measurementunit || 'L/hr'
+    }
+  };
+});
+
+const mainTankRemaining = computed(() => {
+  if (!devices.value.length) return 0
+  
+  const measurements = devices.value[0].Mesurement || []
+  const measurement = measurements.find(m => 
+    m.measurementname === "Fuel Level Main" || 
+    m.measurementlabel === "Fuel Level Main"
+  )
+  const value = measurement?.lastValue
+  return value ? parseInt(value) : 0
+});
+
+const mainTankCapacity = computed(() => {
+  return fuelCapacityTugboat[devices.value[0].DeviceName]
+});
+
+const feedTankRemaining = computed(() => {
+  if (!devices.value.length) return 0
+  
+  const measurements = devices.value[0].Mesurement || []
+  const measurement = measurements.find(m => 
+    m.measurementname === "Fuel Level Feed" || 
+    m.measurementlabel === "Fuel Level Feed"
+  )
+  const value = measurement?.lastValue
+  return value ? parseInt(value) : 0
+});
+
+const feedTankCapacity = computed(() => 20000);
+
+const totalTankRemaining = computed(() => {
+  return mainTankRemaining.value + feedTankRemaining.value
+});
+
+const totalTankCapacity = computed(() => {
+  return mainTankCapacity.value + feedTankCapacity.value
+});
+
+// Helper functions (used in templates)
 const getWarningCount = (device) => {
   return device?.MeasurementsAlertCount?.find(item => 'AlertWarningTotal' in item)?.AlertWarningTotal || 0;
 };
@@ -364,115 +466,11 @@ const getGaugeOptions = (measurementName, device) => {
   };
 };
 
-const updateChartSize = () => {
-  const width = window.innerWidth;
-  if (width < 600) {
-    chartWidth.value = width * 0.35;
-  } else if (width < 960) {
-    chartWidth.value = width * 0.25;
-  } else if (width < 1264) {
-    chartWidth.value = width * 0.2;
-  } else {
-    chartWidth.value = width * 0.15;
-  }
-};
-
-const filteredMeasurements = computed(() => {
-  if (!devices.value.length) return {};
-  const measurements = devices.value[0].Mesurement;
-  
-  return {
-    'Hour Meter': {
-      value: measurements.find(m => m.measurementname === 'Hour Meter')?.lastValue || '0',
-      unit: measurements.find(m => m.measurementname === 'Hour Meter')?.measurementunit || 'hour'
-    },
-    'Battery Volts': {
-      value: measurements.find(m => m.measurementname === 'Battery Volts')?.lastValue || '0',
-      unit: measurements.find(m => m.measurementname === 'Battery Volts')?.measurementunit || 'Volts'
-    },
-    'Wind-Speed': {
-      value: measurements.find(m => m.measurementname === 'Oil Pressure')?.lastValue || '0',
-      unit: measurements.find(m => m.measurementname === 'Oil Pressure')?.measurementunit || 'm/s'
-    },
-    '%Throttle': {
-      value: measurements.find(m => m.measurementname === 'Water Temp')?.lastValue || '0',
-      unit: measurements.find(m => m.measurementname === 'Water Temp')?.measurementunit || ''
-    },
-    'Total Fuel Consumption': {
-      value: measurements.find(m => m.measurementname === 'Total Fuel Consumption')?.lastValue || '0',
-      unit: measurements.find(m => m.measurementname === 'Total Fuel Consumption')?.measurementunit || 'L'
-    },
-    'Fuel Rate': {
-      value: measurements.find(m => m.measurementname === 'Fuel Rate')?.lastValue || '0',
-      unit: measurements.find(m => m.measurementname === 'Fuel Rate')?.measurementunit || 'L/hr'
-    }
-  };
-});
-
-const mainTankRemaining = computed(() => {
-  if (!devices.value.length) return 0
-  
-  const measurements = devices.value[0].Mesurement || []
-  const measurement = measurements.find(m => 
-    m.measurementname === "Fuel Level Main" || 
-    m.measurementlabel === "Fuel Level Main"
-  )
-  // console.log('Main Tank Measurement:', measurement)
-  const value = measurement?.lastValue
-  return value ? parseInt(value) : 0
-})
-
-const mainTankCapacity = computed(() => {
-  if (!devices.value.length) return 20000
-  return fuelCapacityTugboat[devices.value[0].DeviceName] || 20000
-})
-
-const feedTankRemaining = computed(() => {
-  if (!devices.value.length) return 0
-  
-  const measurements = devices.value[0].Mesurement || []
-  const measurement = measurements.find(m => 
-    m.measurementname === "Fuel Level Feed" || 
-    m.measurementlabel === "Fuel Level Feed"
-  )
-  // console.log('Feed Tank Measurement:', measurement)
-  const value = measurement?.lastValue
-  return value ? parseInt(value) : 0
-})
-
-const feedTankCapacity = computed(() => 20000)
-
-const totalTankRemaining = computed(() => {
-  return mainTankRemaining.value + feedTankRemaining.value
-})
-
-const totalTankCapacity = computed(() => {
-  return mainTankCapacity.value + feedTankCapacity.value
-})
-
-const initialize = async () => {
-  const menuPermission = localStorage.getItem('menuPermission');
-  if (!menuPermission) {
-    return router.push('/Homepage');
-  }
-
-  const permissionList = JSON.parse(menuPermission);
-  const permission = permissionList.find(item => item.MenuId === '0101010600');
-
-  if (!permission || !permission.IsActive) {
-    return router.push('/Homepage');
-  }
-};
-
-const navigateToGPSVessel = (deviceId) => {
-  router.push({ name: 'GPSVessel', params: { deviceId: deviceId } });
-};
-
 onMounted(async () => {
+  initialize();
   await fetchDeviceData();
   isDataLoaded.value = true;
-  initialize();
-  initializeMap();
+  // initializeMap();
   updateChartSize();
   fetchNotification();
   window.addEventListener('resize', updateChartSize);
@@ -489,20 +487,16 @@ watch(position, () => {
 
 watch(() => route.params.deviceId, (newId) => {
   deviceId.value = newId;
-  fetchDeviceData(newId); // Your data fetching function
+  fetchDeviceData(newId);
 });
 
-// ตรวจจับการเปลี่ยนแปลงของ deviceId
-// watch(() => route.params.deviceId, async (newDeviceId) => {
-//   if (newDeviceId) {
-//     await fetchDeviceData(newDeviceId);
-//     if (map.value) {
-//       updatePosition(); // อัปเดตตำแหน่งในแผนที่ที่มีอยู่
-//     } else {
-//       initializeMap(); // สร้างแผนที่ใหม่ถ้ายังไม่มี
-//     }
-//   }
-// });
+watch(devices, () => {
+  if (devices.value.length > 0) {
+    nextTick(async () => {
+      initializeMap();
+    });
+  }
+}, { deep: true });
 </script>
 
 <style lang="scss" scoped>

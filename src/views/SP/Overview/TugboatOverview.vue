@@ -123,6 +123,7 @@
                         <div class="due-date d-flex justify-space-between mt-2" :class="getBottomLineClass(tugboat.status)">
                           <span class="thai-letters" v-if="tugboat.status === 'Maintenance'">กำหนดเสร็จ</span>
                           <span class="thai-letters" v-else-if="tugboat.status === 'Pending'">เข้าซ่อม</span>
+                          <span class="thai-letters" v-else-if="tugboat.status === 'Down'">ยกเลิกใช้งาน</span>
                           <span class="thai-letters" v-else-if="tugboat.status === 'Running'"><br></span>
                           {{ tugboat.date || 'N/A' }}
                         </div>
@@ -153,21 +154,29 @@
 import NavigationBar from "@/components/NavigationBar.vue";
 import SpaceBar from '@/components/SpaceBar.vue';
 import AlertBadges from "@/components/BargeDetails/AlertBadges.vue";
-import { computed, inject, onMounted, ref } from "vue";
+import { inject, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 const $api = inject('$api');
+const $api_cmms = inject('$api_cmms');
+const open_api_company = inject('open_api_company');
 const router = useRouter();
 const tugboatRiverDevices = ref([]);
 const tugboatSeaDevices = ref([]);
 const isLoading = ref(true);
 
-const addMockData = (device) => {
-  return {
-    ...device,
-    status: ['Running', 'Maintenance', 'Pending'][Math.floor(Math.random() * 3)], // Random status for demo
-    date: new Date().toLocaleDateString() // Mock date
-  };
+const initialize = async () => {
+  const menuPermission = localStorage.getItem('menuPermission');
+  if (!menuPermission) {
+    return router.push('/login');
+  }
+
+  const permissionList = JSON.parse(menuPermission);
+  const permission = permissionList.find(item => item.MenuId === '0101010500');
+
+  if (!permission || !permission.IsActive) {
+    return router.push('/login');
+  }
 };
 
 const fetchTugboatRiver = async () => {
@@ -175,7 +184,8 @@ const fetchTugboatRiver = async () => {
     isLoading.value = true;
 
     const response = await $api.get('/MachineStatus/GetTugboatRiver');
-    tugboatRiverDevices.value = response.data.map(addMockData);
+    const cmmsData = await fetchCMMSStatus(response.data);
+    tugboatRiverDevices.value = processTugboatData(response.data, cmmsData);
     
     console.log(tugboatRiverDevices.value);
   } catch (error) {
@@ -190,14 +200,56 @@ const fetchTugboatSea = async () => {
     isLoading.value = true;
 
     const response = await $api.get('/MachineStatus/GetTugboatSea');
-    tugboatSeaDevices.value = response.data.map(addMockData);
+    const cmmsData = await fetchCMMSStatus(response.data);
+    tugboatSeaDevices.value = processTugboatData(response.data, cmmsData);
+
     console.log(tugboatSeaDevices.value);
-    
   } catch (error) {
     console.error('Failed to fetch tugboat sea:', error);
   } finally {
     isLoading.value = false;
   }
+};
+
+const fetchCMMSStatus = async (tugboats) => {
+  try {
+    isLoading.value = true;
+    const toolList = tugboats.map(tugboat => ({
+      toolName: tugboat.Devices[0]?.Note || ''
+    }));
+    const response = await $api_cmms.post(`/v1/companies/${open_api_company}/tools/last-status`, { toolList });
+
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch CMMS status:', error);
+    return [];
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const processTugboatData = ( tugboats, cmmsData ) => {
+  return tugboats.map(tugboat => {
+    const deviceNote = tugboat.Devices[0]?.Note || '';
+    const cmmsStatus = cmmsData.find(item => item.toolName === deviceNote);
+
+    let status = 'Unknown';
+    let date = 'N/A';
+
+    if (cmmsStatus) {
+      status = mapCMMSStatus(cmmsStatus.status);
+
+      if (status === 'Pending' || status === 'Maintenance') {
+        date = cmmsStatus.nextPMPlan === '-' ? 'N/A' : cmmsStatus.nextPMPlan
+      }
+    }
+
+    return {
+      ...tugboat,
+      status,
+      date
+    }
+  })
 };
 
 const getDeviceImage = (device) => {
@@ -214,11 +266,28 @@ const getAlertCount = (device, type) => {
   return alert ? (type === 'warning' ? alert.AlertWarningTotal : alert.AlertDangerTotal) : 0;
 };
 
+const mapCMMSStatus = (cmmsStatus) => {
+  switch (cmmsStatus) {
+    case "ถูกใช้งานอยู่" :
+    case "พร้อมใช้งาน" :
+      return "Running";
+    case "อยู่ระหว่างการสอบเทียบ" :
+      return "Pending";
+    case "อยู่ระหว่างการซ่อม" :
+      return "Maintenance";
+    case "ยกเลิกใช้งาน" :
+      return "Down";
+    default:
+      return 'Unknown';
+  }
+}
+
 const getStatusIcon = (status) => {
   switch (status) {
     case "Running": return "signal_cellular_alt";
     case "Maintenance": return "construction";
     case "Pending": return "update";
+    case "Down": return "block";
     default: return "help";
   }
 };
@@ -228,6 +297,7 @@ const getStatusClass = (status) => {
     case "Running": return "status-running";
     case "Maintenance": return "status-maintenance";
     case "Pending": return "status-pending";
+    case "Down": return "status-down";
     default: return "status-unknown";
   }
 };
@@ -237,6 +307,7 @@ const getBottomLineClass = (status) => {
     case "Running": return "bottom-line-running";
     case "Maintenance": return "bottom-line-maintenance";
     case "Pending": return "bottom-line-pending";
+    case "Down": return "bottom-line-down";
     default: return "bottom-line-unknown";
   }
 };
@@ -246,24 +317,10 @@ const goToTugboatDetails = (deviceId) => {
   
 };
 
-const initialize = async () => {
-  const menuPermission = localStorage.getItem('menuPermission');
-  if (!menuPermission) {
-    return router.push('/Homepage');
-  }
-
-  const permissionList = JSON.parse(menuPermission);
-  const permission = permissionList.find(item => item.MenuId === '0101010500');
-
-  if (!permission || !permission.IsActive) {
-    return router.push('/Homepage');
-  }
-};
-
-onMounted(() => {
-  fetchTugboatRiver();
-  fetchTugboatSea();
+onMounted(async() => {
   initialize();
+  await fetchTugboatRiver();
+  await fetchTugboatSea();
 });
 </script>
 
@@ -319,6 +376,14 @@ onMounted(() => {
   color: #1CC042;
 }
 
+.status-down {
+  color: #000000;
+}
+
+.status-unknown {
+  color: #C0C0C0;
+}
+
 .due-date {
   position: relative;
   padding-bottom: 8px;
@@ -326,7 +391,9 @@ onMounted(() => {
 
 .bottom-line-running::after,
 .bottom-line-maintenance::after,
-.bottom-line-pending::after {
+.bottom-line-pending::after,
+.bottom-line-down::after,
+.bottom-line-unknown::after {
   content: "";
   position: absolute;
   bottom: 0;
@@ -345,6 +412,14 @@ onMounted(() => {
 
 .bottom-line-pending::after {
   background-color: #FAC12A;
+}
+
+.bottom-line-down::after {
+  background-color: #000000;
+}
+
+.bottom-line-unknown::after {
+  background-color: #C0C0C0;
 }
 
 .thai-letters {

@@ -151,10 +151,12 @@ import VueApexCharts from 'vue3-apexcharts';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
 import '@/assets/colors.scss';
+import { useRouter } from 'vue-router';
 
 const datePicker = VueDatePicker;
-const apexchart = ref(VueApexCharts);
+const apexchart = VueApexCharts;
 const $api = inject('$api');
+const router = useRouter()
 const showResult = ref(false);
 const searchLoading = ref(false);
 const error = ref(null);
@@ -164,8 +166,6 @@ const selectedTugboats = ref([]);
 const startDate = ref(null);
 const endDate = ref(null);
 const chart = ref(null);
-
-// Validation errors
 const deviceError = ref('');
 const startDateError = ref('');
 const endDateError = ref('');
@@ -200,6 +200,20 @@ const validateAndSearch = () => {
   }
 };
 
+const initialize = async () => {
+  const menuPermission = localStorage.getItem('menuPermission');
+  if (!menuPermission) {
+    return router.push('/Homepage');
+  }
+
+  const permissionList = JSON.parse(menuPermission);
+  const permission = permissionList.find(item => item.MenuId === '0101020400');
+
+  if (!permission || !permission.IsActive) {
+    return router.push('/Homepage');
+  }
+};
+
 const fetchTugboatData = async () => {
   try {
     error.value = null;
@@ -216,7 +230,6 @@ const fetchTugboatData = async () => {
   }
 };
 
-// Create dropdown options
 const tugboatOptions = computed(() => {
   return tugboatDevices.value.flatMap(group => 
     group.Devices.map(device => ({
@@ -227,17 +240,14 @@ const tugboatOptions = computed(() => {
   );
 });
 
-// Check if all devices are selected
 const isAllSelected = computed(() => {
   return selectedTugboats.value.length === tugboatOptions.value.length;
 });
 
-// Check if partial selection exists
 const isPartialSelection = computed(() => {
   return selectedTugboats.value.length > 0 && !isAllSelected.value;
 });
 
-// Toggle select all devices
 const toggleSelectAll = () => {
   if (isAllSelected.value) {
     selectedTugboats.value = [];
@@ -357,8 +367,10 @@ const downloadReport = (format) => {
     error.value = 'No data available to download';
     return;
   }
-
-  const filename = `${formatDateForFilename(startDate.value)}_${formatDateForFilename(endDate.value)}`;
+  
+  const start = startDate.value ? formatDateForFilename(startDate.value) : 'nodate';
+  const end = endDate.value ? formatDateForFilename(endDate.value) : 'nodate';
+  const filename = `รายงานเรือยนต์ที่เจอพายุ_${start}_${end}`;
 
   if (format === 'CSV') {
     // CSV Download
@@ -420,11 +432,11 @@ const chartOptions = ref({
   },
 });
 
-onMounted(() => {
-  fetchTugboatData();
+onMounted(async() => {
+  await initialize();
+  await fetchTugboatData();
 });
 </script>
-
 
 <style scoped>
 .title {

@@ -18,6 +18,8 @@
 </template>
 
 <script setup>
+import { defineProps } from "vue"
+
 defineProps({
   warningCount: {
     type: Number,

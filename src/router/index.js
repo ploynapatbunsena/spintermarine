@@ -86,37 +86,37 @@ const routes = [
     path: "/Tugboat/WindSpeedImpactReport",
     name: "WindSpeedImpactReport",
     component: () => import("../views/SP/Report/Report03.vue"),
-    meta: { title: "Historical Chart Report" }
+    meta: { title: "Report3" }
   },
   {
     path: "/Tugboat/EncounteringStormsReport",
     name: "EncounteringStormsReport",
     component: () => import("../views/SP/Report/Report04.vue"),
-    meta: { title: "Report" }
+    meta: { title: "Report4" }
   },
   {
     path: "/Barge/FuelRatePerRPMReport",
     name: "FuelRatePerRPMReport",
     component: () => import("../views/SP/Report/Report05.vue"),
-    meta: { title: "Report" }
+    meta: { title: "Report5" }
   },
   {
     path: "/Tugboat/ThrottleRPMFuelRateReport",
     name: "ThrottleRPMFuelRateReport",
     component: () => import("../views/SP/Report/Report06.vue"),
-    meta: { title: "Report" }
+    meta: { title: "Report6" }
   },
   {
     path: "/Barge/DailyFuelConsumtionReport",
     name: "DailyFuelConsumtionReport",
     component: () => import("../views/SP/Report/Report07.vue"),
-    meta: { title: "Report" }
+    meta: { title: "Report7" }
   },
   {
     path: "/Barge/BargeTiltReport",
     name: "BargeTiltReport",
     component: () => import("../views/SP/Report/Report08.vue"),
-    meta: { title: "Report" }
+    meta: { title: "Report8" }
   },
   {
     path: "/DeviceManagement",

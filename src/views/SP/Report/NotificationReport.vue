@@ -19,7 +19,7 @@
                   density="compact"
                   clearable
                   @update:modelValue="handleTypeChange"
-                  :error-messages="vehicleError"
+                  :error-messages="vehicleError ? [vehicleError] : []"
                   :error="!!vehicleError"
                 ></v-select>
               </v-col>
@@ -33,7 +33,7 @@
                   variant="outlined"
                   density="compact"
                   clearable
-                  :error-messages="deviceError"
+                  :error-messages="deviceError ? [deviceError] : []"
                   :error="!!deviceError"
                 ></v-select>
               </v-col>
@@ -135,13 +135,27 @@
                 >
                   Search
                 </v-btn>
-                <v-btn
-                  class="download-btn elevation-0 text-none"
-                  @click="downloadReport"
-                  :disabled="!showResult"
-                >
-                  Download
-                </v-btn>
+                <v-menu>
+                  <template v-slot:activator="{ props }">
+                    <v-btn
+                      class="download-btn elevation-0 text-none"
+                      v-bind="props"
+                      :disabled="!showResult"
+                    >
+                      Download
+                    </v-btn>
+                  </template>
+                  <v-list>
+                    <v-list-item
+                      v-for="format in ['CSV']"
+                      :key="format"
+                      :value="format"
+                      @click="downloadReport(format)"
+                    >
+                      <v-list-item-title>{{ format }}</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
               </v-col>
             </v-row>
           </v-card-text>
@@ -162,15 +176,15 @@
               :items-per-page="-1"
               class="elevation-1"
             >
-              <template v-slot:item.date="{ item }">
+              <template v-slot:[`item.date`]="{ item }">
                 {{ formatTimeShow(item.date) }}
               </template>
-              <template v-slot:item.status="{ item }">
+              <template v-slot:[`item.status`]="{ item }">
                 <v-chip :class="getStatusColor(item.status)">
                   {{ item.status }}
                 </v-chip>
               </template>
-              <template v-slot:item.action="{ item }">
+              <template v-slot:[`item.action`]="{ item }">
                 <v-icon
                   class="edit mr-2"
                   small
@@ -272,8 +286,10 @@ import { ref, computed, inject, onMounted, watch } from 'vue';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@/assets/colors.scss'
 import '@vuepic/vue-datepicker/dist/main.css'
+import { useRouter } from 'vue-router';
 
 const $api = inject('$api');
+const router = useRouter();
 const loading = ref(true);
 const memberData = ref(JSON.parse(localStorage.getItem('member'))) || {};
 const datePicker = VueDatePicker;
@@ -306,6 +322,20 @@ const editedItem = ref({
   originalData: null
 });
 
+const initialize = async () => {
+  const menuPermission = localStorage.getItem('menuPermission');
+  if (!menuPermission) {
+    return router.push('/login');
+  }
+
+  const permissionList = JSON.parse(menuPermission);
+  const permission = permissionList.find(item => item.MenuId === '0101020200');
+
+  if (!permission || !permission.IsActive) {
+    return router.push('/login');
+  }
+};
+
 const fetchDeviceData = async () => {
   try {
     loading.value = true;
@@ -331,17 +361,6 @@ const fetchDeviceData = async () => {
     loading.value = false;
   }
 };
-
-// const formatTimeASP = (dt) => {
-//   var dateTime = new Date(dt);
-//   var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
-//   var day = ("0" + dateTime.getDate()).slice(-2);
-//   var year = dateTime.getFullYear();
-//   var hour = ("0" + dateTime.getHours()).slice(-2);
-//   var minute = ("0" + dateTime.getMinutes()).slice(-2);
-//   var sec = ("0" + dateTime.getSeconds()).slice(-2);
-//   return year + "-" + month + "-" + day + "T" + hour + ":" + minute + ":" + sec;
-// }
  
 const formatTimeShow = (datetime) => {
   if (datetime==null) {
@@ -355,6 +374,18 @@ const formatTimeShow = (datetime) => {
     var minute = ("0" + dateTime.getMinutes()).slice(-2);
     return year + "-" + month + "-" + day + " " + hour + ":" + minute;
   }
+};
+
+const formatDateForFilename = (date) => {
+  if (!date) return '';
+  const dateTime = new Date(date);
+  const year = dateTime.getFullYear();
+  const month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
+  const day = ("0" + dateTime.getDate()).slice(-2);
+  const hour = ("0" + dateTime.getHours()).slice(-2);
+  const minute = ("0" + dateTime.getMinutes()).slice(-2);
+  const second = ("0" + dateTime.getSeconds()).slice(-2);
+  return `${year}${month}${day}_${hour}${minute}${second}`;
 };
 
 const fetchMeasurementList = async () => {
@@ -411,8 +442,6 @@ const typeOptions = computed(() => {
       source: 'sea'
     });
   }
-  console.log('option', options);
-  
   return options;
 });
 
@@ -438,7 +467,6 @@ const deviceOptions = computed(() => {
       devices = devices.concat(group.Devices);
     });
   }
-  console.log('device',devices);
   return devices
   .filter(device => !device.DeviceLabel.toLowerCase().includes('crane'))
   .map(device => ({
@@ -480,19 +508,21 @@ const toggleSelectAllStatus = () => {
 };
 
 const handleTypeChange = () => {
-  selectedDevices.value = [];
+  selectedDevices.value = null;
+  measurementList.value = [];
+  selectedMeasurement.value = null;
 };
 
 const resetFilters = () => {
   selectedType.value = null;
-  selectedDevices.value = [];
+  selectedDevices.value = null;
   selectedMeasurement.value = [];
   selectedStatuses.value = [];
   startDate.value = null;
   endDate.value = null;
   showResult.value = false;
-  vehicleError.value = false;
-  deviceError.value = false;
+  vehicleError.value = '';
+  deviceError.value = '';
 };
 
 const searchRecords = async () => {
@@ -539,7 +569,7 @@ const searchRecords = async () => {
     const filteredData = response.data.filter(item => item.Title.includes("Danger"));
 
     tableData.value = filteredData.map(item => ({
-      date: item.ModifiedDatetime || item.AlertTime,
+      date: item.AlertTime,
       deviceName: item.DeviceLabel,
       measurement: `${item.MeasurementLabel} (${item.MeasurementUnit})`,
       solution: item.Solution,
@@ -601,7 +631,6 @@ const saveEditDialog = async () => {
       Solution: editedItem.value.solution,
       ModifiedBy: memberData.value.MemberId
     };
-    console.log('Saving with data:', requestBody);
     await $api.put('/device/notification/accept/single', requestBody);
 
     const index = tableData.value.findIndex(
@@ -621,9 +650,49 @@ const saveEditDialog = async () => {
   }
 };
 
+const downloadReport = async (format) => {
+  if (!showResult.value || !tableData.value.length) {
+    error.value = 'ไม่มีข้อมูลสำหรับดาวน์โหลด';
+    alert('ไม่มีข้อมูลสำหรับดาวน์โหลด');
+    return;
+  }
+
+  const start = startDate.value ? formatDateForFilename(startDate.value) : 'nodate';
+  const end = endDate.value ? formatDateForFilename(endDate.value) : 'nodate';
+  const filename = `Notification_Report_${start}_${end}`;
+
+  if (format === 'CSV') {
+    const csvRows = [ 'Date,Device Name,Measurement,เลขใบแจ้งซ่อม,Details,Status',];
+
+    tableData.value.forEach(item => {
+      const row = [
+        `"${formatTimeShow(item.date) || ''}"`,
+        `"${item.deviceName || ''}"`,
+        `"${item.measurement || ''}"`,
+        `"${item.solution || ''}"`,
+        `"${item.details || ''}"`,
+        `"${item.status || ''}"`,
+      ];
+      csvRows.push(row.join(','));
+    });
+
+    const csvContent = csvRows.join('\n');
+    const bom = '\uFEFF';
+    const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${filename}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } 
+};
+
 const editItem = (item) => {
   editedItem.value = {
-    date: item.ModifiedDatetime || item.AlertTime,
+    date: item.AlertTime,
     deviceName: item.DeviceLabel,
     measurement: `${item.MeasurementLabel} (${item.MeasurementUnit})`,
     solution: item.Solution || '',
@@ -635,33 +704,6 @@ const editItem = (item) => {
 const closeEditDialog = () => {
   dialog.value = false;
 };
-
-// const validateAndSearch = () => {
-//   let isValid = true;
-  
-//   vehicleError.value = '';
-//   deviceError.value = '';
-  
-//   if (!selectedType.value) {
-//     vehicleError.value = 'Vehicle is required';
-//     isValid = false;
-//   }
-
-//   if (!selectedDevices.value) {
-//     deviceError.value = 'Device is required';
-//     isValid = false;
-//   }
-
-//   if (!vehicleError.value && !deviceError.value) {
-//     searchRecords();
-//   }
-
-//   if (isValid) {
-//     searchRecords();
-//   }
-  
-//   return isValid;
-// };
 
 const validateAndSearch = () => {
   let isValid = true;
@@ -686,9 +728,10 @@ const validateAndSearch = () => {
   return isValid;
 };
 
-onMounted(() => {
-  fetchDeviceData();
-  fetchMeasurementList();
+onMounted(async() => {
+  await initialize();
+  await fetchDeviceData();
+  await fetchMeasurementList();
 });
 
 watch(selectedDevices, (newVal) => {

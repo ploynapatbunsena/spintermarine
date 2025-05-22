@@ -95,9 +95,10 @@
 import NavigationBar from '@/components/NavigationBar.vue';
 import SpaceBar from '@/components/SpaceBar.vue';
 import { ref, onMounted, inject } from 'vue';
-import router from '@/router';
+import { useRouter } from 'vue-router';
 
 const $api = inject('$api');
+const router = useRouter();
 const search = ref('');
 const deleteDialog = ref(false);
 const memberToDelete = ref('');
@@ -115,6 +116,20 @@ const headers = ref([
   { title: 'Action', key: 'isActive', align: 'center', sortable: false },
   { title: 'Edit', key: 'edit', align: 'center', sortable: false },
 ]);
+
+const initialize = async () => {
+  const menuPermission = localStorage.getItem('menuPermission');
+  if (!menuPermission) {
+    return router.push('/Homepage');
+  }
+
+  const permissionList = JSON.parse(menuPermission);
+  const permission = permissionList.find(item => item.MenuId === '0101030600');
+
+  if (!permission || !permission.IsActive) {
+    return router.push('/Homepage');
+  }
+};
 
 const fetchDeviceList = async () => {
   try {
@@ -135,7 +150,6 @@ const fetchDeviceList = async () => {
     }));
 
     filteredItems.value = mappedItems.filter(item => item.IsActive);
-    // filteredItems.value = mappedItems;
   } catch (error) {
     console.error('Failed to fetch Profile list:', error);
   }
@@ -200,8 +214,9 @@ const deleteMember = async () => {
   }
 };
 
-onMounted(() => {
-  fetchDeviceList();
+onMounted(async() => {
+  await initialize();
+  await fetchDeviceList();
 });
 </script>
 

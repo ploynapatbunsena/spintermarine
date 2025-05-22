@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app style="background-color: #F7F9FC;">
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
@@ -59,17 +59,31 @@
   </v-app>
 </template>
 
-<script>
+<script setup>
 import NavigationBar from '@/components/NavigationBar.vue';
 import SpaceBar from '@/components/SpaceBar.vue';
+import { onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 
-export default {
-  name: 'Homepage',
-  components: {
-    NavigationBar,
-    SpaceBar
-  },
+const router = useRouter();
+
+const initialize = async () => {
+  const menuPermission = localStorage.getItem('menuPermission');
+  if (!menuPermission) {
+    return router.push('/Homepae');
+  }
+
+  const permissionList = JSON.parse(menuPermission);
+  const permission = permissionList.find(item => item.MenuId === '0101010000');
+  
+  if (!permission || !permission.IsActive) {
+    return router.push('/Homepage');
+  }
 };
+
+onMounted(() => {
+  initialize();
+})
 </script>
 
 <style scoped lang="scss">

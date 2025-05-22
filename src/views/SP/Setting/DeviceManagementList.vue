@@ -7,7 +7,6 @@
       <v-card class="mt-4">
         <v-card-text class="mx-6 my-6">
           <v-row>
-            <!-- Vehicle Dropdown -->
             <v-col cols="12" md="4" lg="4">
               <v-select
                 label="Vehicle"
@@ -75,9 +74,10 @@
 import NavigationBar from '@/components/NavigationBar.vue';
 import SpaceBar from '@/components/SpaceBar.vue';
 import { ref, onMounted, inject } from 'vue';
-import router from '@/router';
+import { useRouter } from 'vue-router';
 
 const $api = inject('$api');
+const router = useRouter();
 const showResult = ref(false);
 const vehicleItems = ref([]);
 const selectedVehicle = ref(null);
@@ -92,6 +92,20 @@ const headers = ref([
   { title: 'Action', key: 'IsActive', align: 'center', sortable: false },
   { title: 'Edit', key: 'edit', align: 'center', sortable: false },
 ]);
+
+const initialize = async () => {
+  const menuPermission = localStorage.getItem('menuPermission');
+  if (!menuPermission) {
+    return router.push('/Homepage');
+  }
+
+  const permissionList = JSON.parse(menuPermission);
+  const permission = permissionList.find(item => item.MenuId === '0101030400');
+
+  if (!permission || !permission.IsActive) {
+    return router.push('/Homepage');
+  }
+};
 
 const fetchDeviceList = async () => {
   try {
@@ -145,8 +159,9 @@ const editDevice = (deviceId) => {
   router.push({ name: "DeviceManagementForm", params: { deviceId }})
 };
 
-onMounted(() => {
-  fetchDeviceList();
+onMounted(async() => {
+  await initialize();
+  await fetchDeviceList();
 });
 </script>
 

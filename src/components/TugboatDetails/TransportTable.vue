@@ -1,42 +1,50 @@
 <template>
   <v-container style="background-color: #F9FAFB;">
     <v-row>
-      <v-col cols="3">
-        <v-card class="card rounded-lg elevation-0">
-          <div class="vessel-header">
-            <v-card-title class="vessel-title">VESSEL</v-card-title>
-            <v-chip class="vessel-status" prepend-icon="mdi-circle-medium">Running</v-chip>
-          </div>
-          <v-card-text>
-            <div 
-              class="vessel-list" 
-              v-for="(vessel, index) in vessels" 
-              :key="index"
-              @click="toggleVessel(vessel)"
-              :class="{ 'selected-vessel': selectedVessel === vessel }"
+      <v-col cols="12" lg="3">
+        <v-card class="card rounded-lg elevation-0" style="height: 100%;">
+          <v-card-title class="d-flex align-center vessel-header">
+            <span class="vessel-title">VESSEL</span>
+            <v-chip class="ml-2 vessel-status" prepend-icon="mdi-circle-medium">Running</v-chip>
+          </v-card-title>
+          
+          <v-card-text style="height: calc(100% - 64px); overflow-y: auto;">
+            <v-data-table
+              :headers="[{ title: 'Vessel Name', value: 'name' }]"
+              :items="vesselListWithIcons"
+              item-value="name"
+              hide-default-header
+              hide-default-footer
+              class="elevation-0 vessel-table"
+              :items-per-page="4"
+              @click:row="handleVesselClick"
             >
-              <v-icon icon="mdi-anchor" color="#194185"></v-icon>
-              <span class="ml-2">{{ vessel }}</span>
-            </div>
+              <template v-slot:[`item.name`]="{ item }">
+                <div class="d-flex align-center vessel-row">
+                  <v-icon icon="mdi-anchor" color="#194185" class="mr-2"></v-icon>
+                  <span>{{ item.name }}</span>
+                </div>
+              </template>
+            </v-data-table>
           </v-card-text>
         </v-card>
       </v-col>
-      <v-col>
-        <v-card v-if="isBoatSelected" class="card rounded-lg elevation-0">
+      <v-col cols="12" lg="9">
+        <v-card v-if="localSelectedBoat && !selectedVessel" class="card rounded-lg elevation-0">
           <div>
-            <v-card-title class="table-header">{{ selectedBoat?.name }}</v-card-title>
+            <v-card-title class="table-header">{{ localSelectedBoat?.DeviceName || 'Unknown Tugboat' }}</v-card-title>
           </div>
-          <v-card-text v-if="selectedBoat">
+          <v-card-text v-if="localSelectedBoat?.jobs?.length">
             <v-row>
               <v-col cols="12">
                 <v-data-table
-                  :headers="headers"
-                  :items="selectedBoat.data"
-                  item-value="bargeName"
+                  :headers="tugboatHeaders"
+                  :items="tugboatTableData"
+                  item-value="jobOrder"
                   class="elevation-0 striped-table custom-table"
+                  :items-per-page-options="[3, 5, 10, -1]"
                   :items-per-page="3"
                   :footer-props="{
-                    'items-per-page-options': [3],
                     'show-first-last-page': true,
                     'show-current-page': true
                   }"
@@ -48,15 +56,20 @@
                       <td>{{ item.destination }}</td>
                       <td>{{ item.vessel }}</td>
                       <td>{{ item.jobOrder }}</td>
-                      <td>{{ item.cargo }}</td>
-                      <td>{{ item.eta }}</td>
+                      <td>{{ item.cargo || 'N/A' }}</td>
+                      <td>{{ formatDate(item.eta) }}</td>
                     </tr>
                   </template>
                 </v-data-table>
               </v-col>
             </v-row>
+          </v-card-text>
+          <v-card-text v-else>
+            No job data available for this tugboat.
+          </v-card-text>
+          <v-card-text v-card-text v-if="localSelectedBoat">
             <v-row>
-              <v-col cols="3" class="py-0">
+              <v-col cols="6" lg="3" class="py-0">
                 <v-card class="d-flex align-center measurement-card elevation-0">
                   <div class="icon rpm">
                     <span class="material-symbols-rounded">avg_pace</span>
@@ -67,7 +80,7 @@
                   </div>
                 </v-card>
               </v-col>
-              <v-col cols="3" class="py-0">
+              <v-col cols="6" lg="3" class="py-0">
                 <v-card class="d-flex align-center measurement-card elevation-0">
                   <div class="icon speed">
                     <span class="material-symbols-rounded">swap_driving_apps_wheel</span>
@@ -78,7 +91,7 @@
                   </div>
                 </v-card>
               </v-col>
-              <v-col cols="3" class="py-0">
+              <v-col cols="6" lg="3" class="py-0">
                 <v-card class="d-flex align-center measurement-card elevation-0">
                   <div class="icon throttle">
                     <span class="material-symbols-rounded">speed</span>
@@ -89,7 +102,7 @@
                   </div>
                 </v-card>
               </v-col>
-              <v-col cols="3" class="py-0">
+              <v-col cols="6" lg="3" class="py-0">
                 <v-card class="d-flex align-center measurement-card elevation-0">
                   <div class="icon wind-speed">
                     <span class="material-symbols-rounded">air</span>
@@ -104,154 +117,184 @@
           </v-card-text>
         </v-card>
 
-        <v-card v-if="isVesselSelected" class="card rounded-lg elevation-0">
+        <v-card v-else-if="selectedVessel" class="card rounded-lg elevation-0">
           <div>
             <v-card-title class="table-header">{{ selectedVessel }}</v-card-title>
           </div>
           <v-card-text>
-            <v-data-table
-              :headers="vesselHeaders"
-              :items="getVesselData(selectedVessel)"
-              item-value="id"
-              class="elevation-0 striped-table custom-table"
-              hide-default-footer
-            >
-              <template v-slot:item="{ item }">
-                <tr>
-                  <td>{{ item.tugboatName }}</td>
-                  <td>{{ item.vessel }}</td>
-                  <td>{{ item.jobOrder }}</td>
-                  <td>{{ item.cargo }}</td>
-                </tr>
-              </template>
-            </v-data-table>
+            <v-row>
+              <v-col cols="12">
+                <v-data-table
+                  :headers="vesselHeaders"
+                  :items="vesselTableData"
+                  item-value="doc_no"
+                  class="elevation-0 striped-table custom-table"
+                  :items-per-page-options="[3, 5, 10, -1]"
+                  :items-per-page="3"
+                >
+                  <template v-slot:item="{ item }">
+                    <tr>
+                      <td>{{ item.name }}</td>
+                      <td>{{ item.vessel_name }}</td>
+                      <td>{{ item.doc_no }}</td>
+                      <td>{{ item.product_name || 'N/A' }}</td>
+                    </tr>
+                  </template>
+                </v-data-table>
+              </v-col>
+            </v-row>
           </v-card-text>
+        </v-card>
+        <v-card v-else class="card rounded-lg elevation-0">
+          <v-card-text>Please select a tugboat to view details.</v-card-text>
         </v-card>
       </v-col>
     </v-row>
   </v-container>
-</template> 
+</template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { computed, defineProps, inject, ref, watch } from 'vue';
 import '@/assets/colors.scss';
 
+const $api = inject('$api');
+const localSelectedBoat = ref(null);
+const selectedVessel = ref(null);
 const props = defineProps({
   selectedBoat: {
     type: Object,
     default: null,
   },
+  updateShipPosition: {
+    type: Function,
+    required: true
+  },
+  devices: {
+    type: Array
+  }
 });
 
-const localSelectedBoat = ref(props.selectedBoat);
-const selectedVessel = ref(null);
-
-const headers = [
+const tugboatHeaders = [
   { title: 'Barge Name', value: 'bargeName' },
   { title: 'Origin', value: 'origin' },
   { title: 'Destination', value: 'destination' },
-  { title: 'Vessel', value: 'vessel' },
+  { title: 'Vessel', value: 'vessel_name' },
   { title: 'Job Order', value: 'jobOrder' },
   { title: 'Cargo', value: 'cargo' },
   { title: 'ETA', value: 'eta' },
 ];
 
 const vesselHeaders = [
-  { title: 'Tugboat Name', value: 'tugboatName' },
-  { title: 'Vessel', value: 'vessel' },
-  { title: 'Job Order', value: 'jobOrder' },
-  { title: 'Cargo', value: 'cargo' },
+  { title: 'Tugboat Name', value: 'name' },
+  { title: 'Vessel', value: 'vessel_name' },
+  { title: 'Job Order', value: 'doc_no' },
+  { title: 'Cargo', value: 'product_name' },
 ];
 
-const vessels = [
-  'MV. SMOOTH SEA',
-  'MV. GOLDEN FLAVOR GROUP',
-  'MV. ALIKI FORCE',
-  'MV. VENETIA',
-];
-
-const vesselData = {
-  'MV. SMOOTH SEA': [
-    { tugboatName: 'Tugboat A', vessel: 'MV. SMOOTH SEA', jobOrder: 'JO-001', cargo: 'Coal' },
-    { tugboatName: 'Tugboat B', vessel: 'MV. SMOOTH SEA', jobOrder: 'JO-002', cargo: 'Wood' },
-  ],
-  'MV. GOLDEN FLAVOR GROUP': [
-    { tugboatName: 'Tugboat C', vessel: 'MV. GOLDEN FLAVOR GROUP', jobOrder: 'JO-003', cargo: 'Rice' },
-    { tugboatName: 'Tugboat D', vessel: 'MV. GOLDEN FLAVOR GROUP', jobOrder: 'JO-004', cargo: 'Wheat' },
-  ],
-  'MV. ALIKI FORCE': [
-    { tugboatName: 'Tugboat E', vessel: 'MV. ALIKI FORCE', jobOrder: 'JO-005', cargo: 'Steel' },
-    { tugboatName: 'Tugboat F', vessel: 'MV. ALIKI FORCE', jobOrder: 'JO-006', cargo: 'Aluminum' },
-  ],
-  'MV. VENETIA': [
-    { tugboatName: 'Tugboat G', vessel: 'MV. VENETIA', jobOrder: 'JO-007', cargo: 'Oil' },
-    { tugboatName: 'Tugboat H', vessel: 'MV. VENETIA', jobOrder: 'JO-008', cargo: 'Gas' },
-    { tugboatName: 'Tugboat I', vessel: 'MV. VENETIA', jobOrder: 'JO-009', cargo: 'Fertilizer' },
-  ],
-};
-
-// Computed properties สำหรับดึง lastValue จาก Mesurement
-const rpm = computed(() => {
-  const measurement = props.selectedBoat?.Mesurement?.find(m => m.measurementname === 'RPM');
-  return {
-    value: measurement?.lastValue !== null ? parseFloat(measurement.lastValue).toFixed(0) : '0',
-    unit: measurement?.measurementunit || 'RPM',
-  };
+const vesselList = computed(() => {
+  return props.selectedBoat?.allVessels || [];
 });
 
-const speed = computed(() => {
-  const measurement = props.selectedBoat?.Mesurement?.find(m => m.measurementname === 'Speed');
-  return {
-    value: measurement?.lastValue !== null ? parseFloat(measurement.lastValue).toFixed(1) : '0',
-    unit: measurement?.measurementunit || 'km/h',
-  };
+const tugboatTableData = computed(() => {
+  if (!props.selectedBoat?.jobs?.length) return [];
+  return props.selectedBoat.jobs.flatMap(job =>
+    job.jobs_miiot?.job_ship?.job_ship_transport_ships?.map(transport => ({
+      bargeName: transport.job_transport_ships?.transport_ship?.name || 'N/A',
+      origin: transport.pier_origin?.name || 'N/A',
+      destination: transport.pier_destination?.name || 'N/A',
+      vessel: job.vessel_name || 'N/A',
+      jobOrder: job.doc_no || 'N/A',
+      cargo: transport.job_transport_ships?.product?.name || 'N/A',
+      eta: formatDate(transport.end_date) || 'N/A',
+    })) || []
+  );
 });
 
-const throttle = computed(() => {
-  const measurement = props.selectedBoat?.Mesurement?.find(m => m.measurementname === '%Throttle');
-  return {
-    value: measurement?.lastValue !== null ? parseFloat(measurement.lastValue).toFixed(0) : '0',
-    unit: measurement?.measurementunit || '%',
-  };
+const vesselTableData = computed(() => {
+  if (!selectedVessel.value || !props.selectedBoat?.jobs) return [];
+  
+  return props.selectedBoat.jobs
+    .filter(job => job.vessel_name === selectedVessel.value)
+    .flatMap(job => {
+      const transports = job.jobs_miiot?.job_ship?.job_ship_transport_ships || [];
+      
+      if (transports.length > 0) {
+        return transports.map(transport => ({
+          name: job.jobs_miiot?.job_ship?.ship?.name || 'N/A',
+          vessel_name: job.vessel_name || 'N/A',
+          doc_no: job.doc_no || 'N/A',
+          product_name: transport.job_transport_ships?.product?.name || 'N/A',
+        }));
+      }
+      
+      return [{
+        name: job.jobs_miiot?.job_ship?.ship?.name || 'N/A',
+        vessel_name: job.vessel_name || 'N/A',
+        doc_no: job.doc_no || 'N/A',
+        product_name: 'N/A',
+      }];
+    });
 });
 
-const windSpeed = computed(() => {
-  const measurement = props.selectedBoat?.Mesurement?.find(m => m.measurementname === 'Wind-Speed');
-  return {
-    value: measurement?.lastValue !== null ? parseFloat(measurement.lastValue).toFixed(1) : '0',
-    unit: measurement?.measurementunit || 'm/s',
-  };
-});
-
-const isBoatSelected = computed(() => {
-  return localSelectedBoat.value !== null && selectedVessel.value === null;
-});
-
-const isVesselSelected = computed(() => {
-  return selectedVessel.value !== null;
-});
-
-// Methods
-const toggleVessel = (vessel) => {
+const toggleVessel = async (vessel) => {
   if (selectedVessel.value === vessel) {
-    // ถ้าคลิกที่เรือที่เลือกอยู่แล้ว ให้ยกเลิกการเลือก
     selectedVessel.value = null;
-    // ถ้ามี selectedBoat จาก props ให้แสดงข้อมูลนั้นแทน
-    if (props.selectedBoat) {
-      localSelectedBoat.value = props.selectedBoat;
-    }
+    localSelectedBoat.value = props.selectedBoat;
   } else {
-    // เลือกเรือใหม่ และซ่อนข้อมูล selectedBoat
     selectedVessel.value = vessel;
     localSelectedBoat.value = null;
+    
+    const vesselShip = props.selectedBoat.vesselShips?.[vessel];
+    console.log('vesselShip', vesselShip);
+    
+    if (vesselShip?.name) {
+      // ค้นหาอุปกรณ์จากชื่อเรือ (Note)
+      const matchingDevice = props.devices.find(device => 
+        device.Note?.trim() === vesselShip.name.trim()
+      );
+
+      if (!matchingDevice) {
+        console.warn('No device found for ship:', vesselShip.name);
+        return;
+      }
+
+      try {
+        // ดึงข้อมูลอุปกรณ์แบบละเอียด
+        const deviceResponse = await $api.get('/MachineStatus/GetDeviceByDeviceId', {
+          params: { deviceid: matchingDevice.DeviceId }
+        });
+        
+        if (deviceResponse.data && deviceResponse.data.length > 0) {
+          const shipDevice = deviceResponse.data[0];
+          props.updateShipPosition(
+            shipDevice.Mesurement?.find(m => m.measurementname === 'Latitude')?.lastValue,
+            shipDevice.Mesurement?.find(m => m.measurementname === 'Longitude')?.lastValue,
+            vessel,
+            vesselShip.name
+          );
+        }
+      } catch (error) {
+        console.error('Error fetching ship device:', {
+          error: error.message,
+          deviceId: matchingDevice.DeviceId,
+          shipName: vesselShip.name
+        });
+      }
+    }
   }
 };
 
-const getVesselData = (vessel) => {
-  return vesselData[vessel] || [];
+const vesselListWithIcons = computed(() => {
+  return vesselList.value.map(vessel => ({
+    name: vessel,
+    isSelected: selectedVessel.value === vessel
+  }));
+});
+
+const handleVesselClick = (event, { item }) => {
+  toggleVessel(item.name);
 };
 
-// Watch: อัปเดต localSelectedBoat และรีเซ็ต selectedVessel เมื่อ selectedBoat เปลี่ยน
 watch(
   () => props.selectedBoat,
   (newVal) => {
@@ -262,6 +305,65 @@ watch(
   },
   { immediate: true }
 );
+
+const formatDate = (datetime) => {
+  if (datetime==null) {
+    return null
+  } else {
+    var dateTime = new Date(datetime);
+    dateTime.setHours(dateTime.getHours() - 7);
+    
+    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
+    var day = ("0" + dateTime.getDate()).slice(-2);
+    var year = dateTime.getFullYear();
+    var hour = ("0" + dateTime.getHours()).slice(-2);
+    var minute = ("0" + dateTime.getMinutes()).slice(-2);
+    return year + "-" + month + "-" + day + " " + hour + ":" + minute;
+  }
+};
+
+const parseMeasurementValue = (value, defaultValue = 0, fixed = 0) => {
+  if (value === null || value === undefined || isNaN(value)) {
+    return defaultValue.toFixed(fixed);
+  }
+  return parseFloat(value).toFixed(fixed);
+};
+
+const rpm = computed(() => {
+  if (!localSelectedBoat.value) return { value: '0', unit: 'RPM' };
+  const measurement = localSelectedBoat.value?.Mesurement?.find(m => m.measurementname === 'RPM');
+  return {
+    value: parseMeasurementValue(measurement?.lastValue, 0, 0),
+    unit: measurement?.measurementunit || 'RPM',
+  };
+});
+
+const speed = computed(() => {
+  if (!localSelectedBoat.value) return { value: '0', unit: 'km/h' };
+  const measurement = localSelectedBoat.value?.Mesurement?.find(m => m.measurementname === 'Speed');
+  return {
+    value: parseMeasurementValue(measurement?.lastValue, 0, 1),
+    unit: measurement?.measurementunit || 'km/h',
+  };
+});
+
+const throttle = computed(() => {
+  if (!localSelectedBoat.value) return { value: '0', unit: '%' };
+  const measurement = localSelectedBoat.value?.Mesurement?.find(m => m.measurementname === '%Throttle');
+  return {
+    value: parseMeasurementValue(measurement?.lastValue, 0, 0),
+    unit: measurement?.measurementunit || '%',
+  };
+});
+
+const windSpeed = computed(() => {
+  if (!localSelectedBoat.value) return { value: '0', unit: 'm/s' };
+  const measurement = localSelectedBoat.value?.Mesurement?.find(m => m.measurementname === 'Wind-Speed');
+  return {
+    value: parseMeasurementValue(measurement?.lastValue, 0, 1),
+    unit: measurement?.measurementunit || 'm/s',
+  };
+});
 </script>
 
 <style lang="scss" scoped>

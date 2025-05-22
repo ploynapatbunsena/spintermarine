@@ -11,7 +11,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onBeforeUnmount, ref } from 'vue';
+import { computed, onMounted, onBeforeUnmount, ref, defineProps } from 'vue';
 import VueGauge from 'vue-gauge';
 
 const props = defineProps({
@@ -58,7 +58,7 @@ const gaugeOptions = computed(() => {
 });
 
 const updateChartWidth = () => {
-  chartWidthVw.value = chartWidthVw.value;
+  chartWidthVw.value = (10 / 100) * window.innerWidth;
 };
 
 onMounted(() => {

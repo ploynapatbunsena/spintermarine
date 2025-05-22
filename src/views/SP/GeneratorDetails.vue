@@ -16,7 +16,6 @@
             </div>
           </v-col>
         </v-row>
-        <!-- Gauge Section -->
         <v-row v-if="devices.length > 0">
           <v-col cols="12" lg="6">
             <v-row>
@@ -37,7 +36,6 @@
               </v-col>
             </v-row>
           </v-col>
-          <!-- General Info Section -->
           <v-col cols="12" lg="6">
             <v-card class="rounded-xl h-100">
               <v-card-title class="d-flex justify-center header">General Information</v-card-title>
@@ -50,7 +48,6 @@
             </v-card>
           </v-col>
         </v-row>
-        <!-- Generator Image -->
         <v-row>
           <v-col cols="12" lg="6">
             <v-card class="rounded-xl gen-img">
@@ -59,7 +56,6 @@
               />
             </v-card>
           </v-col>
-          <!-- Notice Table -->
           <v-col cols="12" lg="6">
             <v-card class="pa-2 rounded-xl h-100">
               <div class="notification-header">
@@ -91,7 +87,7 @@
 
 <script setup>
 import { ref, onMounted, inject, onBeforeUnmount, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import VueGauge from 'vue-gauge'
 import NavigationBar from '@/components/NavigationBar.vue'
 import SpaceBar from '@/components/SpaceBar.vue'
@@ -103,12 +99,18 @@ import { watch } from 'vue'
 
 const $api = inject('$api');
 const route = useRoute();
+const router = useRouter();
 const loading = ref(true);
 const error = ref(null);
 const chartWidth = ref(0);
 const noti = ref([]);
 const devices = ref([]);
 const deviceId = ref(route.params.deviceId);
+
+const audioPlayed = ref(false);
+const prevDangerCount = ref(0);
+const alertSound = ref(null);
+
 const gauges = ref([
   { type: 'Actual Power', title: 'Actual Power', unit: 'kW' },
   { type: 'Oil Pressure', title: 'Oil Pressure', unit: 'bar' },
@@ -118,8 +120,22 @@ const gauges = ref([
 
 watch(() => route.params.deviceId, (newId) => {
   deviceId.value = newId;
-  fetchDeviceData(newId); // Your data fetching function
+  fetchDeviceData(newId);
 });
+
+const initialize = async () => {
+  const menuPermission = localStorage.getItem('menuPermission');
+  if (!menuPermission) {
+    return router.push('/Homepage');
+  }
+
+  const permissionList = JSON.parse(menuPermission);
+  const permission = permissionList.find(item => item.MenuId === '0101010300');
+
+  if (!permission || !permission.IsActive) {
+    return router.push('/Homepage');
+  }
+};
 
 const fetchDeviceData = async () => {
   try {
@@ -130,7 +146,6 @@ const fetchDeviceData = async () => {
       params: { deviceId: deviceId.value }
     });
     devices.value = response.data;
-    console.log('Device data:', devices.value);
   } catch (err) {
     console.error('Error fetching device data:', err);
     error.value = err;
@@ -160,8 +175,6 @@ const fetchNotification = async () => {
         console.error(`Failed to fetch notifications for DeviceId ${device.DeviceId}:`, err);
       }
     }
-
-    console.log("Notifications:", noti.value);
   } catch (err) {
     error.value = 'Failed to fetch notifications. Please try again later.';
     console.error(err);
@@ -245,7 +258,7 @@ const getGaugeOptions = (measurementName, device) => {
       colors = ['#3DCC5B'];
       delimiters = [];
       labels = [];
-  };
+  }
   
   return {
     needleValue: needlePercentage,
@@ -286,6 +299,34 @@ const getWarningCount = (device) => {
 const getDangerCount = (device) => {
   return device?.MeasurementsAlertCount?.find(item => 'AlertDangerTotal' in item)?.AlertDangerTotal || 0;
 };
+
+const totalDangerCount = computed(() => {
+  if (!devices.value.length) return 0;
+  return devices.value.reduce((total, device) => {
+    return total + (device?.MeasurementsAlertCount?.find(item => 'AlertDangerTotal' in item)?.AlertDangerTotal || 0);
+  }, 0);
+});
+
+const playAlertSound = () => {
+  if (!alertSound.value) {
+    alertSound.value = new Audio('/alert-sound.mp3');
+    alertSound.value.volume = 0.5;
+  }
+  
+  alertSound.value.play().catch(e => console.error('Error playing sound:', e));
+};
+
+watch(totalDangerCount, (newCount, oldCount) => {
+  if (!audioPlayed.value && newCount > 0) {
+    playAlertSound();
+    audioPlayed.value = true;
+  }
+  else if (newCount > oldCount) {
+    playAlertSound();
+  }
+  
+  prevDangerCount.value = newCount;
+}, { immediate: true });
 
 const filteredMeasurements = computed(() => {
   if (!devices.value.length) return {};
@@ -347,10 +388,12 @@ const deviceStatus = computed(() => {
   return statusMap[statusValue] || { text: 'N/A', color: '#C0C0C0' };
 });
 
-onMounted(() => {
+onMounted(async() => {
+  await initialize();
   updateChartSize();
-  fetchDeviceData();
-  fetchNotification();
+  await fetchNotification();
+  // checkAndPlayAlert();
+  await fetchDeviceData();
   window.addEventListener('resize', updateChartSize);
 })
 

@@ -79,19 +79,20 @@
 </template>
 
 <script setup>
-import router from '@/router'
-import { inject } from 'vue'
+import { inject } from 'vue';
 import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
 
 const $api = inject('$api');
-const email = ref('');
-const password = ref('');
-const showPassword = ref(false);
-const isLoading = ref(false);
+const router = useRouter();
+const email = ref('')
+const password = ref('')
+const showPassword = ref(false)
+const isLoading = ref(false)
 const errors = reactive({
   email: '',
   password: ''
-});
+})
 
 const validateForm = () => {
   let isValid = true
@@ -99,213 +100,90 @@ const validateForm = () => {
   errors.password = ''
 
   if (!email.value) {
-    errors.email = 'Email is required'
+    errors.email = 'กรุณากรอกอีเมล'
     isValid = false
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
-    errors.email = 'Please enter a valid email'
+    errors.email = 'รูปแบบอีเมลไม่ถูกต้อง'
     isValid = false
   }
 
   if (!password.value) {
-    errors.password = 'Password is required'
+    errors.password = 'กรุณากรอกรหัสผ่าน'
+    isValid = false
+  } else if (password.value.length < 4) {
+    errors.password = 'รหัสผ่านต้องมีความยาวอย่างน้อย 4 ตัวอักษร'
     isValid = false
   }
+
   return isValid
-};
+}
 
 const togglePassword = () => {
-  showPassword.value = !showPassword.value;
-};
+  showPassword.value = !showPassword.value
+}
 
 const fetchMemberData = async () => {
   if (!validateForm()) return
-  isLoading.value = true;
+  
+  localStorage.removeItem('accessToken')
+  localStorage.removeItem('member')
+  localStorage.removeItem('menuPermission')
+  
+  isLoading.value = true
+  errors.password = ''
 
   try {
-    const loginData = {
+    const loginResponse = await $api.post('/Member/login', {
       MemberEmail: email.value,
-      MemberPassword: password.value,
-    };
+      MemberPassword: password.value
+    })
 
-    const loginResponse = await $api.post('/Member/login', loginData);
-    const { accessToken, member } = loginResponse.data;
+    if (!loginResponse.data?.accessToken) {
+      throw new Error('ไม่พบ Token ใน response')
+    }
 
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('member', JSON.stringify(member));
+    const { accessToken, member } = loginResponse.data
 
-    const memberId = member.MemberId;
-    const permissionResponse = await $api.get(`/member/permission/${memberId}`);
-    const { menuPermission } = permissionResponse.data;
-    // localStorage.setItem('menuPermission', JSON.stringify(permissionResponse.data.menuPermission));
-    localStorage.setItem('menuPermission', JSON.stringify(menuPermission));
+    localStorage.setItem('accessToken', accessToken)
+    localStorage.setItem('member', JSON.stringify(member))
 
-    router.push('/Homepage');
+    if (!localStorage.getItem('accessToken')) {
+      throw new Error('การเก็บ Token ล้มเหลว')
+    }
+
+    try {
+      const permissionResponse = await $api.get(`/member/permission/${member.MemberId}`)
+      if (permissionResponse.data?.menuPermission) {
+        localStorage.setItem('menuPermission', JSON.stringify(permissionResponse.data.menuPermission))
+      }
+    } catch (permissionError) {
+      console.warn('การดึงข้อมูลสิทธิ์ล้มเหลว:', permissionError)
+    }
+    router.push('/Homepage')
+
   } catch (error) {
-    console.error('Login or permission fetch failed:', error);
+    console.error('เกิดข้อผิดพลาดในการเข้าสู่ระบบ:', error)
+    
+    localStorage.removeItem('accessToken')
+    
     if (error.response) {
       if (error.response.status === 401) {
-        errors.password = 'Email or password is incorrect';
+        errors.password = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง'
+      } else if (error.response.status === 500) {
+        errors.password = 'เซิร์ฟเวอร์มีปัญหา กรุณาลองใหม่ภายหลัง'
       } else {
-        errors.password = 'Login failed, please try again';
+        errors.password = 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ (รหัส: ' + error.response.status + ')'
       }
+    } else if (error.message.includes('Network Error')) {
+      errors.password = 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้'
     } else {
-      errors.password = 'Cannot connect to server';
+      errors.password = 'เกิดข้อผิดพลาดที่ไม่คาดคิด'
     }
   } finally {
-    isLoading.value = false;
+    isLoading.value = false
   }
-};
+}
 </script>
-
-<!-- <template>
-  <v-app>
-    <v-main>
-      <v-container class="pa-0 ma-0" fluid>
-        <v-row no-gutters>
-          <v-col cols="12" md="6" class="background-section">
-            <v-img
-              :src="require('@/assets/Images/bg_login.jpg')"
-              height="100vh"
-              cover
-              class="pa-16"
-            >
-              <v-img
-                :src="require('@/assets/Images/logo_miiot.png')"
-                width="30vh"
-                height="5vh"
-              />
-            </v-img>
-          </v-col>
-          <v-col cols="12" md="6" class="login-section">
-            <v-card class="login-card" rounded="xl" elevation="0">
-              <v-card-text class="pa-6">
-                <p class="login-title">LOGIN</p>
-                <form @submit.prevent="fetchMemberData">
-                  <v-text-field
-                    v-model="email"
-                    label="Email"
-                    placeholder="Enter your email"
-                    :error-messages="errors.email"
-                    prepend-inner-icon="mdi-email"
-                    variant="outlined"
-                  />
-                  <v-text-field
-                    v-model="password"
-                    label="Password"
-                    :type="showPassword ? 'text' : 'password'"
-                    placeholder="Enter your password"
-                    :error-messages="errors.password"
-                    prepend-inner-icon="mdi-lock"
-                    :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                    @click:append-inner="togglePassword"
-                    variant="outlined"
-                  />
-                  <v-btn
-                    type="submit"
-                    color="primary"
-                    block
-                    :loading="isLoading"
-                    class="mt-4"
-                  >
-                    {{ isLoading ? 'Loading...' : 'Login Now' }}
-                  </v-btn>
-                </form>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-container>
-      <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">
-        {{ snackbar.message }}
-      </v-snackbar>
-    </v-main>
-  </v-app>
-</template>
-
-<script setup>
-import { ref, reactive } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/store/auth';
-import { inject } from 'vue';
-
-const $api = inject('$api');
-const router = useRouter();
-const authStore = useAuthStore();
-
-const email = ref('');
-const password = ref('');
-const showPassword = ref(false);
-const isLoading = ref(false);
-const errors = reactive({
-  email: '',
-  password: '',
-});
-const snackbar = reactive({
-  show: false,
-  message: '',
-  color: 'error',
-});
-
-const validateForm = () => {
-  errors.email = '';
-  errors.password = '';
-  let isValid = true;
-
-  if (!email.value) {
-    errors.email = 'Email is required';
-    isValid = false;
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
-    errors.email = 'Please enter a valid email';
-    isValid = false;
-  }
-
-  if (!password.value) {
-    errors.password = 'Password is required';
-    isValid = false;
-  }
-  return isValid;
-};
-
-const togglePassword = () => {
-  showPassword.value = !showPassword.value;
-};
-
-const fetchMemberData = async () => {
-  if (!validateForm()) return;
-  isLoading.value = true;
-
-  try {
-    const loginData = {
-      MemberEmail: email.value,
-      MemberPassword: password.value,
-    };
-
-    const loginResponse = await $api.post('/Member/login', loginData);
-    const { accessToken, member } = loginResponse.data;
-
-    const permissionResponse = await $api.get(`/member/permission/${member.MemberId}`);
-    const { menuPermission } = permissionResponse.data;
-
-    // เก็บข้อมูลใน Pinia และ localStorage
-    authStore.setAuth(member, menuPermission, accessToken);
-
-    snackbar.show = true;
-    snackbar.message = 'Login successful!';
-    snackbar.color = 'success';
-
-    router.push('/Homepage');
-  } catch (error) {
-    console.error('Login or permission fetch failed:', error);
-    snackbar.show = true;
-    snackbar.message =
-      error.response?.status === 401
-        ? 'Email or password is incorrect'
-        : 'Login failed, please try again';
-  } finally {
-    isLoading.value = false;
-  }
-};
-</script> -->
 
 <style lang="scss" scoped>
 .background-section {

@@ -86,7 +86,7 @@
 <script setup>
 import '@/assets/colors.scss'
 
-const props = defineProps({
+defineProps({
   measurements: {
     type: Object,
     default: () => ({
