@@ -206,6 +206,15 @@ const chartOptions = ref({
     enabled: true,
     shared: true,
     intersect: false
+  },
+  noData: {
+    text: "No data available",
+    align: 'center',
+    verticalAlign: 'middle',
+    style: {
+      color: "#666",
+      fontSize: '14px'
+    }
   }
 });
 

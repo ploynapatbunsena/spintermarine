@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
-  // SP
   {
     path: "/login",
     name: "Login",

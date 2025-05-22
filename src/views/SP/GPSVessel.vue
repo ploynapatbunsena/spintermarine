@@ -36,11 +36,13 @@
         <div id="map" class="map">
           <v-img :src="require('@/assets/Icons/compass_map.svg')" class="compass"></v-img>
         </div>
-         <TransportTable 
-          :selectedBoat="selectedBoatData" 
-          :updateShipPosition="updateShipPositionOnMap" 
-          :devices="devices"
-        />
+        <div>
+          <TransportTable 
+           :selectedBoat="selectedBoatData" 
+           :updateShipPosition="updateShipPositionOnMap" 
+           :devices="devices"
+         />
+        </div>
       </div>
     </div>
     <v-snackbar v-model="error" color="error">{{ error?.message }}</v-snackbar>
@@ -101,78 +103,6 @@ const fetchAllTugboats = async () => {
     loading.value = false;
   }
 };
-
-// const fetchDeviceData = async (specificDeviceId) => {
-//   try {
-//     loading.value = true;
-//     error.value = null;
-
-//     const deviceResponse = await $api.get('/MachineStatus/GetDeviceByDeviceId', {
-//       params: { deviceid: specificDeviceId }
-//     });
-//     const updatedDevice = Array.isArray(deviceResponse.data) && deviceResponse.data.length > 0 
-//       ? deviceResponse.data[0] 
-//       : null;
-    
-//     if (!updatedDevice) {
-//       throw new Error('No device data found for DeviceId: ' + specificDeviceId);
-//     }
-
-//     // ดึงสถานะล่าสุดจาก CMMS API สำหรับเรือนี้
-//     const cmmsStatusData = await fetchCMMSStatus([updatedDevice]);
-//     const processedDevice = processTugboatData([updatedDevice], cmmsStatusData)[0];
-    
-//     // ดึงข้อมูลงานเหมือนเดิม
-//     let jobData = [];
-//     let allVessels = [];
-//     try {
-//       const saleOrdersResponse = await $api_vessel.get('/all-sale-orders');
-//       const saleOrderIds = saleOrdersResponse.data.data.data.map(order => order.id);
-
-//       for (const id of saleOrderIds) {
-//         const jobResponse = await $api_vessel.get('/sale-orders-by-id', {
-//           params: { keyword: id }
-//         });
-//         const job = jobResponse.data.data.data;
-        
-//         if (job.vessel_name) {
-//           allVessels.push(job.vessel_name);
-//         }
-
-//         if (job.jobs_miiot?.job_ship?.ship?.name && processedDevice.Note &&
-//             job.jobs_miiot.job_ship.ship.name.trim().toLowerCase() === processedDevice.Note.trim().toLowerCase()) {
-//           jobData.push(job);
-//         }
-//       }
-//     } catch (apiError) {
-//       console.error('Error fetching job data:', apiError);
-//       error.value = new Error('Failed to fetch job data. Token may be invalid or server is unavailable.');
-//     }
-
-//     selectedBoatData.value = {
-//       ...processedDevice,
-//       jobs: jobData,
-//       allVessels: [...new Set(allVessels)]
-//     };
-
-//     // อัปเดตข้อมูลใน devices array
-//     const index = devices.value.findIndex(d => d.DeviceId === specificDeviceId);
-//     if (index !== -1) {
-//       devices.value[index] = { ...devices.value[index], ...processedDevice };
-//     } else {
-//       devices.value.push(processedDevice);
-//     }
-
-//     selectedBoats.value = specificDeviceId;
-//     updateMapMarkers();
-//   } catch (err) {
-//     console.error('Error fetching device data:', err);
-//     error.value = new Error(err.message || 'Failed to fetch tugboat data.');
-//     selectedBoatData.value = null;
-//   } finally {
-//     loading.value = false;
-//   }
-// };
 
 const fetchDeviceData = async (specificDeviceId) => {
   try {

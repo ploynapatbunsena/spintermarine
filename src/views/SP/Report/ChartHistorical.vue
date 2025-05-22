@@ -232,14 +232,14 @@ const isChartLoaded = ref(false);
 const initialize = async () => {
   const menuPermission = localStorage.getItem('menuPermission');
   if (!menuPermission) {
-    return router.push('/Homepage');
+    return router.push('/login');
   }
 
   const permissionList = JSON.parse(menuPermission);
   const permission = permissionList.find(item => item.MenuId === '0101020100');
 
   if (!permission || !permission.IsActive) {
-    return router.push('/Homepage');
+    return router.push('/login');
   }
 };
 
@@ -405,6 +405,7 @@ const searchRecords = async () => {
     const start = formatTimeASP(startDate.value);
     const end = formatTimeASP(endDate.value);
 
+    // const response = await $api.get('/MachineStatus/RealtimeChartData', {
     const response = await $api.get('/Report/reportchartdata', {
       params: {
         dev_id: selectedDevices.value,
@@ -648,9 +649,13 @@ const prepareChartData = (apiData) => {
         shared: true
       },
       noData: {
-        text: 'No data available',
+        text: "No data available",
         align: 'center',
-        verticalAlign: 'middle'
+        verticalAlign: 'middle',
+        style: {
+          color: "#666",
+          fontSize: '14px'
+        }
       }
     };
 

@@ -6,8 +6,8 @@ import router from './router'
 import axios from 'axios'
 
 const $api = axios.create({
-  baseURL: 'http://127.0.0.1:5001/api',
-  // baseURL: 'https://iot.spintermarine.co.th/api',
+  // baseURL: 'http://127.0.0.1:5001/api',
+  baseURL: 'https://iot.spintermarine.co.th/api',
   headers: {
     'Content-Type': 'application/json'
   }

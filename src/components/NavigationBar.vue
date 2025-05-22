@@ -55,6 +55,7 @@
     >
       <v-list v-model:opened="open">
         <v-list-item 
+          v-if="isAdmin"
           prepend-icon="mdi-home" 
           title="Home" 
           :to="{ name: 'Homepage' }"
@@ -196,6 +197,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import { inject, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -208,6 +210,31 @@ const devices = ref([]);
 const bargeDevices = ref({});
 const tugboatRiverDevices = ref([]);
 const tugboatSeaDevices = ref([]);
+
+const getUserPosition = () => {
+  const memberPermission = localStorage.getItem('member');
+  const memberPermissionList = JSON.parse(memberPermission);
+  return memberPermissionList.Position;
+};
+
+// const canAccessBarge = computed(() => {
+//   const position = getUserPosition();
+//   const bargePositions = [
+//     'Barge Karaket', 'Barge Supharat', 'Barge Chamchuri',
+//     'Barge Ladawan', 'Barge Kaentawan', 'Barge Bunga', 'Barge Thongarun'
+//   ];
+//   return bargePositions.includes(position);
+// });
+
+// const canAccessSpecificBarge = (typeDeviceName) => {
+//   const position = getUserPosition();
+//   return position === typeDeviceName;
+// };
+
+const isAdmin = computed(() => {
+  const position = getUserPosition();
+  return position === 'Admin';
+});
 
 const fetchDeviceList = async () => {
   try {
@@ -279,9 +306,9 @@ watch(devices, () => {
   drawer.value = false;
 });
 
-onMounted(() => {
+onMounted(async() => {
   accountName();
-  fetchDeviceList();
+  await fetchDeviceList();
 });
 </script>
 
