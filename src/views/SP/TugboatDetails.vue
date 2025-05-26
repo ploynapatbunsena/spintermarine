@@ -150,6 +150,11 @@ const gauges = ref([
   { type: 'RPM', title: 'RPM', unit: 'RPM' }
 ]);
 
+// sound
+const audioPlayed = ref(false);
+const prevDangerCount = ref(0);
+const alertSound = ref(null);
+
 const initialize = async () => {
   const menuPermission = localStorage.getItem('menuPermission');
   if (!menuPermission) {
@@ -251,8 +256,8 @@ const updateDevicePosition = () => {
       const longitude = parseFloat(longitudeMeasurement.lastValue);
       const latitude = parseFloat(latitudeMeasurement.lastValue);
 
-      const lat = parseFloat(latitude) / 1000000;
-      const lng = parseFloat(longitude) / 1000000;
+      const lat = parseFloat(latitude);
+      const lng = parseFloat(longitude);
 
       if (!isNaN(lng) && !isNaN(lat)) {
         position.value = [ lat, lng ];
@@ -384,6 +389,35 @@ const getDangerCount = (device) => {
   return device?.MeasurementsAlertCount?.find(item => 'AlertDangerTotal' in item)?.AlertDangerTotal || 0;
 };
 
+const totalDangerCount = computed(() => {
+  if (!devices.value.length) return 0;
+  return devices.value.reduce((total, device) => {
+    return total + (device?.MeasurementsAlertCount?.find(item => 'AlertDangerTotal' in item)?.AlertDangerTotal || 0);
+  }, 0);
+});
+
+const playAlertSound = () => {
+  if (!alertSound.value) {
+    alertSound.value = new Audio('/alert-sound.mp3');
+    alertSound.value.volume = 0.1;
+  }
+  
+  alertSound.value.play().catch(e => console.error('Error playing sound:', e));
+};
+
+watch(totalDangerCount, (newCount, oldCount) => {
+  if (!audioPlayed.value && newCount > 0) {
+    playAlertSound();
+    audioPlayed.value = true;
+  }
+  else if (newCount > oldCount) {
+    playAlertSound();
+  }
+  
+  prevDangerCount.value = newCount;
+}, { immediate: true });
+// sound
+
 const getMeasurementValue = (measurementName) => {
   if (!devices.value.length) return 0;
   const device = devices.value[0];
@@ -422,7 +456,7 @@ const getGaugeOptions = (measurementName, device) => {
       break;
       
     case 'Oil Pressure':
-      needlePercentage = (measurement.lastValue / measurement.valuemax) * 100;
+      needlePercentage = (lastValue / measurement.valuemax) * 100;
       colors = ['#F44336', '#FFD54F', '#3DCC5B'];
       delimiters = [
         (measurement.thresholdmindanger / measurement.valuemax) * 100,

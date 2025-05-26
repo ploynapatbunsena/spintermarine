@@ -6,7 +6,7 @@
           :headers="headers"
           :items="notices"
           item-value="name"
-          items-per-page="4"
+          items-per-page="3"
           hide-default-footer
           class="elevation-0 striped-table custom-table custom-scroll"
           style="font-size: 1.5vh;"
@@ -36,7 +36,7 @@ defineProps({
   notices: {
     type: Array,
     default: () => []
-  },
+  }
 });
 
 const headers = [

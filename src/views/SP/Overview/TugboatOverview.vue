@@ -6,7 +6,7 @@
       <v-row v-if="!isLoading">
         <v-col cols="12" class="title">Tugboat</v-col>
         <v-row class="cover mt-3 pa-3">
-          <v-img :src="require('@/assets/Images/river_going_cover.png')" class="text-white">
+          <v-img :src="require('@/assets/Images/river_going_cover.png')">
             <div class="text-cover">
               <p class="name-thai">เรือน้ำจืด</p>
               <p class="name-eng">River Going</p>
@@ -16,51 +16,64 @@
             <v-col 
               v-for="tugboat in tugboatRiverDevices" 
               :key="tugboat.TypeDevicename" 
-              cols="12" sm="6" lg="4" xxl="3"
+              cols="12" sm="6" lg="4"
             >
-              <v-card class="h-100 rounded-lg" 
+              <v-card 
+                class="h-100"
                 @click="goToTugboatDetails(tugboat.Devices[0].DeviceId)" 
                 hover
               >
                 <v-row no-gutters>
-                  <v-col cols="4">
+                  <v-col cols="12" md="12" lg="4" style="padding: 1vh;">
                     <v-img 
                       :src="getDeviceImage(tugboat.Devices[0])"
-                      height="150" 
+                      height="300"
                       cover 
-                      class="ma-2 rounded-lg"
+                      class="rounded-lg image-cover"
                     ></v-img>
                   </v-col>
-                  <v-col cols="8">
+                  <v-col cols="12" lg="8">
                     <v-card-item>
-                      <div class="d-flex justify-space-between align-center">
-                        <div>
-                          <v-card-title class="px-0">{{ tugboat.TypeDevicename }}</v-card-title>
-                          <v-card-subtitle class="px-0 thai-letters">เรือ{{ tugboat.Devices[0]?.Note ?? 'N/A' }}</v-card-subtitle>
-                        </div>
-                        <div class="alert-icon mr-4">
+                      <v-row class="pt-7">
+                        <v-col cols="8" lg="8">
+                          <v-row>
+                            <v-col cols="12" class="pb-0">
+                              <v-card-title class="header px-0">{{ tugboat.TypeDevicename }}</v-card-title>
+                            </v-col>
+                          </v-row>
+                          <v-row>
+                            <v-col cols="12" class="pt-0">
+                              <v-card-subtitle class="header-thai">เรือ{{ tugboat.Devices[0]?.Note ?? 'N/A' }}</v-card-subtitle>
+                            </v-col>
+                          </v-row>
+                        </v-col>
+                        <v-col cols="4">
                           <AlertBadges
                             :warningCount="getAlertCount(tugboat.Devices[0], 'warning')"
                             :dangerCount="getAlertCount(tugboat.Devices[0], 'danger')"
                           />
-                        </div>
-                      </div>
-                      <div class="mt-6">
-                        <div class="status-panel d-flex align-items-center" :class="getStatusClass(tugboat.status)">
-                          <span class="material-symbols-rounded status-icon" :class="getStatusClass(tugboat.status)">
-                            {{ getStatusIcon(tugboat.status) }}
-                          </span>
-                          <div class="text-status ml-2" :class="getStatusClass(tugboat.status)">
-                            {{ tugboat.status || 'Unknown' }}
+                        </v-col>
+                      </v-row>
+                      <v-row>
+                        <v-col cols="12">
+                          <div class="status-panel d-flex align-items-center" :class="getStatusClass(tugboat.status)">
+                            <span class="material-symbols-rounded status-icon" :class="getStatusClass(tugboat.status)">
+                              {{ getStatusIcon(tugboat.status) }}
+                            </span>
+                            <div class="text-status ml-2" :class="getStatusClass(tugboat.status)">
+                              {{ tugboat.status || 'Unknown' }}
+                            </div>
                           </div>
-                        </div>
-                        <div class="due-date d-flex justify-space-between mt-2" :class="getBottomLineClass(tugboat.status)">
-                          <span class="thai-letters" v-if="tugboat.status === 'Maintenance'">กำหนดเสร็จ</span>
-                          <span class="thai-letters" v-else-if="tugboat.status === 'Pending'">เข้าซ่อม</span>
-                          <span class="thai-letters" v-else-if="tugboat.status === 'Running'"><br></span>
-                          {{ tugboat.date || 'N/A' }}
-                        </div>
-                      </div>
+                        </v-col>
+                        <v-col cols="12" class="pt-0">
+                          <div class="due-date d-flex justify-space-between" :class="getBottomLineClass(tugboat.status)">
+                            <span class="thai-letters" v-if="tugboat.status === 'Maintenance'">กำหนดเสร็จ</span>
+                            <span class="thai-letters" v-else-if="tugboat.status === 'Pending'">เข้าซ่อม</span>
+                            <span class="thai-letters" v-else-if="tugboat.status === 'Running'"><br></span>
+                            {{ tugboat.date || 'N/A' }}
+                          </div>
+                        </v-col>
+                      </v-row>
                     </v-card-item>
                   </v-col>
                 </v-row>
@@ -71,7 +84,7 @@
   
         <!-- Sea Going Section -->
         <v-row class="cover mt-3 pa-3">
-          <v-img :src="require('@/assets/Images/sea_going_cover.png')" class="text-white">
+          <v-img :src="require('@/assets/Images/sea_going_cover.png')">
             <div class="text-cover">
               <p class="name-thai">เรือน้ำทะเล</p>
               <p class="name-eng">Sea Going</p>
@@ -89,45 +102,56 @@
                 hover
               >
                 <v-row no-gutters>
-                  <v-col cols="4">
+                  <v-col cols="12" md="12" lg="4" style="padding: 1vh;">
                     <v-img 
                       :src="getDeviceImage(tugboat.Devices[0])"
-                      height="150" 
+                      height="300"
                       cover 
-                      class="ma-2 rounded-lg"
+                      class="rounded-lg image-cover"
                     ></v-img>
                   </v-col>
-                  <v-col cols="8">
+                  <v-col cols="12" lg="8">
                     <v-card-item>
-                      <div class="d-flex justify-space-between align-center">
-                        <div>
-                          <v-card-title class="px-0">{{ tugboat.TypeDevicename }}</v-card-title>
-                          <v-card-subtitle class="px-0 thai-letters">เรือ{{ tugboat.Devices[0]?.Note ?? 'N/A' }}</v-card-subtitle>
-                        </div>
-                        <div class="alert-icon mr-4">
+                      <v-row class="pt-7">
+                        <v-col cols="8" lg="8">
+                          <v-row>
+                            <v-col cols="12" class="pb-0">
+                              <v-card-title class="header px-0">{{ tugboat.TypeDevicename }}</v-card-title>
+                            </v-col>
+                          </v-row>
+                          <v-row>
+                            <v-col cols="12" class="pt-0">
+                              <v-card-subtitle class="header-thai">เรือ{{ tugboat.Devices[0]?.Note ?? 'N/A' }}</v-card-subtitle>
+                            </v-col>
+                          </v-row>
+                        </v-col>
+                        <v-col cols="4">
                           <AlertBadges
                             :warningCount="getAlertCount(tugboat.Devices[0], 'warning')"
                             :dangerCount="getAlertCount(tugboat.Devices[0], 'danger')"
                           />
-                        </div>
-                      </div>
-                      <div class="mt-6">
-                        <div class="status-panel d-flex align-items-center" :class="getStatusClass(tugboat.status)">
-                          <span class="material-symbols-rounded status-icon" :class="getStatusClass(tugboat.status)">
-                            {{ getStatusIcon(tugboat.status) }}
-                          </span>
-                          <div class="text-status ml-2" :class="getStatusClass(tugboat.status)">
-                            {{ tugboat.status || 'Unknown' }}
+                        </v-col>
+                      </v-row>
+                      <v-row>
+                        <v-col cols="12">
+                          <div class="status-panel d-flex align-items-center" :class="getStatusClass(tugboat.status)">
+                            <span class="material-symbols-rounded status-icon" :class="getStatusClass(tugboat.status)">
+                              {{ getStatusIcon(tugboat.status) }}
+                            </span>
+                            <div class="text-status ml-2" :class="getStatusClass(tugboat.status)">
+                              {{ tugboat.status || 'Unknown' }}
+                            </div>
                           </div>
-                        </div>
-                        <div class="due-date d-flex justify-space-between mt-2" :class="getBottomLineClass(tugboat.status)">
-                          <span class="thai-letters" v-if="tugboat.status === 'Maintenance'">กำหนดเสร็จ</span>
-                          <span class="thai-letters" v-else-if="tugboat.status === 'Pending'">เข้าซ่อม</span>
-                          <span class="thai-letters" v-else-if="tugboat.status === 'Down'">ยกเลิกใช้งาน</span>
-                          <span class="thai-letters" v-else-if="tugboat.status === 'Running'"><br></span>
-                          {{ tugboat.date || 'N/A' }}
-                        </div>
-                      </div>
+                        </v-col>
+                        <v-col cols="12" class="pt-0">
+                          <div class="due-date d-flex justify-space-between" :class="getBottomLineClass(tugboat.status)">
+                            <span class="thai-letters" v-if="tugboat.status === 'Maintenance'">กำหนดเสร็จ</span>
+                            <span class="thai-letters" v-else-if="tugboat.status === 'Pending'">เข้าซ่อม</span>
+                            <span class="thai-letters" v-else-if="tugboat.status === 'Running'"><br></span>
+                            {{ tugboat.date || 'N/A' }}
+                          </div>
+                        </v-col>
+                      </v-row>
                     </v-card-item>
                   </v-col>
                 </v-row>
@@ -252,10 +276,16 @@ const processTugboatData = ( tugboats, cmmsData ) => {
   })
 };
 
+// const getDeviceImage = (device) => {
+//   return device?.DeviceImage 
+//     ? require(`@/assets/ImageForm/${device.DeviceImage}`)
+//     : require('@/assets/ImageForm/default.jpg');
+// };
+
 const getDeviceImage = (device) => {
   return device?.DeviceImage 
-    ? require(`@/assets/ImageForm/${device.DeviceImage}`)
-    : require('@/assets/ImageForm/default.jpg');
+    ? `/ImageForm/${device.DeviceImage}`
+    : '/ImageForm/default.jpg';
 };
 
 const getAlertCount = (device, type) => {
@@ -325,6 +355,9 @@ onMounted(async() => {
 </script>
 
 <style lang="scss" scoped>
+.v-card {
+  border-radius: 1vh;
+}
 
 .title {
   display: flex;
@@ -342,6 +375,7 @@ onMounted(async() => {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  color: #FFFFFF;
 
   & .name-thai {
     font-family: 'Sarabun', serif;
@@ -354,8 +388,22 @@ onMounted(async() => {
   }
 }
 
+@media (min-width: 320px) and (max-width: 480px) {
+  .text-cover {
+    left: 50%;
+    transform: translate(-50%, -50%);
+    align-items: center;
+    text-align: center;
+  }
+}
+
+.header {
+  font-size: 2vh;
+  font-weight: bold;
+}
+
 .material-symbols-rounded {
-  font-size: 24px;
+  font-size: 2vh;
 
   font-variation-settings:
   'FILL' 1,
@@ -387,6 +435,7 @@ onMounted(async() => {
 .due-date {
   position: relative;
   padding-bottom: 8px;
+  font-size: 1.5vh;
 }
 
 .bottom-line-running::after,
@@ -399,7 +448,8 @@ onMounted(async() => {
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 2px;
+  height: 0.2vh;
+  border-radius: 10px;
 }
 
 .bottom-line-running::after {
@@ -422,8 +472,26 @@ onMounted(async() => {
   background-color: #C0C0C0;
 }
 
-.thai-letters {
+.header-thai {
   font-family: 'Sarabun', serif;
+  font-size: 1.5vh;
+  font-weight: 400;
+  color: #A0A0A0;
 }
 
+.text-status {
+  font-size: 1.5vh;
+}
+
+@media (min-width: 2560px) {
+  .image-cover {
+    height: 12vh;
+  }
+}
+
+@media (min-width: 1920px) and (max-width: 2560px) {
+  .image-cover {
+    max-height: 180px;
+  }
+}
 </style>

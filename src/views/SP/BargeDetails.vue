@@ -183,8 +183,8 @@
             <v-row>
               <!-- Tilt Barge -->
               <v-col md="4" sm="4" cols="12">
-                <v-card class="pa-4 rounded-xl">
-                  <h2 class="d-flex align-center justify-center fill-height pb-2 text-h6 text-lg-h6 text-xxl-h4" style="font-family: 'Sarabun', sans-serif;">ระดับความเอียงทุ่น</h2>
+                <v-card class="pa-4 rounded-xl h-100">
+                  <h2 class="d-flex align-center justify-center pb-2 text-h6 text-lg-h6 text-xxl-h4" style="font-family: 'Sarabun', sans-serif;">ระดับความเอียงทุ่น</h2>
                   <!-- Barge Img -->
                   <v-row>
                     <v-col cols="12" lg="6" >
@@ -221,7 +221,7 @@
               </v-col>
               <!-- Map -->
               <v-col md="4" sm="4" cols="12">
-                <v-card class="pa-2 rounded-xl h-100">
+                <v-card class="rounded-xl h-100">
                   <MapOfBarge 
                     :position="bargePosition"
                     :wind-speed="coordinates.windSpeed"
@@ -401,7 +401,7 @@ const totalDangerCount = computed(() => {
 const playAlertSound = () => {
   if (!alertSound.value) {
     alertSound.value = new Audio('/alert-sound.mp3');
-    alertSound.value.volume = 0.5;
+    alertSound.value.volume = 0.1;
   }
   
   alertSound.value.play().catch(e => console.error('Error playing sound:', e));

@@ -32,7 +32,7 @@ const props = defineProps({
 const oilPercentage = computed(() => {
   if (props.totalCapacity <= 0) return 0;
   const percentage = (props.remainingVolume / props.totalCapacity) * 100;
-  return Math.max(0, Math.min(100, percentage)).toFixed(1);
+  return Math.max(0, Math.min(100, percentage)).toFixed(2);
 });
 </script>
   

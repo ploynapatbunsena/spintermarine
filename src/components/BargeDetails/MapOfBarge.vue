@@ -54,7 +54,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, watch, onBeforeUnmount, nextTick } from 'vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-compass';
@@ -100,7 +100,8 @@ const currentDirection = computed(() => {
 });
 
 // ตั้งค่า map และ marker
-onMounted(() => {
+onMounted(async() => {
+  await nextTick();
   map.value = L.map('map').setView([props.position.lat, props.position.lng], 13);
   
   L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
@@ -108,7 +109,6 @@ onMounted(() => {
     attribution: '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a>'
   }).addTo(map.value);
 
-  // Custom icon
   const customIcon = L.icon({
     iconUrl: markerIconUrl,
     iconSize: [52, 52],

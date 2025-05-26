@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import qs from 'qs'
 
 const routes = [
   {
@@ -73,7 +74,7 @@ const routes = [
     path: "/NotificationReport",
     name: "NotificationReport",
     component: () => import("../views/SP/Report/NotificationReport.vue"),
-    meta: { title: "Notification Report" }
+    meta: { title: "Notification Report" },
   },
   {
     path: "/HistoricalChart",
@@ -154,7 +155,32 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes: routes,
+
+  parseQuery(query) {
+    return qs.parse(query);
+  },
+  stringifyQuery(query) {
+    return qs.stringify(query, { encode: true, arrayFormat: 'brackets' });
+  },
 });
+
+// ฟังก์ชันสำหรับเข้ารหัส Route Parameters
+router.encodeParams = (params) => {
+  const encoded = {};
+  for (const [key, value] of Object.entries(params)) {
+    encoded[key] = encodeURIComponent(value);
+  }
+  return encoded;
+};
+
+// ฟังก์ชันสำหรับถอดรหัส Route Parameters
+router.decodeParams = (params) => {
+  const decoded = {};
+  for (const [key, value] of Object.entries(params)) {
+    decoded[key] = decodeURIComponent(value);
+  }
+  return decoded;
+};
 
 // Global Navigation Guard
 router.beforeEach((to, from, next) => {

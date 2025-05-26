@@ -6,8 +6,8 @@ import router from './router'
 import axios from 'axios'
 
 const $api = axios.create({
-  // baseURL: 'http://127.0.0.1:5001/api',
-  baseURL: 'https://iot.spintermarine.co.th/api',
+  baseURL: 'http://127.0.0.1:5001/api',
+  // baseURL: 'https://iot.spintermarine.co.th/api',
   headers: {
     'Content-Type': 'application/json'
   }
@@ -50,9 +50,9 @@ const $api_cmms = axios.create({
     'Content-Type': 'application/json',
     'Cookie': '__Secure-Fgp=bc9b23842a2a504b9d93dfe359487a81ab5db833847ff62248ad293dbafbf6bb56ac9ec51680f47be04c4ac3083d2fbae5f4; Path=/; Secure; HttpOnly',
     'Authorization': `Bearer ${CMMS_ACCESS_TOKEN}`,
-    'Access-Control-Allow-Origin': '*'
+    // 'Access-Control-Allow-Origin': '*'
   },
-  withCredentials: true
+  // withCredentials: true
 });
 
 const $api_vessel = axios.create({
@@ -146,11 +146,18 @@ authenticate_Vessel().catch(err => {
 });
 
 loadFonts()
-createApp(App)
+
+const app = createApp(App)
+
+app.config.globalProperties.$encode = (value) => {
+  return encodeURIComponent(value)
+}
+
+app
   .use(vuetify)
   .use(router)
   .provide('$api', $api)
   .provide('$api_cmms', $api_cmms)
   .provide('open_api_company', open_api_company)
   .provide('$api_vessel', $api_vessel)
-  .mount('#app');
+  .mount('#app')

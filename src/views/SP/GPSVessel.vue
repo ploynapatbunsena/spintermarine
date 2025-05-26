@@ -38,9 +38,12 @@
         </div>
         <div>
           <TransportTable 
-           :selectedBoat="selectedBoatData" 
-           :updateShipPosition="updateShipPositionOnMap" 
-           :devices="devices"
+            :selectedBoat="selectedBoatData" 
+            :updateMapMarkers="updateMapMarkers" 
+            :devices="devices"
+            :allVessels="allVessels"
+            :vesselShips="vesselShips"
+            :allJobs="allJobs"
          />
         </div>
       </div>
@@ -73,6 +76,9 @@ const loading = ref(false);
 const error = ref(null);
 const position = [13.1486, 100.8122];
 const shipMarkers = ref([]);
+const allVessels = ref([]);
+const vesselShips = ref({});
+const allJobs = ref([]);
 
 const fetchAllTugboats = async () => {
   try {
@@ -101,6 +107,38 @@ const fetchAllTugboats = async () => {
     devices.value = [];
   } finally {
     loading.value = false;
+  }
+};
+
+const fetchAllVessels = async () => {
+  try {
+    const saleOrdersResponse = await $api_vessel.get('/all-sale-orders');
+    const saleOrderIds = saleOrdersResponse.data.data.data.map(order => order.id);
+
+    for (const id of saleOrderIds) {
+      const jobResponse = await $api_vessel.get('/sale-orders-by-id', {
+        params: { keyword: id }
+      });
+      const job = jobResponse.data.data.data;
+      allJobs.value.push(job);
+      console.log('job', job);
+      
+      
+      
+      if (job.vessel_name) {
+        allVessels.value.push(job.vessel_name);
+        console.log('allVessels', allVessels.value);
+        
+        
+        if (job.jobs_miiot?.job_ship?.ship) {
+          vesselShips.value[job.vessel_name] = job.jobs_miiot.job_ship.ship;
+        }
+        console.log('vesselShips', vesselShips.value);
+        
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching vessels:', error);
   }
 };
 
@@ -156,7 +194,8 @@ const fetchDeviceData = async (specificDeviceId) => {
       }
     } catch (apiError) {
       console.error('Error fetching job data:', apiError);
-      error.value = new Error('Failed to fetch job data. Token may be invalid or server is unavailable.');
+      error.value = new Error('Server is unavailable.');
+      // error.value = new Error('Failed to fetch job data. Token may be invalid or server is unavailable.');
     }
 
     selectedBoatData.value = {
@@ -220,37 +259,6 @@ const processTugboatData = (tugboats, cmmsData) => {
   });
 };
 
-const updateShipPositionOnMap = (latitude, longitude) => {
-  shipMarkers.value.forEach(marker => {
-    if (marker && map.value) {
-      map.value.removeLayer(marker);
-    }
-  });
-  shipMarkers.value = [];
-
-  if (!latitude || !longitude || !map.value) return;
-
-  const lat = parseFloat(latitude) / 1000000;
-  const lng = parseFloat(longitude) / 1000000;
-
-  console.log('lat, lng', lat, lng);
-  
-
-  const shipIcon = L.divIcon({
-    className: 'custom-ship-icon',
-    html: `<div style="color: #194185;">
-            <i class="mdi mdi-sail-boat" style="font-size: 30px;"></i>
-          </div>`,
-    iconSize: [30, 30]
-  });
-
-  const marker = L.marker([lat, lng], { icon: shipIcon })
-    .addTo(map.value);
-
-  shipMarkers.value.push(marker);
-  map.value.setView([lat, lng], 12);
-};
-
 const initMap = () => {
   map.value = L.map('map').setView(position, 10);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -259,22 +267,50 @@ const initMap = () => {
   }).addTo(map.value);
 };
 
-const updateMapMarkers = () => {
+const updateMapMarkers = (options = {}) => {
   boatMarkers.value.forEach(marker => {
     if (marker && map.value) {
       marker.off();
       map.value.removeLayer(marker);
     }
   });
+  shipMarkers.value.forEach(marker => {
+    if (marker && map.value) {
+      map.value.removeLayer(marker);
+    }
+  });
 
   boatMarkers.value = [];
+  shipMarkers.value = [];
 
+  // Case 1: Update vessel
+  if (options.type === 'vessel' && options.latitude && options.longitude) {
+    const lat = parseFloat(options.latitude);
+    const lng = parseFloat(options.longitude);
+
+    const shipIcon = L.divIcon({
+      className: 'custom-ship-icon',
+      html: `<div style="color: #979a9a;">
+              <i class="mdi mdi-ferry" style="font-size: 30px;"></i>
+            </div>`,
+      iconSize: [30, 30]
+    });
+
+    const marker = L.marker([lat, lng], { icon: shipIcon })
+      .addTo(map.value);
+
+    shipMarkers.value.push(marker);
+    map.value.setView([lat, lng], 12);
+    return;
+  }
+
+  // Case 2: Update tugboat
   if (selectedBoats.value && selectedBoatData.value && map.value) {
     const tugboat = selectedBoatData.value;
     const latitude = tugboat.Mesurement?.find(m => m.measurementname === 'Latitude')?.lastValue;
     const longitude = tugboat.Mesurement?.find(m => m.measurementname === 'Longitude')?.lastValue;
-    const lat = latitude ? parseFloat(latitude) / 1000000 : position[0];
-    const lng = longitude ? parseFloat(longitude) / 1000000 : position[1];
+    const lat = latitude ? parseFloat(latitude) : position[0];
+    const lng = longitude ? parseFloat(longitude) : position[1];
 
     const boatIcon = L.divIcon({
       className: 'custom-boat-icon',
@@ -364,6 +400,7 @@ const emitSelectedBoats = () => {
 onMounted(async () => {
   initMap();
   await fetchAllTugboats();
+  await fetchAllVessels();
 });
 
 watch(() => route.params.deviceId, async (newDeviceId) => {

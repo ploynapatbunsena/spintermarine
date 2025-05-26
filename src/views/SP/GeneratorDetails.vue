@@ -205,6 +205,10 @@ const getGaugeOptions = (measurementName, device) => {
   
   const measurement = device.Mesurement.find(m => m.measurementname === measurementName);
   if (!measurement) return {};
+
+  const lastValue = measurement.lastValue === null || isNaN(parseFloat(measurement.lastValue)) 
+    ? 0 
+    : parseFloat(measurement.lastValue);
   
   let needlePercentage = 0;
   let colors = [];
@@ -213,18 +217,19 @@ const getGaugeOptions = (measurementName, device) => {
   
   switch (measurementName) {
     case 'Actual Power':
-      // needlePercentage = เข็มควรอยู่ตรงไหนบน gauge โดยเทียบเป็น 100 ส่วน
-      needlePercentage = (parseFloat(measurement.lastValue) / measurement.valuemax) * 100;
+      needlePercentage = (lastValue / measurement.valuemax) * 100;
       colors = ['#3DCC5B', '#FFD54F', '#F44336'];
       delimiters = [
         (measurement.thresholdminwarning / measurement.valuemax) * 100,
         (measurement.thresholdmindanger / measurement.valuemax) * 100,
       ];
+      console.log(measurement.lastValue );
+      
       labels = [measurement.thresholdminwarning, measurement.thresholdmindanger];
       break;
       
     case 'Oil Pressure':
-      needlePercentage = (parseFloat(measurement.lastValue) / measurement.valuemax) * 100;
+      needlePercentage = (lastValue / measurement.valuemax) * 100;
       colors = ['#F44336', '#FFD54F', '#3DCC5B'];
       delimiters = [
         (measurement.thresholdmindanger / measurement.valuemax) * 100,
@@ -234,7 +239,7 @@ const getGaugeOptions = (measurementName, device) => {
       break;
       
     case 'Water Temp':
-      needlePercentage = (parseFloat(measurement.lastValue) / measurement.valuemax) * 100;
+      needlePercentage = (lastValue / measurement.valuemax) * 100;
       colors = ['#3DCC5B', '#FFD54F', '#F44336'];
       delimiters = [
         (measurement.thresholdminwarning / measurement.valuemax) * 100,
@@ -244,7 +249,7 @@ const getGaugeOptions = (measurementName, device) => {
       break;
       
     case 'RPM':
-      needlePercentage = (parseFloat(measurement.lastValue) / measurement.valuemax) * 100;
+      needlePercentage = (lastValue / measurement.valuemax) * 100;
       colors = ['#3DCC5B', '#FFD54F', '#F44336'];
       delimiters = [
         (measurement.thresholdminwarning / measurement.valuemax) * 100,
@@ -310,7 +315,7 @@ const totalDangerCount = computed(() => {
 const playAlertSound = () => {
   if (!alertSound.value) {
     alertSound.value = new Audio('/alert-sound.mp3');
-    alertSound.value.volume = 0.5;
+    alertSound.value.volume = 0.1;
   }
   
   alertSound.value.play().catch(e => console.error('Error playing sound:', e));

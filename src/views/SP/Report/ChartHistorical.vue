@@ -190,6 +190,7 @@ import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
 import { useRouter } from 'vue-router';
 
+const measurementLoading = ref(false);
 const $api = inject('$api');
 const router = useRouter();
 const loading = ref(true);
@@ -245,6 +246,8 @@ const initialize = async () => {
 
 const fetchDeviceData = async () => {
   try {
+    loading.value = true;
+
     const [bargeResponse, riverResponse, seaResponse] = await Promise.all([
       $api.get('/MachineStatus/GetDeviceBargesGrouped'),
       $api.get('/MachineStatus/GetTugboatRiver'),
@@ -262,12 +265,14 @@ const fetchDeviceData = async () => {
   } catch (error) {
     console.error('Failed to fetch device data:', error);
     error.value = 'Failed to load device list. Please try again.';
+  } finally {
+    loading.value = false;
   }
 };
 
 const fetchMeasurementList = async () => {
   try {
-    loading.value = true;
+    measurementLoading.value = true;
 
     if (!selectedDevices.value) {
       measurementList.value = [];
@@ -292,7 +297,7 @@ const fetchMeasurementList = async () => {
     measurementList.value = [];
     selectedMeasurement.value = null;
   } finally {
-    loading.value = false;
+    measurementLoading.value = false;
   }
 };
 
@@ -356,9 +361,9 @@ const deviceOptions = computed(() => {
 });
 
 const handleTypeChange = () => {
+  selectedMeasurement.value = null;
   selectedDevices.value = null;
   measurementList.value = [];
-  selectedMeasurement.value = null;
 };
 
 const resetFilters = () => {
@@ -416,15 +421,18 @@ const searchRecords = async () => {
       }
     });
 
-    if (!response.data || response.data.length === 0) {
-      throw new Error('ไม่พบข้อมูลสำหรับเงื่อนไขที่เลือก');
-    }
+    console.log(response.data);
+    
+
+    // if (!response.data || response.data.length === 0) {
+    //   throw new Error('ไม่พบข้อมูลสำหรับเงื่อนไขที่เลือก');
+    // }
 
     const apiData = response.data[0];
     
-    if (!apiData.Xdata || !apiData.Ydata || !apiData.Ydata[0] || !apiData.Ydata[0].data) {
-      throw new Error('รูปแบบข้อมูลจาก API ไม่ถูกต้อง');
-    }
+    // if (!apiData.Xdata || !apiData.Ydata || !apiData.Ydata[0] || !apiData.Ydata[0].data) {
+    //   throw new Error('รูปแบบข้อมูลจาก API ไม่ถูกต้อง');
+    // }
 
     prepareChartData(apiData);
     isChartLoaded.value = true;

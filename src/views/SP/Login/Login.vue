@@ -34,6 +34,7 @@
                       v-model="email"
                       placeholder="Enter your email"
                       :class="{ 'error-input' : errors.email}"
+                      autocomplete="username"
                     >
                     <span class="error-text" v-if="errors.email">{{ errors.email }}</span>
                   </div>
@@ -45,6 +46,7 @@
                         v-model="password"
                         placeholder="Enter your password"
                         :class="{ 'error-input' : errors.password}"
+                        autocomplete="current-password"
                       >
                       <v-icon
                         @click="togglePassword"

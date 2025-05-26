@@ -17,20 +17,21 @@
               hover
             >
               <v-row no-gutters>
-                <v-col cols="12" lg="4" style="padding: 1vh;">
+                <v-col cols="12" md="12" lg="4" style="padding: 1vh;">
                   <v-img
+                    height="300"
+                    class="rounded-lg image-cover"
                     :src="getCurrentDeviceImage(device)"
                     cover
-                    class="rounded-lg"
                   ></v-img>
                 </v-col>
                 <v-col cols="12" lg="8">
                   <v-card-item>
-                    <v-row class="pt-6">
+                    <v-row class="pt-7">
                       <v-col cols="8" lg="8">
                         <v-row>
                           <v-col cols="12" class="pb-0">
-                            <p class="header px-0">{{ device.TypeDevicename }}</p>
+                            <v-card-title class="header px-0">{{ device.TypeDevicename }}</v-card-title>
                           </v-col>
                         </v-row>
                         <v-row>
@@ -185,8 +186,8 @@ const getCurrentDeviceImage = computed(() => {
     const masterDevice = device.Devices?.find(d => d.DeviceName === 'Barge Master');
     
     return masterDevice?.DeviceImage 
-      ? require(`@/assets/ImageForm/${masterDevice.DeviceImage}`)
-      : require('@/assets/Images/profile_barge.jpg');
+      ? `/ImageForm/${masterDevice.DeviceImage}`
+      : '/ImageForm/default.jpg';
   };
 });
 
@@ -270,18 +271,22 @@ onMounted(async () => {
 
 .bottom-line-blue {
   border: 0.2vh solid #2196F3;
+  border-radius: 10px;
 }
 
 .bottom-line-green {
   border: 0.2vh solid #4CAF50;
+  border-radius: 10px;
 }
 
 .bottom-line-grey {
   border: 0.2vh solid #9E9E9E;
+  border-radius: 10px;
 }
 
 .bottom-line-black {
   border: 0.2vh solid #000000;
+  border-radius: 10px;
 }
 
 .material-symbols-rounded {
@@ -301,7 +306,7 @@ onMounted(async () => {
 
 .header {
   font-size: 2vh;
-  font-weight: 600;
+  font-weight: bold;
 }
 
 .header-thai {
@@ -309,5 +314,17 @@ onMounted(async () => {
   font-size: 1.5vh;
   font-weight: 400;
   color: #A0A0A0;
+}
+
+@media (min-width: 2560px) {
+  .image-cover {
+    height: 12vh;
+  }
+}
+
+@media (min-width: 1920px) and (max-width: 2560px) {
+  .image-cover {
+    max-height: 180px;
+  }
 }
 </style>

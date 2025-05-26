@@ -43,7 +43,7 @@
                   item-value="jobOrder"
                   class="elevation-0 striped-table custom-table"
                   :items-per-page-options="[3, 5, 10, -1]"
-                  :items-per-page="3"
+                  :items-per-page="5"
                   :footer-props="{
                     'show-first-last-page': true,
                     'show-current-page': true
@@ -134,10 +134,17 @@
                 >
                   <template v-slot:item="{ item }">
                     <tr>
-                      <td>{{ item.name }}</td>
-                      <td>{{ item.vessel_name }}</td>
-                      <td>{{ item.doc_no }}</td>
-                      <td>{{ item.product_name || 'N/A' }}</td>
+                      <template v-if="item.name != 'N/A'">
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.vessel_name }}</td>
+                        <td>{{ item.doc_no }}</td>
+                        <td>{{ item.product_name || 'N/A' }}</td>
+                      </template>
+                      <template v-else>
+                        <td colspan="4" class="text-center no-data-cell">
+                          No Data Available
+                        </td>
+                      </template>
                     </tr>
                   </template>
                 </v-data-table>
@@ -146,7 +153,7 @@
           </v-card-text>
         </v-card>
         <v-card v-else class="card rounded-lg elevation-0">
-          <v-card-text>Please select a tugboat to view details.</v-card-text>
+          <v-card-text>No Data Available.</v-card-text>
         </v-card>
       </v-col>
     </v-row>
@@ -161,17 +168,12 @@ const $api = inject('$api');
 const localSelectedBoat = ref(null);
 const selectedVessel = ref(null);
 const props = defineProps({
-  selectedBoat: {
-    type: Object,
-    default: null,
-  },
-  updateShipPosition: {
-    type: Function,
-    required: true
-  },
-  devices: {
-    type: Array
-  }
+  selectedBoat: Object,
+  updateMapMarkers: Function,
+  devices: Array,
+  allVessels: Array,
+  vesselShips: Object,
+  allJobs: Array
 });
 
 const tugboatHeaders = [
@@ -191,9 +193,7 @@ const vesselHeaders = [
   { title: 'Cargo', value: 'product_name' },
 ];
 
-const vesselList = computed(() => {
-  return props.selectedBoat?.allVessels || [];
-});
+const vesselList = computed(() => props.allVessels || []);
 
 const tugboatTableData = computed(() => {
   if (!props.selectedBoat?.jobs?.length) return [];
@@ -211,24 +211,34 @@ const tugboatTableData = computed(() => {
 });
 
 const vesselTableData = computed(() => {
-  if (!selectedVessel.value || !props.selectedBoat?.jobs) return [];
+  if (!selectedVessel.value || !props.allJobs) return [];
   
-  return props.selectedBoat.jobs
-    .filter(job => job.vessel_name === selectedVessel.value)
+  console.log('props.allJobs', props.allJobs);
+  console.log('selectedVessel', selectedVessel.value);
+
+  return props.allJobs
+    .filter(job => job?.vessel_name === selectedVessel.value)
     .flatMap(job => {
+      // ดึงข้อมูล ship และ transports
+      const ship = job.jobs_miiot?.job_ship?.ship;
       const transports = job.jobs_miiot?.job_ship?.job_ship_transport_ships || [];
       
+      console.log('Ship:', ship?.name);
+      console.log('Transports:', transports);
+
+      // กรณีมีข้อมูล transports
       if (transports.length > 0) {
         return transports.map(transport => ({
-          name: job.jobs_miiot?.job_ship?.ship?.name || 'N/A',
+          name: ship?.name  || 'N/A',
           vessel_name: job.vessel_name || 'N/A',
           doc_no: job.doc_no || 'N/A',
-          product_name: transport.job_transport_ships?.product?.name || 'N/A',
+          product_name: transport?.job_transport_ships?.product?.name || 'N/A',
         }));
       }
-      
+
+      // กรณีไม่มีข้อมูลใดๆ
       return [{
-        name: job.jobs_miiot?.job_ship?.ship?.name || 'N/A',
+        name: 'N/A',
         vessel_name: job.vessel_name || 'N/A',
         doc_no: job.doc_no || 'N/A',
         product_name: 'N/A',
@@ -239,46 +249,57 @@ const vesselTableData = computed(() => {
 const toggleVessel = async (vessel) => {
   if (selectedVessel.value === vessel) {
     selectedVessel.value = null;
-    localSelectedBoat.value = props.selectedBoat;
   } else {
     selectedVessel.value = vessel;
-    localSelectedBoat.value = null;
+    console.log('Selected Vessel:', selectedVessel.value);
     
-    const vesselShip = props.selectedBoat.vesselShips?.[vessel];
+    if (!props.vesselShips) {
+      console.error('vesselShips is undefined');
+      return;
+    }
+    
+    const vesselShip = props.vesselShips[vessel];
+    
+    if (!vesselShip) {
+      console.error(`No vesselShip found for vessel: ${vessel}`);
+      return;
+    }
     console.log('vesselShip', vesselShip);
     
     if (vesselShip?.name) {
-      // ค้นหาอุปกรณ์จากชื่อเรือ (Note)
       const matchingDevice = props.devices.find(device => 
         device.Note?.trim() === vesselShip.name.trim()
       );
-
+      console.log('matchingDevice', matchingDevice);
+      
       if (!matchingDevice) {
-        console.warn('No device found for ship:', vesselShip.name);
+        console.error(`No matching device found for ship: ${vesselShip.name}`);
         return;
       }
 
       try {
-        // ดึงข้อมูลอุปกรณ์แบบละเอียด
         const deviceResponse = await $api.get('/MachineStatus/GetDeviceByDeviceId', {
           params: { deviceid: matchingDevice.DeviceId }
         });
         
         if (deviceResponse.data && deviceResponse.data.length > 0) {
           const shipDevice = deviceResponse.data[0];
-          props.updateShipPosition(
-            shipDevice.Mesurement?.find(m => m.measurementname === 'Latitude')?.lastValue,
-            shipDevice.Mesurement?.find(m => m.measurementname === 'Longitude')?.lastValue,
-            vessel,
-            vesselShip.name
-          );
+          // props.updateShipPosition(
+          //   shipDevice.Mesurement?.find(m => m.measurementname === 'Latitude')?.lastValue,
+          //   shipDevice.Mesurement?.find(m => m.measurementname === 'Longitude')?.lastValue,
+          //   vessel,
+          //   vesselShip.name
+          // );
+          props.updateMapMarkers({
+            type: 'vessel',
+            latitude: shipDevice.Mesurement?.find(m => m.measurementname === 'Latitude')?.lastValue,
+            longitude: shipDevice.Mesurement?.find(m => m.measurementname === 'Longitude')?.lastValue,
+            vesselName: vessel,
+            shipName: vesselShip.name
+          });
         }
       } catch (error) {
-        console.error('Error fetching ship device:', {
-          error: error.message,
-          deviceId: matchingDevice.DeviceId,
-          shipName: vesselShip.name
-        });
+        console.error('Error fetching ship device:', error);
       }
     }
   }

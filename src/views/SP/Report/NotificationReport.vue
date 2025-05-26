@@ -376,6 +376,20 @@ const formatTimeShow = (datetime) => {
   }
 };
 
+const formatTimeShow_T = (datetime) => {
+  if (datetime==null) {
+    return null
+  } else {
+    var dateTime = new Date(datetime);
+    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
+    var day = ("0" + dateTime.getDate()).slice(-2);
+    var year = dateTime.getFullYear();
+    var hour = ("0" + dateTime.getHours()).slice(-2);
+    var minute = ("0" + dateTime.getMinutes()).slice(-2);
+    return year + "-" + month + "-" + day + "T" + hour + ":" + minute;
+  }
+};
+
 const formatDateForFilename = (date) => {
   if (!date) return '';
   const dateTime = new Date(date);
@@ -531,7 +545,7 @@ const searchRecords = async () => {
     showResult.value = false;
 
     const requestBody = {
-      DeviceId: selectedDevices.value
+      DeviceId: selectedDevices.value,
     };
 
     if (selectedMeasurement.value?.length > 0) {
@@ -557,16 +571,19 @@ const searchRecords = async () => {
     }
 
     const params = {};
-    if (startDate.value) {params.start = adjustTime(startDate.value);}
-    if (endDate.value) { params.end = adjustTime(endDate.value);}
+    if (startDate.value) {params.start = formatTimeShow_T(startDate.value);}
+    if (endDate.value) { params.end = formatTimeShow_T(endDate.value);}
 
     const config = params.start || params.end 
       ? { params } 
       : {};
 
-    const response = await $api.put('/device/notificationlistStatus', requestBody, config);
+    console.log(requestBody, config);
     
-    const filteredData = response.data.filter(item => item.Title.includes("Danger"));
+    const response = await $api.put('/device/notificationlistStatus', requestBody, config);
+    console.log(response);
+    
+    const filteredData = response.data
 
     tableData.value = filteredData.map(item => ({
       date: item.AlertTime,
@@ -579,6 +596,8 @@ const searchRecords = async () => {
     }));
 
     showResult.value = true;
+    console.log(tableData.value);
+    
 
   } catch (error) {
     console.error('Failed to fetch notification list:', error);
@@ -587,12 +606,6 @@ const searchRecords = async () => {
   } finally {
     searchLoading.value = false;
   }
-};
-
-const adjustTime = (date) => {
-  const adjustedDate = new Date(date);
-  adjustedDate.setHours(adjustedDate.getHours() + 7);
-  return adjustedDate.toISOString();
 };
 
 const headers = [
