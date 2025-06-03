@@ -13,48 +13,143 @@ const $api = axios.create({
   }
 });
 
+// $api.interceptors.request.use(
+//   (config) => {
+//     const token = localStorage.getItem('accessToken')
+//     if (token) {
+//       config.headers.Authorization = `Bearer ${token}`
+//     }
+//     return config
+//   },
+//   (error) => {
+//     return Promise.reject(error)
+//   }
+// );
+
+// $api.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     if (error.response?.status === 401) {
+//       console.log('Token expired or invalid, redirecting to login');
+//       localStorage.removeItem('accessToken');
+//       localStorage.removeItem('member');
+//       localStorage.removeItem('menuPermission');
+//       router.push('/login');
+//     }
+//     return Promise.reject(error);
+//   }
+// );
+
+let isRefreshingMFEC = false;
+let failedRequestsQueue = [];
+
+const processQueueMFEC = (error, token = null) => {
+  failedRequestsQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedRequestsQueue = [];
+};
+
 $api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken')
+    const token = localStorage.getItem('accessToken');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    return config
+    return config;
   },
   (error) => {
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
 );
 
 $api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      console.log('Token expired or invalid, redirecting to login');
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('member');
-      localStorage.removeItem('menuPermission');
-      router.push('/login');
+  async (error) => {
+    const originalRequest = error.config;
+    
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshingMFEC) {
+        return new Promise((resolve, reject) => {
+          failedRequestsQueue.push({ resolve, reject });
+        }).then(token => {
+          originalRequest.headers['Authorization'] = 'Bearer ' + token;
+          return $api(originalRequest);
+        }).catch(err => {
+          return Promise.reject(err);
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshingMFEC = true;
+
+      try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (!refreshToken) {
+          throw new Error('No refresh token available');
+        }
+
+        const response = await $api.get('/Member/refresh', {
+          refreshToken: refreshToken
+        });
+
+        const newAccessToken = response.data.accessToken; // ตรวจสอบ field name ใน response ว่าตรงกัน
+        localStorage.setItem('accessToken', newAccessToken);
+        
+        // Update the Authorization header
+        $api.defaults.headers.common['Authorization'] = 'Bearer ' + newAccessToken;
+        originalRequest.headers['Authorization'] = 'Bearer ' + newAccessToken;
+        
+        // Process queued requests
+        processQueueMFEC(null, newAccessToken);
+        
+        // Retry the original request
+        return $api(originalRequest);
+      } catch (refreshError) {
+        console.error('Refresh token failed:', refreshError);
+        processQueueMFEC(refreshError, null);
+        
+        // Clear storage and redirect to login
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('member');
+        localStorage.removeItem('menuPermission');
+        
+        if (router.currentRoute.path !== '/login') {
+          router.push('/login');
+        }
+        
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshingMFEC = false;
+      }
     }
+    
     return Promise.reject(error);
   }
 );
 
+// CMMS
 const CMMS_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRmluZ2VycHJpbnQiOiI0RkI1NTc1NDM3MEQzNEU0N0ZGRTg5RTVCNkY1RjM1MEI2NjJEQkM1N0U3QzhERTgwOUYyN0M0RkQ1RjYzNUY5IiwiaWF0IjoxNzQ3MzAyMjQxfQ.QZSdwjlA_Syz4uixhCrOm0szyp2UP3plh6UdPkg1CLw';
 const open_api_company = 'f655b52094e9fa4ddeb3fbc770b9dce95d954c8de3a95692fdd59a12ad543513';
 
-// CMMS
 const $api_cmms = axios.create({
   baseURL: 'https://test-openapi-public.systemstone.com/',
   headers: {
     'Content-Type': 'application/json',
     'Cookie': '__Secure-Fgp=bc9b23842a2a504b9d93dfe359487a81ab5db833847ff62248ad293dbafbf6bb56ac9ec51680f47be04c4ac3083d2fbae5f4; Path=/; Secure; HttpOnly',
     'Authorization': `Bearer ${CMMS_ACCESS_TOKEN}`,
-    // 'Access-Control-Allow-Origin': '*'
+    'Access-Control-Allow-Origin': '*'
   },
-  // withCredentials: true
+  withCredentials: true
 });
 
+
+// Vessel
 const $api_vessel = axios.create({
   baseURL: 'http://dev.spintermarine.co.th:2053/services/api-miiot/auth-miiot',
   headers: {
@@ -148,10 +243,6 @@ authenticate_Vessel().catch(err => {
 loadFonts()
 
 const app = createApp(App)
-
-app.config.globalProperties.$encode = (value) => {
-  return encodeURIComponent(value)
-}
 
 app
   .use(vuetify)

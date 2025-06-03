@@ -25,11 +25,11 @@
               >
                 <v-row no-gutters>
                   <v-col cols="12" md="12" lg="4" style="padding: 1vh;">
-                    <v-img 
-                      :src="getDeviceImage(tugboat.Devices[0])"
+                    <v-img
+                      :src="tugboat.previewImage"
                       height="300"
                       cover 
-                      class="rounded-lg image-cover"
+                      class="rounded-lg image-cover h-100"
                     ></v-img>
                   </v-col>
                   <v-col cols="12" lg="8">
@@ -38,7 +38,7 @@
                         <v-col cols="8" lg="8">
                           <v-row>
                             <v-col cols="12" class="pb-0">
-                              <v-card-title class="header px-0">{{ tugboat.TypeDevicename }}</v-card-title>
+                              <v-card-title class="header px-0">{{ deletePrefix(tugboat.TypeDevicename) }}</v-card-title>
                             </v-col>
                           </v-row>
                           <v-row>
@@ -54,7 +54,7 @@
                           />
                         </v-col>
                       </v-row>
-                      <v-row>
+                      <v-row class="mt-2 mt-sm-4">
                         <v-col cols="12">
                           <div class="status-panel d-flex align-items-center" :class="getStatusClass(tugboat.status)">
                             <span class="material-symbols-rounded status-icon" :class="getStatusClass(tugboat.status)">
@@ -97,17 +97,17 @@
               cols="12" sm="6" lg="4"
             >
               <v-card 
-                class="h-100 rounded-lg" 
+                class="h-100" 
                 @click="goToTugboatDetails(tugboat.Devices[0].DeviceId)" 
                 hover
               >
                 <v-row no-gutters>
                   <v-col cols="12" md="12" lg="4" style="padding: 1vh;">
                     <v-img 
-                      :src="getDeviceImage(tugboat.Devices[0])"
+                      :src="tugboat.previewImage"
                       height="300"
                       cover 
-                      class="rounded-lg image-cover"
+                      class="rounded-lg image-cover h-100"
                     ></v-img>
                   </v-col>
                   <v-col cols="12" lg="8">
@@ -116,7 +116,7 @@
                         <v-col cols="8" lg="8">
                           <v-row>
                             <v-col cols="12" class="pb-0">
-                              <v-card-title class="header px-0">{{ tugboat.TypeDevicename }}</v-card-title>
+                              <v-card-title class="header px-0">{{ deletePrefix(tugboat.TypeDevicename) }}</v-card-title>
                             </v-col>
                           </v-row>
                           <v-row>
@@ -178,7 +178,7 @@
 import NavigationBar from "@/components/NavigationBar.vue";
 import SpaceBar from '@/components/SpaceBar.vue';
 import AlertBadges from "@/components/BargeDetails/AlertBadges.vue";
-import { inject, onMounted, ref } from "vue";
+import { inject, onMounted, onUnmounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 const $api = inject('$api');
@@ -188,6 +188,7 @@ const router = useRouter();
 const tugboatRiverDevices = ref([]);
 const tugboatSeaDevices = ref([]);
 const isLoading = ref(true);
+let intervalId = null;
 
 const initialize = async () => {
   const menuPermission = localStorage.getItem('menuPermission');
@@ -209,9 +210,8 @@ const fetchTugboatRiver = async () => {
 
     const response = await $api.get('/MachineStatus/GetTugboatRiver');
     const cmmsData = await fetchCMMSStatus(response.data);
-    tugboatRiverDevices.value = processTugboatData(response.data, cmmsData);
-    
-    console.log(tugboatRiverDevices.value);
+    const enrichedData = await enrichTugboatWithImage(processTugboatData(response.data, cmmsData));
+    tugboatRiverDevices.value = enrichedData;
   } catch (error) {
     console.error('Failed to fetch tugboat river:', error);
   } finally {
@@ -225,14 +225,25 @@ const fetchTugboatSea = async () => {
 
     const response = await $api.get('/MachineStatus/GetTugboatSea');
     const cmmsData = await fetchCMMSStatus(response.data);
-    tugboatSeaDevices.value = processTugboatData(response.data, cmmsData);
-
-    console.log(tugboatSeaDevices.value);
+    const enrichedData = await enrichTugboatWithImage(processTugboatData(response.data, cmmsData));
+    tugboatSeaDevices.value = enrichedData;
   } catch (error) {
     console.error('Failed to fetch tugboat sea:', error);
   } finally {
     isLoading.value = false;
   }
+};
+
+// 👇 ส่วนที่ใช้ดึงภาพจริงจาก API
+const enrichTugboatWithImage = async (tugboatData) => {
+  const promises = tugboatData.map(async (tugboat) => {
+    const imageId = tugboat.Devices?.[0]?.DeviceImage;
+        const imageResponse = await $api.get(`/Device/Image/${imageId}`);
+        tugboat.previewImage = imageResponse.data?.src;
+    return tugboat;
+  });
+
+  return await Promise.all(promises);
 };
 
 const fetchCMMSStatus = async (tugboats) => {
@@ -276,16 +287,8 @@ const processTugboatData = ( tugboats, cmmsData ) => {
   })
 };
 
-// const getDeviceImage = (device) => {
-//   return device?.DeviceImage 
-//     ? require(`@/assets/ImageForm/${device.DeviceImage}`)
-//     : require('@/assets/ImageForm/default.jpg');
-// };
-
-const getDeviceImage = (device) => {
-  return device?.DeviceImage 
-    ? `/ImageForm/${device.DeviceImage}`
-    : '/ImageForm/default.jpg';
+const deletePrefix = (name) => {
+  return name.replace(/Barge|Tugboat/gi, '').trim();
 };
 
 const getAlertCount = (device, type) => {
@@ -344,13 +347,31 @@ const getBottomLineClass = (status) => {
 
 const goToTugboatDetails = (deviceId) => {
   router.push({ name: 'TugboatDetail', params: { deviceId: deviceId } });
-  
+};
+
+const fetchDataWithInterval = async () => {
+  await fetchTugboatRiver();
+  await fetchTugboatSea();
+};
+
+const startDataInterval = () => {intervalId = setInterval(fetchDataWithInterval, 2 * 60 * 1000);};
+
+const stopDataInterval = () => {
+  if (intervalId) {
+    clearInterval(intervalId);
+    intervalId = null;
+  }
 };
 
 onMounted(async() => {
-  initialize();
-  await fetchTugboatRiver();
-  await fetchTugboatSea();
+  console.log('Component mounted');
+  await initialize();
+  await fetchDataWithInterval();
+  startDataInterval();
+});
+
+onUnmounted(() => {
+  stopDataInterval();
 });
 </script>
 

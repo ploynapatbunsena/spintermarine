@@ -7,7 +7,7 @@
         <v-row v-for="device in devices" :key="device.DeviceId">
           <v-col cols="12" class="position-relative d-flex align-center">
             <div style="width: 10vh;"></div>
-            <div class="title flex-grow-1 text-center">{{ device.DeviceLabel }}</div>
+            <div class="title flex-grow-1 text-center">{{ deletePrefix(device.DeviceName) }}</div>
             <div style="width: 10vh;">
               <AlertBadges
                 :warningCount="getWarningCount(device)"
@@ -88,7 +88,17 @@
                   <div class="notification-header">
                     <v-card-title class="header">Notification</v-card-title>
                     <v-card-title>
-                      <router-link :to="{ name: 'NotificationReport'}">
+                      <router-link 
+                        :to="{
+                          name: 'NotificationReport',
+                          query: {
+                            vehicle: devices[0]?.TypeVehicle,
+                            device: devices[0]?.DeviceId,
+                            measurements: 'all',
+                            statuses: 'false'
+                          }
+                        }"
+                      >
                         <v-icon icon="mdi-pencil" class="edit"></v-icon>
                       </router-link>
                     </v-card-title>
@@ -115,7 +125,7 @@
 </template>
 
 <script setup>
-import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -144,6 +154,7 @@ const deviceId = ref(route.params.deviceId);
 const chartWidth = ref(0);
 const isDataLoaded = ref(false);
 const noti = ref([]);
+let intervalId = null;
 const gauges = ref([
   { type: 'Water Temp', title: 'Water Temperature', unit: '°C' },
   { type: 'Oil Pressure', title: 'Oil Pressure', unit: 'bar' },
@@ -211,8 +222,7 @@ const fetchNotification = async () => {
         console.error(`Failed to fetch notifications for DeviceId ${device.DeviceId}:`, err);
       }
     }
-
-    console.log("Notifications:", noti.value);
+    // console.log("Notifications:", noti.value);
   } catch (err) {
     error.value = 'Failed to fetch notifications. Please try again later.';
     console.error(err);
@@ -309,6 +319,10 @@ const mappedNotices = computed(() => {
     status: item.IsAccept ? 'ดำเนินการเสร็จสิ้น' : 'รอแจ้งซ่อม',
   }));
 });
+
+const deletePrefix = (name) => {
+  return name.replace(/Barge|Tugboat/gi, '').trim();
+};
 
 const filteredMeasurements = computed(() => {
   if (!devices.value.length) return {};
@@ -488,9 +502,9 @@ const getGaugeOptions = (measurementName, device) => {
     arcDelimiters: delimiters,
     arcColors: colors,
     arcLabels: labels,
-    rangeLabel: ['0', measurementName === 'Water Temp' ? '120' :
-                measurementName === 'Oil Pressure' ? '5' :
-                measurementName === 'RPM' ? '4000' : 
+    rangeLabel: ['0', measurementName === 'Water Temp' ? measurement.valuemax.toString() :
+                measurementName === 'Oil Pressure' ? measurement.valuemax.toString() :
+                measurementName === 'RPM' ? measurement.valuemax.toString() : 
                 measurement.valuemax.toString()],
     rangeLabelFontSize: window.innerWidth < 600 ? 8 : 10,
     arcLabelFontSize: window.innerWidth < 600 ? 6 : 8,
@@ -500,19 +514,38 @@ const getGaugeOptions = (measurementName, device) => {
   };
 };
 
-onMounted(async () => {
-  initialize();
+const fetchDataWithInterval = async () => {
   await fetchDeviceData();
+  await fetchNotification();
+};
+
+const startDataInterval = () => {intervalId = setInterval(fetchDataWithInterval, 2 * 60 * 1000);};
+
+const stopDataInterval = () => {
+  if (intervalId) {
+    clearInterval(intervalId);
+    intervalId = null;
+  }
+};
+
+onMounted(async () => {
+  console.log('Component mounted');
+  await initialize();
+  await fetchDataWithInterval();
+  startDataInterval();
   isDataLoaded.value = true;
-  // initializeMap();
   updateChartSize();
-  fetchNotification();
   window.addEventListener('resize', updateChartSize);
 });
 
-onBeforeUnmount(() => {
+onUnmounted(() => {
+  console.log('Component unmounted');
   window.removeEventListener('resize', updateChartSize);
-   if (map.value) { map.value.remove(); map.value = null;}
+  if (map.value) { 
+    map.value.remove(); 
+    map.value = null;
+  }
+  stopDataInterval();
 });
 
 watch(position, () => {

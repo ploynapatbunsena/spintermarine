@@ -14,7 +14,7 @@
           <template v-slot:item="{ item }">
             <tr class="custom-row">
               <td>{{ formatTimeShow(item.date) }}</td>
-              <td>{{ item.name }}</td>
+              <td>{{ deletePrefix(item.name) }}</td>
               <td>{{ item.measuremnet }}</td>
               <td>{{ item.details }}</td>
               <td>
@@ -59,6 +59,10 @@ const formatTimeShow = (datetime) => {
     var minute = ("0" + dateTime.getMinutes()).slice(-2);
     return year + "-" + month + "-" + day + " " + hour + ":" + minute;
   }
+};
+
+const deletePrefix = (name) => {
+  return name.replace(/Barge|Tugboat/gi, '').trim();
 };
 </script>
 

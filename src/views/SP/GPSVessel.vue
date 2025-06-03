@@ -6,7 +6,44 @@
       <div class="filter-container">
         <v-navigation-drawer v-model="open" width="350">
           <v-list>
-            <v-list-item class="py-4 ml-6 title" title="Tugboat"></v-list-item>
+            <v-list-item class="py-2 title text-center">Tugboat</v-list-item>
+            <v-divider></v-divider>
+            <v-list-item>
+              <v-row>
+                <v-col cols="3" class="d-flex align-center">
+                  <v-tooltip text="กำลังทำงาน">
+                    <template v-slot:activator="{ props }">
+                      <v-icon v-bind="props" icon="mdi-square" size="16" color="#009688" class="me-1"></v-icon>
+                    </template>
+                  </v-tooltip>
+                  <span style="font-size: 1.5vh;">Running</span>
+                </v-col>
+                <v-col cols="3" class="d-flex align-center">
+                  <v-tooltip text="รอเข้าซ่อม">
+                    <template v-slot:activator="{ props }">
+                      <v-icon v-bind="props" icon="mdi-square" size="16" color="#FAC12A" class="me-1"></v-icon>
+                    </template>
+                  </v-tooltip>
+                  <span style="font-size: 1.5vh;">Pending</span>
+                </v-col>
+                <v-col cols="3" class="d-flex align-center">
+                  <v-tooltip text="ดำเนินการซ่อม">
+                    <template v-slot:activator="{ props }">
+                      <v-icon v-bind="props" icon="mdi-square" size="16" color="#DC2B2B" class="me-1"></v-icon>
+                    </template>
+                  </v-tooltip>
+                  <span class="text-truncate" style="font-size: 1.5vh;">Maintenance</span>
+                </v-col>
+                <v-col cols="3" class="d-flex align-center">
+                  <v-tooltip text="ปิดการใช้งาน">
+                    <template v-slot:activator="{ props }">
+                      <v-icon v-bind="props" icon="mdi-square" size="16" color="#000000" class="me-1"></v-icon>
+                    </template>
+                  </v-tooltip>
+                  <span style="font-size: 1.5vh;">Down</span>
+                </v-col>
+              </v-row>
+            </v-list-item>
             <v-divider></v-divider>
             <v-list-item 
               v-for="tugboat in devices" 
@@ -26,7 +63,7 @@
               </template>
               <div class="d-flex align-center">
                 <v-icon class="mx-3" :class="getStatusClass(tugboat)">mdi-ferry</v-icon>
-                <span>{{ tugboat.DeviceName }}</span>
+                <span>{{ deletePrefix(tugboat.DeviceName) }}</span>
               </div>
             </v-list-item>
           </v-list>
@@ -53,7 +90,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, inject } from 'vue';
+import { ref, onMounted, watch, inject, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -79,6 +116,7 @@ const shipMarkers = ref([]);
 const allVessels = ref([]);
 const vesselShips = ref({});
 const allJobs = ref([]);
+let intervalId  = null;
 
 const fetchAllTugboats = async () => {
   try {
@@ -194,7 +232,7 @@ const fetchDeviceData = async (specificDeviceId) => {
       }
     } catch (apiError) {
       console.error('Error fetching job data:', apiError);
-      error.value = new Error('Server is unavailable.');
+      // error.value = new Error('Server is unavailable.');
       // error.value = new Error('Failed to fetch job data. Token may be invalid or server is unavailable.');
     }
 
@@ -311,6 +349,8 @@ const updateMapMarkers = (options = {}) => {
     const longitude = tugboat.Mesurement?.find(m => m.measurementname === 'Longitude')?.lastValue;
     const lat = latitude ? parseFloat(latitude) : position[0];
     const lng = longitude ? parseFloat(longitude) : position[1];
+    console.log('พิกัด', lat, lng);
+    
 
     const boatIcon = L.divIcon({
       className: 'custom-boat-icon',
@@ -339,6 +379,10 @@ const updateMapMarkers = (options = {}) => {
 
 const getStatusText = (tugboat) => {
   return tugboat.status || 'Unknown';
+};
+
+const deletePrefix = (name) => {
+  return name.replace(/Barge|Tugboat/gi, '').trim();
 };
 
 const mapCMMSStatus = (cmmsStatus) => {
@@ -397,10 +441,29 @@ const emitSelectedBoats = () => {
   }
 };
 
-onMounted(async () => {
-  initMap();
+const fetchDataWithInterval = async () => {
   await fetchAllTugboats();
   await fetchAllVessels();
+};
+
+const startDataInterval = () => {intervalId = setInterval(fetchDataWithInterval, 2 * 60 * 1000);};
+
+const stopDataInterval = () => {
+  if (intervalId) {
+    clearInterval(intervalId);
+    intervalId = null;
+  }
+};
+
+onMounted(async () => {
+  console.log('Component mounted');
+  initMap();
+  await fetchDataWithInterval();
+  startDataInterval();
+});
+
+onUnmounted(() => {
+  stopDataInterval();
 });
 
 watch(() => route.params.deviceId, async (newDeviceId) => {
@@ -419,6 +482,10 @@ watch(() => route.params.deviceId, async (newDeviceId) => {
 </script>
 
 <style scoped>
+.title {
+  font-size: 3vh;
+  font-weight: bold;
+}
 .top-space {
   height: 64px;
 }

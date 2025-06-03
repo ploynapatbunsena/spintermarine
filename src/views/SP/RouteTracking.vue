@@ -35,6 +35,7 @@ const boatMarkers = ref([]);
 const selectedBoats = ref([]);
 const tugboatData = ref({});
 const locationUpdateInterval = ref(null);
+// let intervalId = null; 
 
 const initialize = async () => {
   const menuPermission = localStorage.getItem('menuPermission');
@@ -225,13 +226,11 @@ const createBoatMarker = (boatInfo) => {
           transportShipNameDiv.textContent = transportShip || 'N/A';
         }
 
-        // อัปเดตข้อมูลเรือขนส่งที่ไม่มีสินค้า
         const transportShipNoProductDiv = document.getElementById(`transport-ship-no-product-name-${deviceId}`);
         if (transportShipNoProductDiv) {
           transportShipNoProductDiv.textContent = transportShipNoProduct || 'N/A';
         }
 
-        // ส่วนอื่นๆ เหมือนเดิม
         const leftDiv = document.getElementById(`boat-measurements-left-${deviceId}`);
         const rightDiv = document.getElementById(`boat-measurements-right-${deviceId}`);
       
@@ -320,6 +319,20 @@ const updateSelectedBoats = (boats) => {
   updateMapMarkers();
 };
 
+// const fetchDataWithInterval = async () => {
+//   await fetchTugboatRiver();
+//   await fetchTugboatSea();
+// };
+
+// const startDataInterval = () => {intervalId = setInterval(fetchDataWithInterval, 2 * 60 * 1000);};
+
+// const stopDataInterval = () => {
+//   if (intervalId) {
+//     clearInterval(intervalId);
+//     intervalId = null;
+//   }
+// };
+
 onMounted(async() => {
   await initialize();
   await nextTick();
@@ -329,7 +342,7 @@ onMounted(async() => {
     if (selectedBoats.value.length > 0) {
       updateMapMarkers();
     }
-  }, 30000);
+  }, 2 * 60 * 1000);
 });
 
 onUnmounted(() => {

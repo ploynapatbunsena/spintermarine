@@ -96,9 +96,9 @@
                   <v-menu>
                     <template v-slot:activator="{ props }">
                       <v-btn
+                        :disabled="!permissionExport('0101020600') || !showResult"
                         class="download-btn elevation-0 text-none"
                         v-bind="props"
-                        :disabled="!showResult"
                       >
                         Download
                       </v-btn>
@@ -166,6 +166,7 @@ const selectedTugboats = ref([]);
 const startDate = ref(null);
 const endDate = ref(null);
 const chart = ref(null);
+const permission = ref(null);
 
 const deviceError = ref('');
 const startDateError = ref('');
@@ -208,11 +209,19 @@ const initialize = async () => {
   }
 
   const permissionList = JSON.parse(menuPermission);
-  const permission = permissionList.find(item => item.MenuId === '0101020600');
-
-  if (!permission || !permission.IsActive) {
+  const foundPermission = permissionList.find(item => item.MenuId === '0101020600');
+  permission.value = foundPermission;
+  
+  if (!foundPermission || !foundPermission.IsActive) {
     return router.push('/Homepage');
   }
+};
+
+const permissionExport = (menuId) => {
+  if (!permission.value || permission.value.MenuId !== menuId) {
+    return false;
+  }
+  return permission.value?.IsExport;
 };
 
 const fetchTugboatData = async () => {

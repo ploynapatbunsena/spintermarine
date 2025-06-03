@@ -37,7 +37,7 @@
                 <td>{{ item.position }}</td>
                 <td>{{ item.email }}</td>
                 <td>{{ item.phoneNumber }}</td>
-                <td>{{ item.createDateTime }}</td>
+                <td>{{ formatTimeShow(item.createDateTime) }}</td>
                 <td class="action" :class="{ 'text-green': item.IsActive, 'text-red': !item.IsActive }">
                   {{ item.IsActive ? 'Active' : 'Inactive' }}
                 </td>
@@ -152,6 +152,20 @@ const fetchDeviceList = async () => {
     filteredItems.value = mappedItems.filter(item => item.IsActive);
   } catch (error) {
     console.error('Failed to fetch Profile list:', error);
+  }
+};
+
+const formatTimeShow = (datetime) => {
+  if (datetime==null) {
+    return null
+  } else {
+    var dateTime = new Date(datetime);
+    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
+    var day = ("0" + dateTime.getDate()).slice(-2);
+    var year = dateTime.getFullYear();
+    var hour = ("0" + dateTime.getHours()).slice(-2);
+    var minute = ("0" + dateTime.getMinutes()).slice(-2);
+    return year + "-" + month + "-" + day + " " + hour + ":" + minute;
   }
 };
 

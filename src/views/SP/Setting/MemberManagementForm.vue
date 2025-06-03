@@ -8,10 +8,17 @@
         <v-col cols="12">
           <v-card>
             <v-card-text class="card-text">
-              <div class="header">
-                <span class="material-symbols-rounded">person_edit</span>
-                <p>Personal Profile and Contact</p>
-              </div>
+              <v-row>
+                <v-col cols="12" class="d-flex justify-start align-center ga-4">
+                  <span class="material-symbols-rounded">person_edit</span>
+                  <p style="font-size: 2vh; font-weight: bold;">Personal Profile and Contact</p>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12">
+                  <p class="detail" style="color: #C0C0C0;">หมายเหตุ: หากท่านต้องการเปลี่ยนรหัสผ่านบัญชีโปรดติดต่อ MFEC</p>
+                </v-col>
+              </v-row>
               <v-row>
                 <v-col cols="12" sm="12" lg="6">
                   <div class="device-detail">
@@ -83,7 +90,7 @@
       </v-row>
       <v-row>
         <v-col cols="12">
-          <v-card class="mt-6">
+          <v-card>
             <v-data-table
               v-model="selected"
               :headers="headers"
@@ -92,6 +99,177 @@
               :items-per-page="-1"
               class="striped-table custom-table"
             >
+              <!-- Custom column headers with tooltips -->
+              <template v-slot:[`header.IsRead`]="{ column }">
+                <div class="d-flex align-center justify-center">
+                  <span>{{ column.title }}</span>
+                  <v-tooltip bottom max-width="400px">
+                    <template v-slot:activator="{ props }">
+                      <v-icon v-bind="props" size="16" color="primary" class="ml-1">
+                        mdi-information-outline
+                      </v-icon>
+                    </template>
+                    <div class="tooltip-content">
+                      <div class="font-weight-bold mb-1">Read</div>
+                      <div class="text-body-2 detail mb-1">ยังไม่เปิดให้ใช้งาน</div>
+                    </div>
+                  </v-tooltip>
+                </div>
+              </template>
+
+              <template v-slot:[`header.IsWrite`]="{ column }">
+                <div class="d-flex align-center justify-center">
+                  <span>{{ column.title }}</span>
+                  <v-tooltip bottom max-width="400px">
+                    <template v-slot:activator="{ props }">
+                      <v-icon v-bind="props" size="16" color="primary" class="ml-1">
+                        mdi-information-outline
+                      </v-icon>
+                    </template>
+                    <div class="tooltip-content">
+                      <div class="font-weight-bold mb-1">Write</div>
+                      <div class="text-body-2 detail mb-1">ผู้ใช้สามารถ แก้ไขหรือลงข้อมูล ในแบบฟอร์มหรือตารางที่กำหนดได้</div>
+                    </div>
+                  </v-tooltip>
+                </div>
+              </template>
+
+              <template v-slot:[`header.IsCheck`]="{ column }">
+                <div class="d-flex align-center justify-center">
+                  <span>{{ column.title }}</span>
+                  <v-tooltip bottom max-width="400px">
+                    <template v-slot:activator="{ props }">
+                      <v-icon v-bind="props" size="16" color="primary" class="ml-1">
+                        mdi-information-outline
+                      </v-icon>
+                    </template>
+                    <div class="tooltip-content">
+                      <div class="font-weight-bold mb-1">Check</div>
+                      <div class="text-body-2 detail mb-1">ยังไม่เปิดให้ใช้งาน</div>
+                    </div>
+                  </v-tooltip>
+                </div>
+              </template>
+
+              <template v-slot:[`header.IsApprove`]="{ column }">
+                <div class="d-flex align-center justify-center">
+                  <span>{{ column.title }}</span>
+                  <v-tooltip bottom max-width="400px">
+                    <template v-slot:activator="{ props }">
+                      <v-icon v-bind="props" size="16" color="primary" class="ml-1">
+                        mdi-information-outline
+                      </v-icon>
+                    </template>
+                    <div class="tooltip-content">
+                      <div class="font-weight-bold mb-1">Approve</div>
+                      <div class="text-body-2 detail mb-1">ยังไม่เปิดให้ใช้งาน</div>
+                    </div>
+                  </v-tooltip>
+                </div>
+              </template>
+
+              <template v-slot:[`header.IsAccept`]="{ column }">
+                <div class="d-flex align-center justify-center">
+                  <span>{{ column.title }}</span>
+                  <v-tooltip bottom max-width="400px">
+                    <template v-slot:activator="{ props }">
+                      <v-icon v-bind="props" size="16" color="primary" class="ml-1">
+                        mdi-information-outline
+                      </v-icon>
+                    </template>
+                    <div class="tooltip-content">
+                      <div class="font-weight-bold mb-1">Accept</div>
+                      <div class="text-body-2 detail mb-1">ผู้ใช้สามารถ บันทึกข้อมูล (Save) ที่กรอกหรือแก้ไขไว้ในระบบได้</div>
+                    </div>
+                  </v-tooltip>
+                </div>
+              </template>
+
+              <template v-slot:[`header.IsAcknowledge`]="{ column }">
+                <div class="d-flex align-center justify-center">
+                  <span>{{ column.title }}</span>
+                  <v-tooltip bottom max-width="400px">
+                    <template v-slot:activator="{ props }">
+                      <v-icon v-bind="props" size="16" color="primary" class="ml-1">
+                        mdi-information-outline
+                      </v-icon>
+                    </template>
+                    <div class="tooltip-content">
+                      <div class="font-weight-bold mb-1">Acknowledge</div>
+                      <div class="text-body-2 detail mb-1">ยังไม่เปิดให้ใช้งาน</div>
+                    </div>
+                  </v-tooltip>
+                </div>
+              </template>
+
+              <template v-slot:[`header.IsPrint`]="{ column }">
+                <div class="d-flex align-center justify-center">
+                  <span>{{ column.title }}</span>
+                  <v-tooltip bottom max-width="400px">
+                    <template v-slot:activator="{ props }">
+                      <v-icon v-bind="props" size="16" color="primary" class="ml-1">
+                        mdi-information-outline
+                      </v-icon>
+                    </template>
+                    <div class="tooltip-content">
+                      <div class="font-weight-bold mb-1">Print</div>
+                      <div class="text-body-2 detail mb-1">ยังไม่เปิดให้ใช้งาน</div>
+                    </div>
+                  </v-tooltip>
+                </div>
+              </template>
+
+              <template v-slot:[`header.IsImport`]="{ column }">
+                <div class="d-flex align-center justify-center">
+                  <span>{{ column.title }}</span>
+                  <v-tooltip bottom max-width="400px">
+                    <template v-slot:activator="{ props }">
+                      <v-icon v-bind="props" size="16" color="primary" class="ml-1">
+                        mdi-information-outline
+                      </v-icon>
+                    </template>
+                    <div class="tooltip-content">
+                      <div class="font-weight-bold mb-1">Import</div>
+                      <div class="text-body-2 detail mb-1">ผู้ใช้สามารถ นำเข้าข้อมูลจากแหล่งภายนอกเข้าสู่ระบบได้</div>
+                    </div>
+                  </v-tooltip>
+                </div>
+              </template>
+
+              <template v-slot:[`header.IsExport`]="{ column }">
+                <div class="d-flex align-center justify-center">
+                  <span>{{ column.title }}</span>
+                  <v-tooltip bottom max-width="400px">
+                    <template v-slot:activator="{ props }">
+                      <v-icon v-bind="props" size="16" color="primary" class="ml-1">
+                        mdi-information-outline
+                      </v-icon>
+                    </template>
+                    <div class="tooltip-content">
+                      <div class="font-weight-bold mb-1">Export</div>
+                      <div class="text-body-2 detail mb-1">ผู้ใช้สามารถ ส่งออกหรือดาวน์โหลดข้อมูล จากระบบ เช่น เป็นไฟล์ Excel, JPG หรือ CSV</div>
+                    </div>
+                  </v-tooltip>
+                </div>
+              </template>
+
+              <template v-slot:[`header.IsActive`]="{ column }">
+                <div class="d-flex align-center justify-center">
+                  <span>{{ column.title }}</span>
+                  <v-tooltip bottom max-width="400px">
+                    <template v-slot:activator="{ props }">
+                      <v-icon v-bind="props" size="16" color="primary" class="ml-1">
+                        mdi-information-outline
+                      </v-icon>
+                    </template>
+                    <div class="tooltip-content">
+                      <div class="font-weight-bold mb-1">Active</div>
+                      <div class="text-body-2 detail mb-1">ผู้ใช้สามารถ เข้าถึงและใช้งานหน้าเมนูหรือหน้าจอ ฟังก์ชันนั้น ๆ ได้ในระบบ</div>
+                    </div>
+                  </v-tooltip>
+                </div>
+              </template>
+
               <template v-slot:[`body.prepend`]>
                 <tr class="select-all-row">
                   <td></td>
@@ -108,6 +286,7 @@
                   <td><v-checkbox color="primary" v-model="selectAll.IsActive" @update:modelValue="toggleSelectAll('IsActive')" hide-details></v-checkbox></td>
                 </tr>
               </template>
+
               <template v-slot:item="{ item }">
                 <tr>
                   <td>{{ item.MenuId }}</td>
@@ -200,6 +379,7 @@ const headers = ref([
   { title: 'Export', value: 'IsExport', align: 'center' },
   { title: 'Active', value: 'IsActive', align: 'center' },
 ]);
+
 
 const showSuccessAlert = (message) => {
   showAlert.value = true;
@@ -345,21 +525,8 @@ onMounted(async() => {
 <style lang="scss" scoped>
 .title {
   font-size: 2vh;
-  font-weight: 600;
+  font-weight: bold;
   margin-bottom: 1vh;
-}
-
-.header {
-  display: flex;
-  justify-content: starrt;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 24px;
-
-  p {
-    font-size: 16px;
-    font-weight: 700;
-  }
 }
 
 .device-detail {
@@ -446,6 +613,10 @@ onMounted(async() => {
   height: 100%;
 }
 
+.detail {
+  font-family: 'Sarabun', sans-serif;
+}
+
 .edit {
   cursor: pointer;
   width: 34px;
@@ -457,7 +628,7 @@ onMounted(async() => {
 }
 
 td.action {
-  color: #14CA74 !important; /* บังคับ CSS */
+  color: #14CA74 !important;
   text-align: center;
 }
 

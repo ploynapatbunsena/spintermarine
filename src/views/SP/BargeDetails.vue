@@ -6,7 +6,7 @@
       <v-row v-if="!isLoading">
         <v-col cols="12" class="position-relative d-flex align-center">
           <div style="width: 10vh;"></div>
-          <div class="title flex-grow-1 text-center">{{ typeDeviceName }}</div>
+          <div class="title flex-grow-1 text-center">{{ deletePrefix(typeDeviceName) }}</div>
           <div style="width: 10vh;">
             <AlertBadges
               :warningCount="totalAlerts.warning"
@@ -178,7 +178,68 @@
                   />
                 </v-card>
               </v-col>    
-            </v-row> 
+            </v-row>
+            <!-- deatil status GEN -->
+            <v-row class="status-detail">
+              <v-col cols="12" lg="8">
+                <v-row>
+                  <v-list-item>Generator status details</v-list-item>
+                  <v-col class="d-flex align-center">
+                    <v-icon icon="mdi-square" size="16" color="#00B8F2" class="me-1"></v-icon>
+                    <span style="font-size: 1.5vh;">Standby</span>
+                  </v-col>
+                  <v-col class="d-flex align-center">
+                    <v-icon icon="mdi-square" size="16" color="#28A745" class="me-1"></v-icon>
+                    <span style="font-size: 1.5vh;">Running</span>
+                  </v-col>
+                  <v-col class="d-flex align-center">
+                    <v-icon icon="mdi-square" size="16" color="#007BFF" class="me-1"></v-icon>
+                    <span class="text-truncate" style="font-size: 1.5vh;">Standby/Maintenance</span>
+                  </v-col>
+                  <v-col class="d-flex align-center">
+                    <v-icon icon="mdi-square" size="16" color="#8DEB51" class="me-1"></v-icon>
+                    <span style="font-size: 1.5vh;">Running/Maintenance</span>
+                  </v-col>
+                  <v-col class="d-flex align-center">
+                    <v-icon icon="mdi-square" size="16" color="#000000" class="me-1"></v-icon>
+                    <span style="font-size: 1.5vh;">Down</span>
+                  </v-col>
+                  <v-col class="d-flex align-center">
+                    <v-icon icon="mdi-square" size="16" color="#DC2B2B" class="me-1"></v-icon>
+                    <span style="font-size: 1.5vh;">Danger</span>
+                  </v-col>
+                  <v-col class="d-flex align-center">
+                    <v-icon icon="mdi-square" size="16" color="#FAC12A" class="me-1"></v-icon>
+                    <span style="font-size: 1.5vh;">Warning</span>
+                  </v-col>
+                  <v-col class="d-flex align-center">
+                    <v-icon icon="mdi-square" size="16" color="#979a9a" class="me-1"></v-icon>
+                    <span style="font-size: 1.5vh;">Offline</span>
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col cols="12" lg="4">
+                <v-row>
+                  <v-list-item>Crane status details</v-list-item>
+                  <v-col class="d-flex align-center">
+                    <v-icon icon="mdi-circle" size="16" color="#00B8F2" class="me-1"></v-icon>
+                    <span style="font-size: 1.5vh;">Standby</span>
+                  </v-col>
+                  <v-col class="d-flex align-center">
+                    <v-icon icon="mdi-square" size="16" color="#28A745" class="me-1"></v-icon>
+                    <span style="font-size: 1.5vh;">Running</span>
+                  </v-col>
+                  <v-col class="d-flex align-center">
+                    <v-icon icon="mdi-square" size="16" color="#000000" class="me-1"></v-icon>
+                    <span style="font-size: 1.5vh;">Maintenance</span>
+                  </v-col>
+                  <v-col class="d-flex align-center">
+                    <v-icon icon="mdi-square" size="16" color="#979a9a" class="me-1"></v-icon>
+                    <span style="font-size: 1.5vh;">Offline</span>
+                  </v-col>
+                </v-row>
+              </v-col>
+            </v-row>
             <!-- Row ที่สามของ Generator -->
             <v-row>
               <!-- Tilt Barge -->
@@ -235,7 +296,14 @@
                 <v-card class=" rounded-xl h-100">
                   <div class="notification-header">
                     <p class="header">Notification</p>
-                    <router-link :to="{ name: 'NotificationReport'}">
+                    <router-link 
+                      :to="{
+                        name: 'NotificationReport',
+                        query: {
+                          vehicle: devices[0]?.TypeDevicename,
+                        }
+                      }"
+                    >
                       <v-icon icon="mdi-pencil" class="edit"></v-icon>
                     </router-link>
                   </div>
@@ -270,7 +338,7 @@ import NotificationTable from '@/components/NotificationTable.vue';
 import AlertBadges from '@/components/BargeDetails/AlertBadges.vue';
 import { fuelCapacityConfig } from '@/config/fuel-capacity-config';
 import '@/assets/colors.scss';
-import { computed, inject, onMounted, ref, watch } from 'vue';
+import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 const $api = inject('$api');
@@ -280,6 +348,7 @@ const devices = ref([]);
 const noti = ref([]);
 const typeDeviceName = ref(route.params.typeDeviceName);
 const isLoading = ref(true);
+let intervalId  = null; 
 
 const xValue = computed(() => tiltValues.value.x);
 const yValue = computed(() => tiltValues.value.y);
@@ -381,6 +450,10 @@ const mappedNotices = computed(() => {
     status: item.IsAccept ? 'ดำเนินการเสร็จสิ้น' : 'รอแจ้งซ่อม',
   }));
 });
+
+const deletePrefix = (name) => {
+  return name.replace(/Barge|Tugboat/gi, '').trim();
+};
 
 const totalAlerts = computed(() => {
   return devices.value.reduce((total, device) => {
@@ -578,10 +651,30 @@ const goToGeneratorDetails = (deviceId) => {
   router.push({ name: 'GeneratorDetails', params: { deviceId: deviceId }});
 };
 
-onMounted(async () => {
-  await initialize();
+const fetchDataWithInterval = async () => {
   await fetchDeviceBargesGrouped();
   await fetchNotification();
+};
+
+const startDataInterval = () => {intervalId = setInterval(fetchDataWithInterval, 5 * 60 * 1000);};
+
+const stopDataInterval = () => {
+  if (intervalId) {
+    clearInterval(intervalId);
+    intervalId = null;
+  }
+};
+
+onMounted(async () => {
+  console.log('Component mounted');
+  await initialize();
+  await fetchDataWithInterval();
+  startDataInterval();
+});
+
+onUnmounted(() => {
+  console.log('Component unmounted');
+  stopDataInterval();
 });
 </script>
 
@@ -589,6 +682,10 @@ onMounted(async () => {
 .status-icon {
   margin-right: 1vh;
   color: #FFFFFF;
+}
+
+.status-detail {
+  background-color: #f8f9f9;
 }
 
 .title {

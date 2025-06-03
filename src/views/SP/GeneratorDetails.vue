@@ -61,7 +61,17 @@
               <div class="notification-header">
                 <v-card-title class="header">Notification</v-card-title>
                 <v-card-title>
-                  <router-link :to="{ name: 'NotificationReport'}">
+                  <router-link 
+                    :to="{
+                      name: 'NotificationReport',
+                      query: {
+                        vehicle: devices[0]?.TypeDevicename,
+                        device: devices[0]?.DeviceId,
+                        measurements: 'all',
+                        statuses: 'false'
+                      }
+                    }"
+                  >
                     <v-icon icon="mdi-pencil" class="edit"></v-icon>
                   </router-link>
                 </v-card-title>
@@ -106,6 +116,7 @@ const chartWidth = ref(0);
 const noti = ref([]);
 const devices = ref([]);
 const deviceId = ref(route.params.deviceId);
+let intervalId = null;
 
 const audioPlayed = ref(false);
 const prevDangerCount = ref(0);
@@ -271,10 +282,10 @@ const getGaugeOptions = (measurementName, device) => {
     arcDelimiters: delimiters,
     arcColors: colors,
     arcLabels: labels,
-    rangeLabel: ['0', measurementName === 'Actual Power' ? '10000' :
-                measurementName === 'Oil Pressure' ? '5' : 
-                measurementName === 'Water Temp' ? '120' : 
-                measurementName === 'RPM' ? '4000' : 
+    rangeLabel: ['0', measurementName === 'Actual Power' ? measurement.valuemax.toString() :
+                measurementName === 'Oil Pressure' ? measurement.valuemax.toString() : 
+                measurementName === 'Water Temp' ? measurement.valuemax.toString() : 
+                measurementName === 'RPM' ? measurement.valuemax.toString() : 
                 measurement.valuemax.toString()],
     rangeLabelFontSize: window.innerWidth < 600 ? 8 : 10,
     arcLabelFontSize: window.innerWidth < 600 ? 6 : 8,
@@ -393,17 +404,35 @@ const deviceStatus = computed(() => {
   return statusMap[statusValue] || { text: 'N/A', color: '#C0C0C0' };
 });
 
+const fetchDataWithInterval = async () => {
+  await fetchNotification();
+  await fetchDeviceData();
+};
+
+const startDataInterval = () => {intervalId = setInterval(fetchDataWithInterval, 3 * 60 * 1000);};
+
+const stopDataInterval = () => {
+  if (intervalId) {
+    clearInterval(intervalId);
+    intervalId = null;
+  }
+};
+
 onMounted(async() => {
+  console.log('Component mounted');
+
   await initialize();
   updateChartSize();
-  await fetchNotification();
-  // checkAndPlayAlert();
-  await fetchDeviceData();
+  await fetchDataWithInterval();
+  startDataInterval();
   window.addEventListener('resize', updateChartSize);
 })
 
 onBeforeUnmount(() => {
+  console.log('Component unmounted');
+  
   window.removeEventListener('resize', updateChartSize);
+  stopDataInterval();
 });
 </script>
 

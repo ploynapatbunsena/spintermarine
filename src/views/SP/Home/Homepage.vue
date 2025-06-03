@@ -66,7 +66,7 @@ const router = useRouter();
 const initialize = async () => {
   const menuPermission = localStorage.getItem('menuPermission');
   if (!menuPermission) {
-    return router.push('/Homepae');
+    return router.push('/Homepage');
   }
 
   const permissionList = JSON.parse(menuPermission);

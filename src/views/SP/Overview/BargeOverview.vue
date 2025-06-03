@@ -19,8 +19,7 @@
               <v-row no-gutters>
                 <v-col cols="12" md="12" lg="4" style="padding: 1vh;">
                   <v-img
-                    height="300"
-                    class="rounded-lg image-cover"
+                    class="rounded-lg image-cover h-100"
                     :src="getCurrentDeviceImage(device)"
                     cover
                   ></v-img>
@@ -31,7 +30,7 @@
                       <v-col cols="8" lg="8">
                         <v-row>
                           <v-col cols="12" class="pb-0">
-                            <v-card-title class="header px-0">{{ device.TypeDevicename }}</v-card-title>
+                            <v-card-title class="header px-0">{{ deletePrefix(device.TypeDevicename) }}</v-card-title>
                           </v-col>
                         </v-row>
                         <v-row>
@@ -142,13 +141,14 @@
 import NavigationBar from "@/components/NavigationBar.vue";
 import SpaceBar from '@/components/SpaceBar.vue';
 import AlertBadges from "@/components/BargeDetails/AlertBadges.vue";
-import { computed, inject, onMounted, ref } from "vue";
+import { computed, inject, onMounted, onUnmounted, ref } from "vue";
 import { useRouter } from 'vue-router';
 
 const $api = inject('$api');
 const router = useRouter();
 const devices = ref([]);
 const loading = ref(true);
+let intervalId = null;
 
 const initialize = async () => {
   const menuPermission = localStorage.getItem('menuPermission');
@@ -170,9 +170,13 @@ const fetchDeviceBargesGrouped = async () => {
 
     const response = await $api.get('/MachineStatus/GetDeviceBargesGrouped');
     const rawData = response.data;
-    const processedData = rawData.map(processGroupData);
+
+    const enrichedData = await getCurrentDeviceMasterImage(rawData);
+
+    const processedData = enrichedData.map(processGroupData);
     devices.value = processedData;
 
+    // console.log(devices);
   } catch (error) {
     error.value = 'Failed to fetch DeviceBargesGrouped. Please try again later.';
     console.error(error);
@@ -181,15 +185,44 @@ const fetchDeviceBargesGrouped = async () => {
   }
 };
 
+const getCurrentDeviceMasterImage = async (rawData) => {
+  const promises = rawData.map(async (group) => {
+    const masterDevice = await group.Devices.find(device =>
+      device.DeviceName.includes('Barge Master') || device.DeviceLabel.includes('Barge Master')
+    );
+    if (masterDevice && masterDevice.DeviceImage) {
+      try {
+        const imageResponse = await $api.get('/Device/Image/' + masterDevice.DeviceImage);
+        if (imageResponse.data && imageResponse.data.src) {
+          masterDevice.previewImage = await imageResponse.data.src;
+        }
+      } catch (error) {
+        console.error(`Error loading image for device ${masterDevice.DeviceId}`, error);
+      }
+    }
+    return group;
+  });
+
+  return await Promise.all(promises);
+};
+
 const getCurrentDeviceImage = computed(() => {
   return (device) => {
     const masterDevice = device.Devices?.find(d => d.DeviceName === 'Barge Master');
+    return masterDevice?.previewImage 
+  };
+});
+
+/*const getCurrentDeviceImage = computed(() => {
+  return (device) => {
+    const masterDevice = device.Devices?.find(d => d.DeviceName === 'Barge Master');
+    console.log('DeviceImage',masterDevice.DeviceImage);
     
     return masterDevice?.DeviceImage 
       ? `/ImageForm/${masterDevice.DeviceImage}`
       : '/ImageForm/default.jpg';
   };
-});
+});*/
 
 const calculateAlerts = (devices) => {
   let totalWarning = 0;
@@ -202,6 +235,10 @@ const calculateAlerts = (devices) => {
     });
   });
   return { totalWarning, totalDanger };
+};
+
+const deletePrefix = (name) => {
+  return name.replace(/Barge|Tugboat/gi, '').trim();
 };
 
 const processGroupData = (group) => {
@@ -231,9 +268,29 @@ const goToBargeDetails = (typeDeviceName) => {
   router.push({ name: 'BargeDetail', params: { typeDeviceName: typeDeviceName } });
 };
 
+const fetchDataWithInterval = async () => {
+  await fetchDeviceBargesGrouped();
+};
+
+const startDataInterval = () => {intervalId = setInterval(fetchDataWithInterval, 5 * 60 * 1000);};
+
+const stopDataInterval = () => {
+  if (intervalId) {
+    clearInterval(intervalId);
+    intervalId = null;
+  }
+};
+
 onMounted(async () => {
+  console.log('Component mounted');
   await initialize();
   await fetchDeviceBargesGrouped();
+  startDataInterval();
+});
+
+onUnmounted(() => {
+  console.log('Component unmounted');
+  stopDataInterval();
 });
 </script>
 

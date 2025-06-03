@@ -66,7 +66,7 @@
         </template>
         <div class="d-flex align-center">
           <v-icon class="mx-3 icon" :class="getStatusClass(tugboat)">mdi-ferry</v-icon>
-          <span>{{ tugboat.DeviceName }}</span>
+          <span>{{ deletePrefix(tugboat.DeviceName) }}</span>
         </div>
       </v-list-item>
     </v-list>
@@ -77,7 +77,6 @@
 import { ref, computed, onMounted, inject } from 'vue';
 
 const emit = defineEmits(['boat-selected', 'tugboat-data-loaded']);
-
 const $api = inject('$api');
 const $api_cmms = inject('$api_cmms');
 const open_api_company = inject('open_api_company');
@@ -90,6 +89,10 @@ const isLoading = ref(false);
 
 const categories = ['River Going', 'Sea Going'];
 const statuses = ['Running', 'Maintenance', 'Pending', 'Down'];
+
+const deletePrefix = (name) => {
+  return name.replace(/Barge|Tugboat/gi, '').trim();
+};
 
 const fetchTugboats = async () => {
   try {

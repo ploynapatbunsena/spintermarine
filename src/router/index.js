@@ -164,24 +164,6 @@ const router = createRouter({
   },
 });
 
-// ฟังก์ชันสำหรับเข้ารหัส Route Parameters
-router.encodeParams = (params) => {
-  const encoded = {};
-  for (const [key, value] of Object.entries(params)) {
-    encoded[key] = encodeURIComponent(value);
-  }
-  return encoded;
-};
-
-// ฟังก์ชันสำหรับถอดรหัส Route Parameters
-router.decodeParams = (params) => {
-  const decoded = {};
-  for (const [key, value] of Object.entries(params)) {
-    decoded[key] = decodeURIComponent(value);
-  }
-  return decoded;
-};
-
 // Global Navigation Guard
 router.beforeEach((to, from, next) => {
   const isAuthenticated = !!localStorage.getItem('accessToken');

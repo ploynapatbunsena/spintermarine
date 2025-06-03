@@ -29,7 +29,7 @@
                   :items="deviceOptions"
                   item-title="deviceName"
                   item-value="deviceId"
-                  label="Devices"
+                  label="Device"
                   variant="outlined"
                   density="compact"
                   clearable
@@ -41,7 +41,7 @@
               <v-col cols="12" md="3">
                 <v-select
                   v-model="selectedMeasurement"
-                  :items="measurementList"
+                  :items="[{measurementId: 'all', measurementName: 'Select All'}, ...measurementList]"
                   item-title="measurementName"
                   item-value="measurementId"
                   label="Measurement"
@@ -49,21 +49,10 @@
                   density="compact"
                   :disabled="!selectedDevices"
                   clearable
-                  multiple
+                  single-select
                 >
-                  <template v-slot:prepend-item>
-                    <v-list-item title="Select All" @click="toggleSelectAll">
-                      <template v-slot:prepend>
-                        <v-checkbox-btn
-                          :color="isPartialSelection ? 'indigo-darken-4' : undefined"
-                          :indeterminate="isPartialSelection"
-                          :model-value="isAllSelected"
-                        ></v-checkbox-btn>
-                      </template>
-                    </v-list-item>
-                  </template>
-                  <template v-slot:selection="{ index }">
-                    <span v-if="index === 0">{{ selectedMeasurement.length }} selected</span>
+                  <template v-slot:selection="{ item }">
+                    <span>{{ item.title === 'Select All' ? 'Select All' : item.title }}</span>
                   </template>
                 </v-select>
               </v-col>
@@ -138,9 +127,9 @@
                 <v-menu>
                   <template v-slot:activator="{ props }">
                     <v-btn
+                      :disabled="!permissionExport('0101020200') || !showResult"
                       class="download-btn elevation-0 text-none"
                       v-bind="props"
-                      :disabled="!showResult"
                     >
                       Download
                     </v-btn>
@@ -186,6 +175,7 @@
               </template>
               <template v-slot:[`item.action`]="{ item }">
                 <v-icon
+                  :disabled="!permissionWrite('0101020200')"
                   class="edit mr-2"
                   small
                   @click="editItem(item.originalData)"
@@ -282,14 +272,16 @@
 <script setup>
 import NavigationBar from '@/components/NavigationBar.vue';
 import SpaceBar from '@/components/SpaceBar.vue';
-import { ref, computed, inject, onMounted, watch } from 'vue';
+import { ref, computed, inject, onMounted, watch, nextTick } from 'vue';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@/assets/colors.scss'
 import '@vuepic/vue-datepicker/dist/main.css'
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const $api = inject('$api');
 const router = useRouter();
+const route = useRoute();
+
 const loading = ref(true);
 const memberData = ref(JSON.parse(localStorage.getItem('member'))) || {};
 const datePicker = VueDatePicker;
@@ -310,10 +302,13 @@ const dialog = ref(false);
 const vehicleError = ref('');
 const deviceError = ref('');
 const error = ref(null);
+const permission = ref(null);
+
 const statusOptions = ref([
   { text: 'รอแจ้งซ่อม', value: false },
   { text: 'ดำเนินการเสร็จสิ้น', value: true }
 ]);
+
 const editedItem = ref({
   date: '',
   deviceName: '',
@@ -325,15 +320,32 @@ const editedItem = ref({
 const initialize = async () => {
   const menuPermission = localStorage.getItem('menuPermission');
   if (!menuPermission) {
-    return router.push('/login');
+    return router.push('/Homepage');
   }
 
   const permissionList = JSON.parse(menuPermission);
-  const permission = permissionList.find(item => item.MenuId === '0101020200');
-
-  if (!permission || !permission.IsActive) {
-    return router.push('/login');
+  const foundPermission = permissionList.find(item => item.MenuId === '0101020200');
+  permission.value = foundPermission;
+  
+  if (!foundPermission || !foundPermission.IsActive) {
+    return router.push('/Homepage');
   }
+};
+
+const permissionWrite = (menuId) => {
+  if (!permission.value || permission.value.MenuId !== menuId) {
+    return false;
+  }
+  // console.log(permission.value, permission.value?.IsWrite);
+  return permission.value?.IsWrite;
+};
+
+const permissionExport = (menuId) => {
+  if (!permission.value || permission.value.MenuId !== menuId) {
+    return false;
+  }
+  // console.log(permission.value, permission.value?.IsExport);
+  return permission.value?.IsExport;
 };
 
 const fetchDeviceData = async () => {
@@ -404,9 +416,10 @@ const formatDateForFilename = (date) => {
 
 const fetchMeasurementList = async () => {
   try {
+    // console.log('Fetching measurements for device:', selectedDevices.value);
     if (!selectedDevices.value) {
       measurementList.value = [];
-      selectedMeasurement.value = [];
+      selectedMeasurement.value = null;
       return;
     }
 
@@ -417,16 +430,19 @@ const fetchMeasurementList = async () => {
     measurementList.value = response.data
       .filter(item => item.MeasurementLabel !== "Status")
       .map(item => ({
-        measurementId: item.MeasurementId,
+        measurementId: item.MeasurementId.toString(),
         measurementName: item.MeasurementName,
-    }));
+      }));
 
-    selectedMeasurement.value = [];
+    if (route.query.measurements === 'all') {
+      selectedMeasurement.value = 'all';
+    } else {
+      selectedMeasurement.value = null;
+    }
   } catch (error) {
     console.error('Failed to fetch measurement list:', error);
-    error.value = 'Failed to load measurement list. Please try again.';
     measurementList.value = [];
-    selectedMeasurement.value = [];
+    selectedMeasurement.value = null;
   }
 };
 
@@ -435,8 +451,8 @@ const typeOptions = computed(() => {
   
   bargeGruop.value.forEach(item => {
     options.push({
-      typeDeviceName: item.TypeDevicename,
-      typeVehicle: 'Barge',
+      typeDeviceName: item.TypeDevicename, 
+      typeVehicle: item.TypeDevicename,
       source: 'barge'
     });
   });
@@ -456,6 +472,7 @@ const typeOptions = computed(() => {
       source: 'sea'
     });
   }
+  
   return options;
 });
 
@@ -488,22 +505,6 @@ const deviceOptions = computed(() => {
     deviceName: device.DeviceLabel
   }));
 });
-
-const isAllSelected = computed(() => {
-  return selectedMeasurement.value.length === measurementList.value.length;
-});
-
-const isPartialSelection = computed(() => {
-  return selectedMeasurement.value.length > 0 && !isAllSelected.value;
-});
-
-const toggleSelectAll = () => {
-  if (isAllSelected.value) {
-    selectedMeasurement.value = [];
-  } else {
-    selectedMeasurement.value = measurementList.value.map(option => option.measurementId);
-  }
-};
 
 const isAllStatusSelected = computed(() => {
   return selectedStatuses.value.length === statusOptions.value.length;
@@ -546,17 +547,9 @@ const searchRecords = async () => {
 
     const requestBody = {
       DeviceId: selectedDevices.value,
+      MeasurementId: selectedMeasurement.value === 'all' ? "" : selectedMeasurement.value,
+      IsAccept: selectedStatuses.value.length > 0 ? selectedStatuses.value.join(",") : ""
     };
-
-    if (selectedMeasurement.value?.length > 0) {
-      if (isAllSelected.value || selectedMeasurement.value.length === measurementList.value.length) {
-        requestBody.MeasurementId = "";
-      } else {
-        requestBody.MeasurementId = selectedMeasurement.value.join(",");
-      }
-    } else {
-      requestBody.MeasurementId = "";
-    }
 
     if (selectedStatuses.value?.length > 0) {
       if (isAllStatusSelected.value || selectedStatuses.value.length === statusOptions.value.length) {
@@ -571,21 +564,14 @@ const searchRecords = async () => {
     }
 
     const params = {};
-    if (startDate.value) {params.start = formatTimeShow_T(startDate.value);}
-    if (endDate.value) { params.end = formatTimeShow_T(endDate.value);}
+    if (startDate.value) params.start = formatTimeShow_T(startDate.value);
+    if (endDate.value) params.end = formatTimeShow_T(endDate.value);
 
-    const config = params.start || params.end 
-      ? { params } 
-      : {};
+    const config = Object.keys(params).length > 0 ? { params } : {};
 
-    console.log(requestBody, config);
-    
     const response = await $api.put('/device/notificationlistStatus', requestBody, config);
-    console.log(response);
     
-    const filteredData = response.data
-
-    tableData.value = filteredData.map(item => ({
+    tableData.value = response.data.map(item => ({
       date: item.AlertTime,
       deviceName: item.DeviceLabel,
       measurement: `${item.MeasurementLabel} (${item.MeasurementUnit})`,
@@ -596,12 +582,9 @@ const searchRecords = async () => {
     }));
 
     showResult.value = true;
-    console.log(tableData.value);
-    
-
   } catch (error) {
     console.error('Failed to fetch notification list:', error);
-    alert('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+    error.value = 'เกิดข้อผิดพลาดในการโหลดข้อมูล';
     tableData.value = [];
   } finally {
     searchLoading.value = false;
@@ -718,7 +701,7 @@ const closeEditDialog = () => {
   dialog.value = false;
 };
 
-const validateAndSearch = () => {
+const validateAndSearch = (fromRoute = false) => {
   let isValid = true;
   
   vehicleError.value = '';
@@ -735,16 +718,69 @@ const validateAndSearch = () => {
   }
 
   if (isValid) {
+    if (!fromRoute) {
+      const query = {
+        vehicle: selectedType.value,
+        device: selectedDevices.value,
+        measurements: selectedMeasurement.value.join(','),
+        statuses: selectedStatuses.value.join(','),
+      };
+      
+      if (startDate.value) query.startDate = startDate.value.formatTimeShow_T();
+      if (endDate.value) query.endDate = endDate.value.formatTimeShow_T();
+      
+      router.push({ query });
+    }
+    
     searchRecords();
   }
   
   return isValid;
 };
 
+const handleRouteParams = async () => {
+  if (!route.query.vehicle) return;
+
+  
+  const vehicleQuery = route.query.vehicle.toLowerCase().trim();
+  
+  const matchedOption = typeOptions.value.find(option => 
+  option.typeVehicle.toLowerCase().trim() === vehicleQuery ||
+    option.typeDeviceName?.toLowerCase().trim() === vehicleQuery
+  );
+
+  if (!matchedOption) {
+    console.error('No matching vehicle type found for:', route.query.vehicle);
+    return;
+  }
+  
+  selectedType.value = matchedOption.typeVehicle || matchedOption.typeDeviceName;
+  await nextTick();
+  
+  if (route.query.device) {
+    selectedDevices.value = route.query.device;
+    
+    await nextTick();
+    
+    if (route.query.measurements === 'all') {
+      selectedMeasurement.value = 'all';
+    } else if (route.query.measurements) {
+      selectedMeasurement.value = route.query.measurements.split(',')[0];
+    }
+
+    if (route.query.statuses) {
+      selectedStatuses.value = route.query.statuses.split(',').map(s => s === 'true');
+    }
+
+    validateAndSearch(true);
+  }
+};
+
 onMounted(async() => {
   await initialize();
   await fetchDeviceData();
   await fetchMeasurementList();
+  handleRouteParams();
 });
 
 watch(selectedDevices, (newVal) => {
@@ -754,6 +790,10 @@ watch(selectedDevices, (newVal) => {
     measurementList.value = [];
     selectedMeasurement.value = null;
   }
+});
+
+watch(() => route.query, () => {
+  handleRouteParams();
 });
 </script>
 

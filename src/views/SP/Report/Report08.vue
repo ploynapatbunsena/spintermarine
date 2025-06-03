@@ -90,9 +90,9 @@
                     <v-menu>
                       <template v-slot:activator="{ props }">
                         <v-btn
+                          :disabled="!permissionExport('0101020800') || !showResult"
                           class="download-btn elevation-0 text-none"
                           v-bind="props"
-                          :disabled="!showResult"
                         >
                           Download
                         </v-btn>
@@ -171,6 +171,7 @@ const searchLoading = ref(false);
 const error = ref(null);
 const series = ref([]);
 const loading = ref(true);
+const permission = ref(null);
 
 const deviceError = ref('');
 const startDateError = ref('');
@@ -183,11 +184,19 @@ const initialize = async () => {
   }
 
   const permissionList = JSON.parse(menuPermission);
-  const permission = permissionList.find(item => item.MenuId === '0101020800');
-
-  if (!permission || !permission.IsActive) {
+  const foundPermission = permissionList.find(item => item.MenuId === '0101020800');
+  permission.value = foundPermission;
+  
+  if (!foundPermission || !foundPermission.IsActive) {
     return router.push('/Homepage');
   }
+};
+
+const permissionExport = (menuId) => {
+  if (!permission.value || permission.value.MenuId !== menuId) {
+    return false;
+  }
+  return permission.value?.IsExport;
 };
 
 const fetchDeviceBargesGrouped = async () => {
@@ -520,5 +529,9 @@ onMounted(async () => {
   color: #DC2B2B;
   font-size: 12px;
   margin-top: 4px;
+}
+
+.apexcharts-toolbar {
+  display: none !important;
 }
 </style>

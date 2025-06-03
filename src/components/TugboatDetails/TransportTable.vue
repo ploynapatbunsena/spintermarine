@@ -32,7 +32,7 @@
       <v-col cols="12" lg="9">
         <v-card v-if="localSelectedBoat && !selectedVessel" class="card rounded-lg elevation-0">
           <div>
-            <v-card-title class="table-header">{{ localSelectedBoat?.DeviceName || 'Unknown Tugboat' }}</v-card-title>
+            <v-card-title class="table-header">{{ deletePrefix(localSelectedBoat?.DeviceName )|| 'Unknown Tugboat' }}</v-card-title>
           </div>
           <v-card-text v-if="localSelectedBoat?.jobs?.length">
             <v-row>
@@ -314,6 +314,10 @@ const vesselListWithIcons = computed(() => {
 
 const handleVesselClick = (event, { item }) => {
   toggleVessel(item.name);
+};
+
+const deletePrefix = (name) => {
+  return name.replace(/Barge|Tugboat/gi, '').trim();
 };
 
 watch(

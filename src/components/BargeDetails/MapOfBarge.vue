@@ -7,7 +7,6 @@
           <div id="map"></div>
         </v-card>
       </v-col>
-
       <!-- Column 2: Wind Speed and Wind Direction (ด้านขวา) -->
       <v-col cols="6" class="d-flex flex-column">
         <v-card class="wind-speed-card rounded-xl mb-4 h-100" elevation="0">
@@ -58,7 +57,7 @@ import { ref, computed, onMounted, watch, onBeforeUnmount, nextTick } from 'vue'
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-compass';
-import markerIconUrl from '@/assets/Images/ship_location.png';
+import markerIconUrl from '@/assets/Images/barge_location.png';
 
 const props = defineProps({
   position: {

@@ -3,12 +3,12 @@
     <v-app-bar color="#080F25" :height="$vuetify.display.width > 2560 ? 120 : 64">
       <v-app-bar-nav-icon class="nav-icon" variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
       <v-row class="logo-container">
-        <v-col cols="8" sm="8" lg="2">
+        <v-col cols="8" sm="6" lg="2">
           <router-link :to="{ name: 'Homepage'}">
             <v-img
-              class="navbar-logo"
               :src="require('@/assets/Images/logo_navbar.png')"
-              ></v-img>
+              class="navbar-logo"
+            ></v-img>
           </router-link>
         </v-col>
       </v-row>
@@ -54,17 +54,14 @@
       :width="$vuetify.display.width > 2560 ? 800 : 400"
     >
       <v-list v-model:opened="open">
-        <!-- Home - เปิดให้ทุกคนเห็น -->
-        <v-list-item v-if="isAdmin"
+        <v-list-item v-if="hasPermission('0101010000')"
           prepend-icon="mdi-home" 
           title="Home" 
           :to="{ name: 'Homepage' }"
           class="nav-icon"
           style="padding: 0vw 1vw;"
         ></v-list-item>
-
-        <!-- Barge Section -->
-        <v-list-group value="Barge" v-if="isBargeUser">
+        <v-list-group value="Barge" v-if="hasPermission('0101010300')">
           <template v-slot:activator="{ props }">
             <v-list-item
               v-bind="props"
@@ -75,18 +72,13 @@
               style="padding: 0vw 1vw;"
             ></v-list-item>
           </template>
-
-          <!-- Barge Overview - สำหรับ Supervisor และ Admin -->
           <v-list-item
-            v-if="isBargeSupervisor"
             prepend-icon="mdi-format-list-bulleted"
             title="Overview"
             :to="{ name: 'Barge' }"
             class="nav-icon"
             style="padding: 0vw 1vw;"
           ></v-list-item>
-
-          <!-- Barge Groups - แสดงเฉพาะกลุ่มที่เกี่ยวข้องกับผู้ใช้ -->
           <v-list-group
             v-for="(deviceGroup, typeDeviceName) in filteredBargeDevices"
             :key="typeDeviceName"
@@ -96,13 +88,13 @@
               <v-list-item
                 v-bind="props"
                 prepend-icon="mdi-ship-wheel"
-                :title="typeDeviceName"
+                :title="deletePrefix(typeDeviceName)"
                 class="nav-icon"
                 style="padding: 0vw 1vw;"
               ></v-list-item>
             </template>
             <v-list-item
-              :title="`${typeDeviceName} Detail`"
+              :title="`${deletePrefix(typeDeviceName)} Detail`"
               :to="{ name: 'BargeDetail', params: { typeDeviceName: typeDeviceName } }"
             ></v-list-item>
             <v-list-item
@@ -113,11 +105,9 @@
             ></v-list-item>
           </v-list-group>
         </v-list-group>
-
-        <!-- Tugboat Section -->
-        <v-list-group value="Tugboat" v-if="isTugboatUser">
+        <v-list-group value="Tugboat">
           <template v-slot:activator="{ props }">
-            <v-list-item
+            <v-list-item v-if="hasPermission('0101010600')"
               v-bind="props"
               prepend-icon="mdi-ferry"
               title="Tugboat"
@@ -125,19 +115,14 @@
               style="padding: 0vw 1vw;"
             ></v-list-item>
           </template>
-
-          <!-- Tugboat Overview - สำหรับ Supervisor และ Admin -->
-          <v-list-item
-            v-if="isTugboatSupervisor || isAdmin"
+          <v-list-item v-if="hasPermission('0101010500')"
             prepend-icon="mdi-format-list-bulleted"
             title="Overview"
             :to="{ name: 'Tugboat' }"
             class="nav-icon"
             style="padding: 0vw 1vw;"
           ></v-list-item>
-
-          <!-- Tugboat river going -->
-          <v-list-group value="Tugboat river going">
+          <v-list-group value="Tugboat river going" v-if="hasPermission('0101010600')">
             <template v-slot:activator="{ props }">
               <v-list-item
                 v-bind="props"
@@ -150,13 +135,11 @@
             <v-list-item
               v-for="device in filteredTugboatRiverDevices"
               :key="device.DeviceId"
-              :title="device.DeviceLabel"
+              :title="deletePrefix(device.DeviceName)"
               :to="{ name: 'TugboatDetail', params: { deviceId: device.DeviceId } }"
             ></v-list-item>
           </v-list-group>
-
-          <!-- Tugboat sea going -->
-          <v-list-group value="Tugboat sea going">
+          <v-list-group value="Tugboat sea going" v-if="hasPermission('0101010600')">
             <template v-slot:activator="{ props }">
               <v-list-item
                 v-bind="props"
@@ -169,23 +152,12 @@
             <v-list-item
               v-for="device in filteredTugboatSeaDevices"
               :key="device.DeviceId"
-              :title="device.DeviceLabel"
+              :title="deletePrefix(device.DeviceName)"
               :to="{ name: 'TugboatDetail', params: { deviceId: device.DeviceId } }"
             ></v-list-item>
           </v-list-group>
         </v-list-group>
-
-        <!-- Route Tracking - ไม่แสดงสำหรับผู้ใช้ Barge -->
-        <v-list-item 
-          v-if="!isBargeUser || isAdmin"
-          prepend-icon="mdi-map-marker-radius" 
-          title="Route Tracking" 
-          class="nav-icon" 
-          style="padding: 0vw 1vw;" 
-          :to="{ name: 'RouteTracking' }"
-        ></v-list-item>
-
-        <!-- Report Section -->
+        <v-list-item v-if="hasPermission('0101010700')" prepend-icon="mdi-map-marker-radius" title="Route Tracking" class="nav-icon" style="padding: 0vw 1vw;" :to="{ name: 'RouteTracking' }"></v-list-item>
         <v-list-group>
           <template v-slot:activator="{ props }">
             <v-list-item
@@ -196,48 +168,16 @@
               style="padding: 0vw 1vw;"
             ></v-list-item>
           </template>
-
-          <!-- Reports ที่ทุกคนเห็น -->
-          <v-list-item title="Notification Report" :to="{ name: 'NotificationReport' }"></v-list-item>
-          <v-list-item title="ChartHistorical Report" :to="{ name: 'HistoricalChart' }"></v-list-item>
-
-          <!-- Reports เฉพาะ Tugboat -->
-          <v-list-item 
-            v-if="isTugboatUser || isAdmin"
-            title="Report on RPM and Speed and %Throttle Affected by Wind Speed of Tugboat" 
-            :to="{ name: 'WindSpeedImpactReport' }"
-          ></v-list-item>
-          <v-list-item 
-            v-if="isTugboatUser || isAdmin"
-            title="Report on Tugboats Encountering Storms" 
-            :to="{ name: 'EncounteringStormsReport' }"
-          ></v-list-item>
-          <v-list-item 
-            v-if="isTugboatUser || isAdmin"
-            title="Report on %Throttle vs. RPM vs. Fuel Rate" 
-            :to="{ name: 'ThrottleRPMFuelRateReport' }"
-          ></v-list-item>
-
-          <!-- Reports เฉพาะ Barge -->
-          <v-list-item 
-            v-if="isBargeUser || isAdmin"
-            title="Report on Fuel Rate per RPM for Evaluating Engine Efficiency of Motor Barge" 
-            :to="{ name: 'FuelRatePerRPMReport' }"
-          ></v-list-item>
-          <v-list-item 
-            v-if="isBargeUser || isAdmin"
-            title="Report on Daily Fuel Consumption for the Barge" 
-            :to="{ name: 'DailyFuelConsumtionReport' }"
-          ></v-list-item>
-          <v-list-item 
-            v-if="isBargeUser || isAdmin"
-            title="Report on Barge Tilt" 
-            :to="{ name: 'BargeTiltReport' }"
-          ></v-list-item>
+          <v-list-item v-if="hasPermission('0101020200')" title="Notification Report" :to="{ name: 'NotificationReport' }"></v-list-item>
+          <v-list-item v-if="hasPermission('0101020100')" title="ChartHistorical Report" :to="{ name: 'HistoricalChart' }"></v-list-item>
+          <v-list-item v-if="hasPermission('0101020300')" title="Report on RPM and Speed and %Throttle Affected by Wind Speed of Tugboat" :to="{ name: 'WindSpeedImpactReport' }"></v-list-item>
+          <v-list-item v-if="hasPermission('0101020400')" title="Report on Tugboats Encountering Storms" :to="{ name: 'EncounteringStormsReport' }"></v-list-item>
+          <v-list-item v-if="hasPermission('0101020500')" title="Report on Fuel Rate per RPM for Evaluating Engine Efficiency of Motor Barge" :to="{ name: 'FuelRatePerRPMReport' }"></v-list-item>
+          <v-list-item v-if="hasPermission('0101020600')" title="Report on %Throttle vs. RPM vs. Fuel Rate" :to="{ name: 'ThrottleRPMFuelRateReport' }"></v-list-item>
+          <v-list-item v-if="hasPermission('0101020700')" title="Report on Daily Fuel Consumption for the Barge" :to="{ name: 'DailyFuelConsumtionReport' }"></v-list-item>
+          <v-list-item v-if="hasPermission('0101020800')" title="Report on Barge Tilt" :to="{ name: 'BargeTiltReport' }"></v-list-item>
         </v-list-group>
-
-        <!-- Setting Section - เฉพาะ Admin -->
-        <v-list-group v-if="isAdmin">
+        <v-list-group>
           <template v-slot:activator="{ props }">
             <v-list-item
               v-bind="props"
@@ -247,8 +187,8 @@
               style="padding: 0vw 1vw;"
             ></v-list-item>
           </template>
-          <v-list-item title="Device Management" :to="{ name: 'DeviceManagementList' }"></v-list-item>
-          <v-list-item title="Member Management" :to="{ name: 'MemberManagementList' }"></v-list-item>
+          <v-list-item v-if="hasPermission('0101030400')" title="Device Management" :to="{ name: 'DeviceManagementList' }"></v-list-item>
+          <v-list-item v-if="hasPermission('0101030600')" title="Member Management" :to="{ name: 'MemberManagementList' }"></v-list-item>
         </v-list-group>
       </v-list>
     </v-navigation-drawer>
@@ -256,8 +196,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { inject, onMounted, ref, watch } from 'vue';
+import { computed, inject, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 const $api = inject('$api');
@@ -269,6 +208,27 @@ const devices = ref([]);
 const bargeDevices = ref({});
 const tugboatRiverDevices = ref([]);
 const tugboatSeaDevices = ref([]);
+const permissions = ref([]);
+const isPermissionLoaded = ref(false);
+
+const deletePrefix = (name) => {
+  return name.replace(/Barge|Tugboat/gi, '').trim();
+};
+
+const loadPermissions = async () => {
+  const menuPermission = localStorage.getItem('menuPermission');
+  if (menuPermission) {
+    permissions.value = JSON.parse(menuPermission);
+    isPermissionLoaded.value = true;
+  }
+};
+
+const hasPermission = (menuId) => {
+  if (!isPermissionLoaded.value) return false;
+  const found = permissions.value.find(p => p.MenuId === menuId);
+  // console.log(found, found?.IsActive);
+  return found?.IsActive;
+};
 
 const userPosition = computed(() => {
   const memberData = localStorage.getItem('member');
@@ -280,32 +240,10 @@ const isAdmin = computed(() => {
   return position === 'Admin' || position === 'User' || position === 'Integration' || false;
 });
 
-const isBargeSupervisor = computed(() => {
-  return userPosition.value === 'Barge Supervisor' || isAdmin.value;
-});
-
-const isTugboatSupervisor = computed(() => {
-  return userPosition.value === 'Tugboat Supervisor' || isAdmin.value;
-});
-
-const isBargeUser = computed(() => {
-  // return userPosition.value?.startsWith('Barge') || isAdmin.value;
-  const position = userPosition.value;
-  return position?.includes('Barge') || isAdmin.value;
-  // return position?.startsWith('Barge') || isBargeSupervisor.value || isAdmin.value;
-});
-
-const isTugboatUser = computed(() => {
-  const position = userPosition.value;
-  return position?.includes('Tugboat') || isAdmin.value;
-  // return position?.startsWith('Tugboat') || isTugboatSupervisor.value || isAdmin.value;
-});
-
 const filteredBargeDevices = computed(() => {
   if (userPosition.value === 'Barge Supervisor') {
     return bargeDevices.value
   }
-  // user ทั่วไป
   if (!userPosition.value && !isAdmin.value) return {};
 
   return Object.fromEntries(
@@ -315,12 +253,10 @@ const filteredBargeDevices = computed(() => {
   )  
 });
 
-
 const filteredTugboatRiverDevices = computed(() => {
   if (userPosition.value === 'Tugboat Supervisor') {
     return tugboatRiverDevices.value
   }
-
   if (!userPosition.value && !isAdmin.value) return [];
 
   return tugboatRiverDevices.value.filter(device => 
@@ -411,8 +347,9 @@ watch(devices, () => {
 });
 
 onMounted(async() => {
-  accountName();
+  await accountName();
   await fetchDeviceList();
+  await loadPermissions();
 });
 </script>
 
@@ -428,6 +365,10 @@ onMounted(async() => {
 .icon {
   font-size: 3vh;
   color: #FFFFFF;
+
+  @media(min-width: 2560px) {
+    margin-right: 1vw;
+  }
 }
 
 .text-bar {
@@ -454,50 +395,21 @@ p {
   display: none !important;
 }
 
-@media(min-width: 2560px) {
-  :deep(.v-list-item-title) {
+:deep(.v-list-item-title) {
+  @media(min-width: 2560px) {
     font-size: 1.5vh !important;
     padding: 1vh;
   }
-
-  .nav-icon {
-    font-size: 1.5vh;
-    padding: 0vw 1.5vw;
-  }
-
-  .icon {
-    margin-right: 1vw;
-    font-size: 2vh;
-  }
-
-  .navbar-logo {
-    max-width: 10vw;
-  }
 }
 
-@media(max-width: 1280px) {
-  .navbar-logo {
-    max-width: 20vh;
-    height: auto;
-  }
-
-  .icon {
-    font-size: 2vh;
-  }
-
-  .text-bar {
-  font-size: 1vh;
+.nav-icon {
+  @media(min-width: 2560px) {
+    font-size: 1.5vh;
+    padding: 0vw 1.5vw;
   }
 }
 
 @media (max-width: 767px) {
-  .navbar-logo {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    max-width: 30vh;
-  }
-
   .logo-container {
     display: flex;
     justify-content: center;

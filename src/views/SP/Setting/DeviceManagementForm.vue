@@ -15,6 +15,7 @@
               <div class="device-detail">
                 <p>Vehicel Type</p>
                 <v-select
+                  :disabled="!permissionWrite('0101030400')"
                   variant="outlined"
                   density="compact"
                   :items="vehicleItems"
@@ -26,11 +27,11 @@
               <div class="device-detail">
                 <p class="label">Device Name</p>
                 <v-text-field
+                  :disabled="!permissionWrite('0101030400')"
                   v-model="deviceData.DeviceName"
                   variant="outlined" 
                   density="compact" 
                   class="input-field"
-                  readonly
                 ></v-text-field>
               </div>
               <div class="device-detail">
@@ -40,11 +41,13 @@
                   variant="outlined" 
                   density="compact"
                   class="input-field"
+                  disabled
                 ></v-text-field>
               </div>
               <div class="device-detail">
                 <p>Description</p>
                 <v-text-field
+                  :disabled="!permissionWrite('0101030400')"
                   v-model="deviceData.Note"
                   variant="outlined" 
                   density="compact" 
@@ -64,9 +67,8 @@
                 :height="340"
                 class="image-preview"
                 style="cursor: pointer;"
-                @click="showUploadDialog = true"
+                @click="permissionImport('0101030400') && (showUploadDialog = true)"
               ></v-img>
-
               <v-dialog v-model="showUploadDialog" max-width="600">
                 <template v-slot:default>
                   <v-card rounded="xl">
@@ -101,6 +103,7 @@
               <div class="device-detail">
                 <p>Measurement</p>
                 <v-select
+                  :disabled="!permissionWrite('0101030400')"
                   variant="outlined"
                   density="compact"
                   label="Measurement"
@@ -178,7 +181,7 @@
           <v-row>
             <v-col cols="12" md="12" class="button-section">
               <v-btn class="cancel-btn text-none" @click="resetForm" elevation="0"> Cancel </v-btn>
-              <v-btn class="save-btn text-none" @click="saveRecord" elevation="0"> Save </v-btn>
+              <v-btn class="save-btn text-none" :disabled="!permissionAccept('0101030400')" @click="saveRecord" elevation="0"> Save </v-btn>
             </v-col>
           </v-row>
         </v-card-text>
@@ -203,6 +206,7 @@
               <td class="action">{{ item.IsActive ? 'Active' : 'Inactive' }}</td>
               <td>
                 <v-icon
+                  :disabled="!permissionWrite('0101030400')"
                   icon="mdi-pencil" 
                   class="edit"
                   @click="editMeasurement(item)"
@@ -267,6 +271,7 @@ const deviceImage = ref(null);
 const preview = ref('https://picsum.photos/id/11/10/6');
 const originalPreview = ref('https://picsum.photos/id/11/10/6');
 const loading = ref(true);
+const permission = ref(null);
 
 const headers = ref([
   { title: 'Measurement', value: 'MeasurementName', align: 'start' },
@@ -301,11 +306,33 @@ const initialize = async () => {
   }
 
   const permissionList = JSON.parse(menuPermission);
-  const permission = permissionList.find(item => item.MenuId === '0101030400');
-
-  if (!permission || !permission.IsActive) {
+  const foundPermission = permissionList.find(item => item.MenuId === '0101030400');
+  permission.value = foundPermission;
+  
+  if (!foundPermission || !foundPermission.IsActive) {
     return router.push('/Homepage');
   }
+};
+
+const permissionImport = (menuId) => {
+  if (!permission.value || permission.value.MenuId !== menuId) {
+    return false;
+  }
+  return permission.value?.IsImport;
+};
+
+const permissionAccept = (menuId) => {
+  if (!permission.value || permission.value.MenuId !== menuId) {
+    return false;
+  }
+  return permission.value?.IsAccept;
+};
+
+const permissionWrite = (menuId) => {
+  if (!permission.value || permission.value.MenuId !== menuId) {
+    return false;
+  }
+  return permission.value?.IsWrite;
 };
 
 const fetchDeviceData = async () => {

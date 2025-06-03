@@ -114,9 +114,9 @@
                 <v-menu>
                   <template v-slot:activator="{ props }">
                     <v-btn
+                      :disabled="!permissionExport('0101020100') || !showResult"
                       class="download-btn elevation-0 text-none"
                       v-bind="props"
-                      :disabled="!showResult"
                     >
                       Download
                     </v-btn>
@@ -214,6 +214,8 @@ const deviceError = ref(false);
 const startDateError = ref('');
 const endDateError = ref('');
 const selectedInterval = ref(null);
+const permission = ref(null);
+
 const intervalList = ref([
   { id: '5m', title: '5 minutes' },
   { id: '15m', title: '15 minutes' },
@@ -233,15 +235,24 @@ const isChartLoaded = ref(false);
 const initialize = async () => {
   const menuPermission = localStorage.getItem('menuPermission');
   if (!menuPermission) {
-    return router.push('/login');
+    return router.push('/Homepage');
   }
 
   const permissionList = JSON.parse(menuPermission);
-  const permission = permissionList.find(item => item.MenuId === '0101020100');
-
-  if (!permission || !permission.IsActive) {
-    return router.push('/login');
+  const foundPermission = permissionList.find(item => item.MenuId === '0101020100');
+  permission.value = foundPermission;
+  console.log(foundPermission);
+  
+  if (!foundPermission || !foundPermission.IsActive) {
+    return router.push('/Homepage');
   }
+};
+
+const permissionExport = (menuId) => {
+  if (!permission.value || permission.value.MenuId !== menuId) {
+    return false;
+  }
+  return permission.value?.IsExport;
 };
 
 const fetchDeviceData = async () => {

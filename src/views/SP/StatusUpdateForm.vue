@@ -26,7 +26,7 @@
                 </v-chip>
               </template>
               <template v-slot:[`item.actions`]="{ item }">
-                <v-icon class="mr-2 edit" @click="openEditDialog(item, 'generator')">
+                <v-icon :disabled="!permissionWrite('0101010400')" class="mr-2 edit" @click="openEditDialog(item, 'generator')">
                   mdi-pencil
                 </v-icon>
               </template>
@@ -56,7 +56,12 @@
                 </v-chip>
               </template>
               <template v-slot:[`item.actions`]="{ item }">
-                <v-icon small class="mr-2 edit" @click="openEditDialog(item, 'crane')">
+                <v-icon 
+                  :disabled="!permissionWrite('0101010400')"
+                  small
+                  class="mr-2 edit" 
+                  @click="openEditDialog(item, 'crane')"
+                >
                   mdi-pencil
                 </v-icon>
               </template>
@@ -150,6 +155,7 @@ const devices = ref([]);
 const loading = ref(false);
 const editDialog = ref(false);
 const currentDeviceType = ref('');
+const permission = ref(null);
 const editedItem = ref({
   DeviceId: '',
   deviceLabel: '',
@@ -188,11 +194,21 @@ const initialize = async () => {
   }
 
   const permissionList = JSON.parse(menuPermission);
-  const permission = permissionList.find(item => item.MenuId === '0101010400');
-
-  if (!permission || !permission.IsActive) {
+  const foundPermission = permissionList.find(item => item.MenuId === '0101010400');
+  permission.value = foundPermission;
+  console.log(foundPermission);
+  
+  if (!foundPermission || !foundPermission.IsActive) {
     return router.push('/Homepage');
   }
+};
+
+const permissionWrite = (menuId) => {
+  if (!permission.value || permission.value.MenuId !== menuId) {
+    return false;
+  }
+  console.log(permission.value, permission.value?.IsWrite);
+  return permission.value?.IsWrite;
 };
 
 const fetchDeviceBargesGrouped = async () => {
