@@ -17,17 +17,17 @@
           </v-col>
           <v-col cols="12"> 
             <v-row v-if="devices.length > 0">
-              <v-col cols="3" class="d5-flex justify-center align-center">
-                <v-card class="card-map rounded-xl" elevation="1" @click="navigateToGPSVessel(device.DeviceId)">
+              <v-col cols="12" sm="12" lg="3">
+                <v-card class="card-map h-100 rounded-xl" elevation="1" @click="navigateToGPSVessel(device.DeviceId)">
                   <p class="card-title">ตำแหน่งเรือ</p>
                   <div id="mapContainer">
                     <v-img :src="require('@/assets/Icons/compass_map.svg')" style="z-index: 999; width: 7vw; top: 3vh;"></v-img>
                   </div>
                 </v-card>
               </v-col>
-              <v-col cols="9">
+              <v-col cols="12" sm="12" md="9">
                 <v-row>
-                  <v-col cols="4" v-for="(gauge, index) in gauges" :key="index">
+                  <v-col cols="6" sm="6" md="6" lg="4" v-for="(gauge, index) in gauges" :key="index">
                     <v-card class="gauge-card">
                       <v-card-title class="gauge-title text-center">{{ gauge.title }}</v-card-title>
                       <v-card-text class="text-center pa-0">
@@ -56,24 +56,24 @@
               </v-col>
             </v-row>
             <v-row>
-              <v-col cols="6">
+              <v-col cols="12" sm="12" lg="6">
                 <v-card class="pa-2 rounded-xl h-100">
                   <v-row class="h-100 align-center">
-                    <v-col cols="4">
+                    <v-col cols="12" sm="12" lg="4">
                       <FuelTank
                         title="Main Tank"
                         :remaining-volume="mainTankRemaining"
                         :total-capacity="mainTankCapacity"
                       />
                     </v-col>
-                    <v-col cols="4">
+                    <v-col cols="12" sm="12" lg="4">
                       <FuelTank
                         title="Feed Tank"
                         :remaining-volume="feedTankRemaining"
                         :total-capacity="feedTankCapacity"
                       />
                     </v-col>
-                    <v-col cols="4">
+                    <v-col cols="12" sm="12" lg="4">
                       <FuelTank
                         title="Total Tank"
                         :remaining-volume="totalTankRemaining"
@@ -137,7 +137,7 @@ import GeneralInfo from '@/components/TugboatDetails/GeneralInfo.vue';
 import FuelTank from '@/components/TugboatDetails/FuelTank.vue';
 import AlertBadges from '@/components/BargeDetails/AlertBadges.vue';
 import markerIconUrl from '@/assets/Images/ship_location.png';
-import { fuelCapacityTugboat } from '@/config/fuel-capacity-config';
+import { fuelFeedCapacityTugboat, fuelMainCapacityTugboat } from '@/config/fuel-capacity-config';
 import NotificationTable from '@/components/NotificationTable.vue';
 
 const $api = inject('$api');
@@ -356,6 +356,7 @@ const filteredMeasurements = computed(() => {
   };
 });
 
+// Main Tank
 const mainTankRemaining = computed(() => {
   if (!devices.value.length) return 0
   
@@ -369,9 +370,10 @@ const mainTankRemaining = computed(() => {
 });
 
 const mainTankCapacity = computed(() => {
-  return fuelCapacityTugboat[devices.value[0].DeviceName]
+  return fuelMainCapacityTugboat[devices.value[0].DeviceName] ?? fuelMainCapacityTugboat.default
 });
 
+// Feed Tank
 const feedTankRemaining = computed(() => {
   if (!devices.value.length) return 0
   
@@ -384,7 +386,9 @@ const feedTankRemaining = computed(() => {
   return value ? parseInt(value) : 0
 });
 
-const feedTankCapacity = computed(() => 20000);
+const feedTankCapacity = computed(() => {
+  return fuelFeedCapacityTugboat[devices.value[0].DeviceName] ?? fuelFeedCapacityTugboat.default
+});
 
 const totalTankRemaining = computed(() => {
   return mainTankRemaining.value + feedTankRemaining.value
@@ -573,7 +577,7 @@ watch(devices, () => {
 }
 
 .card-map {
-  height: 100%;
+  min-height: 300px;
   display: flex;
   justify-content: center;
   flex-direction: column;
@@ -591,7 +595,7 @@ watch(devices, () => {
 }
 
 #mapContainer {
-  height: 100%;
+  height: calc(100% - 40px); /* ลบความสูงของ title */
   width: 100%;
   border-radius: 16px;
   z-index: 1;

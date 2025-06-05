@@ -205,7 +205,7 @@ defineExpose({
 }
 
 .wind-speed-icon {
-  width: 4vw;
+  width: 8vh;
   left: 20%;
 }
 
@@ -214,7 +214,7 @@ defineExpose({
   top: 60%;
   left: 25%;
   transform: translate(-50%, -50%);
-  width: 8vw;
+  width: 8vh;
   height: 8vh;
 }
 

@@ -1,5 +1,11 @@
 <template>
-  <v-container style="background-color: #F9FAFB;">
+  <v-container
+    class="table-container"
+    style="background-color: #F9FAFB; flex-grow: 1;"
+    :style="{
+      height: $vuetify.display.smAndDown ? '50vh' : $vuetify.display.width > 2560 ? '540px' : '350px'
+    }"
+  >
     <v-row>
       <v-col cols="12" lg="3">
         <v-card class="card rounded-lg elevation-0" style="height: 100%;">
@@ -7,8 +13,7 @@
             <span class="vessel-title">VESSEL</span>
             <v-chip class="ml-2 vessel-status" prepend-icon="mdi-circle-medium">Running</v-chip>
           </v-card-title>
-          
-          <v-card-text style="height: calc(100% - 64px); overflow-y: auto;">
+          <v-card-text style="overflow-y: auto; height: 100%;">
             <v-data-table
               :headers="[{ title: 'Vessel Name', value: 'name' }]"
               :items="vesselListWithIcons"
@@ -18,6 +23,7 @@
               class="elevation-0 vessel-table"
               :items-per-page="4"
               @click:row="handleVesselClick"
+              style="font-size: 1.5vh;"
             >
               <template v-slot:[`item.name`]="{ item }">
                 <div class="d-flex align-center vessel-row">
@@ -29,12 +35,13 @@
           </v-card-text>
         </v-card>
       </v-col>
+
       <v-col cols="12" lg="9">
         <v-card v-if="localSelectedBoat && !selectedVessel" class="card rounded-lg elevation-0">
           <div>
-            <v-card-title class="table-header">{{ deletePrefix(localSelectedBoat?.DeviceName )|| 'Unknown Tugboat' }}</v-card-title>
+            <v-card-title class="table-header">{{ deletePrefix(localSelectedBoat?.DeviceName) || 'Unknown Tugboat' }}</v-card-title>
           </div>
-          <v-card-text v-if="localSelectedBoat?.jobs?.length">
+          <v-card-text v-if="localSelectedBoat?.jobs?.length" style="height: 100%; overflow-y: auto;">
             <v-row>
               <v-col cols="12">
                 <v-data-table
@@ -43,7 +50,8 @@
                   item-value="jobOrder"
                   class="elevation-0 striped-table custom-table"
                   :items-per-page-options="[3, 5, 10, -1]"
-                  :items-per-page="5"
+                  :items-per-page="2"
+                  style="font-size: 1.5vh;"
                   :footer-props="{
                     'show-first-last-page': true,
                     'show-current-page': true
@@ -51,23 +59,23 @@
                 >
                   <template v-slot:item="{ item }">
                     <tr>
-                      <td>{{ item.bargeName }}</td>
-                      <td>{{ item.origin }}</td>
-                      <td>{{ item.destination }}</td>
-                      <td>{{ item.vessel }}</td>
-                      <td>{{ item.jobOrder }}</td>
-                      <td>{{ item.cargo || 'N/A' }}</td>
-                      <td>{{ formatDate(item.eta) }}</td>
+                      <td style="font-size: 1.5vh;">{{ item.bargeName }}</td>
+                      <td style="font-size: 1.5vh;">{{ item.origin }}</td>
+                      <td style="font-size: 1.5vh;">{{ item.destination }}</td>
+                      <td style="font-size: 1.5vh;">{{ item.vessel }}</td>
+                      <td style="font-size: 1.5vh;">{{ item.jobOrder }}</td>
+                      <td style="font-size: 1.5vh;">{{ item.cargo || 'N/A' }}</td>
+                      <td style="font-size: 1.5vh;">{{ formatDate(item.eta) }}</td>
                     </tr>
                   </template>
                 </v-data-table>
               </v-col>
             </v-row>
           </v-card-text>
-          <v-card-text v-else>
+          <v-card-text v-else style="font-size: 1.5vh;">
             No job data available for this tugboat.
           </v-card-text>
-          <v-card-text v-card-text v-if="localSelectedBoat">
+          <v-card-text v-if="localSelectedBoat" class="height-table">
             <v-row>
               <v-col cols="6" lg="3" class="py-0">
                 <v-card class="d-flex align-center measurement-card elevation-0">
@@ -83,7 +91,7 @@
               <v-col cols="6" lg="3" class="py-0">
                 <v-card class="d-flex align-center measurement-card elevation-0">
                   <div class="icon speed">
-                    <span class="material-symbols-rounded">swap_driving_apps_wheel</span>
+                    <span style="font-size: 4vh;" class="material-symbols-rounded">swap_driving_apps_wheel</span>
                   </div>
                   <div class="text-side">
                     <p class="text-grey">Speed</p>
@@ -121,7 +129,7 @@
           <div>
             <v-card-title class="table-header">{{ selectedVessel }}</v-card-title>
           </div>
-          <v-card-text>
+          <v-card-text style="height: 100%; overflow-y: auto;">
             <v-row>
               <v-col cols="12">
                 <v-data-table
@@ -131,6 +139,7 @@
                   class="elevation-0 striped-table custom-table"
                   :items-per-page-options="[3, 5, 10, -1]"
                   :items-per-page="3"
+                  style="font-size: 1.5vh;"
                 >
                   <template v-slot:item="{ item }">
                     <tr>
@@ -141,7 +150,7 @@
                         <td>{{ item.product_name || 'N/A' }}</td>
                       </template>
                       <template v-else>
-                        <td colspan="4" class="text-center no-data-cell">
+                        <td colspan="4" class="text-center">
                           No Data Available
                         </td>
                       </template>
@@ -153,7 +162,9 @@
           </v-card-text>
         </v-card>
         <v-card v-else class="card rounded-lg elevation-0">
-          <v-card-text>No Data Available.</v-card-text>
+          <v-card-text style="font-size: 1.5vh; overflow-y: auto;">
+            No Data Available.
+          </v-card-text>
         </v-card>
       </v-col>
     </v-row>
@@ -291,12 +302,12 @@ const toggleVessel = async (vessel) => {
           //   vesselShip.name
           // );
           props.updateMapMarkers({
-            type: 'vessel',
-            latitude: shipDevice.Mesurement?.find(m => m.measurementname === 'Latitude')?.lastValue,
-            longitude: shipDevice.Mesurement?.find(m => m.measurementname === 'Longitude')?.lastValue,
-            vesselName: vessel,
-            shipName: vesselShip.name
-          });
+          type: 'vessel',
+          latitude: shipDevice.Mesurement?.find(m => m.measurementname === 'Latitude')?.lastValue,
+          longitude: shipDevice.Mesurement?.find(m => m.measurementname === 'Longitude')?.lastValue,
+          vesselName: vessel,
+          shipName: vesselShip.name
+        });
         }
       } catch (error) {
         console.error('Error fetching ship device:', error);
@@ -402,20 +413,19 @@ const windSpeed = computed(() => {
   display: flex;
   align-items: center;
   background-color: #0B0E2C;
-  height: 46px;
 }
 
 .vessel-title {
   color: var(--yellow);
-  font-size: 24px;
+  font-size: 2.5vh;
 }
 
 .vessel-status {
-  height: 24px;
+  height: 2vh;
   border: 1px solid #28A745;
   color: #28A745;
   background-color:  rgba(100, 221, 23, 0.16);
-  font-size: 10px;
+  font-size: 1.5vh;
 }
 
 .vessel-list {
@@ -431,9 +441,8 @@ const windSpeed = computed(() => {
   display: flex;
   align-items: center;
   background-color: #FAC12A;
-  height: 46px;
   text-transform: uppercase;
-  font-size: 24px;
+  font-size: 2.5vh;
 }
 
 .striped-table :deep(tbody tr:nth-child(odd)) {
@@ -447,13 +456,11 @@ const windSpeed = computed(() => {
 /* เปลี่ยนสีตัวหนังสือของ header */
 .custom-table :deep(thead th) {
   color: var(--black);
-  font-size: 16px;
 }
 
 /* เปลี่ยนสีตัวหนังสือของ item */
 .custom-table :deep(tbody td) {
   color: var(--dark-gray);
-  font-size: 14px;
 }
 
 /* เปลี่ยนสีตัวหนังสือของแถวเมื่อ hover */
@@ -509,13 +516,13 @@ const windSpeed = computed(() => {
 
 .text-grey {
   color: var(--gray);
-  font-size: 12px;
+  font-size: 1vh;
 }
 
 .text-value {
   color: var(--black);
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 2vh;
+  font-weight: bold;
   font-family: 'Inter', sans-serif;
 }
 
@@ -523,9 +530,9 @@ const windSpeed = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 6px;
+  width: 5vh;
+  height: 5vh;
+  border-radius: 1.5vh;
 }
 
 .rpm {
@@ -546,5 +553,54 @@ const windSpeed = computed(() => {
 .wind-speed {
   background-color: #96D2FF;
   color: #FFFFFF;
+}
+
+.table-container {
+  padding: 16px;
+  overflow-y: auto; /* เพิ่มการเลื่อนในแนวตั้ง */
+}
+
+@media(min-width: 1280px) {
+
+
+  .height-table {
+    height: calc(100% - 64px);
+  }
+}
+
+.vessel-row {
+  padding: 1vh;
+}
+
+:deep(.v-data-table-header__content) {
+  font-size: 1.5vh;
+}
+
+.material-symbols-rounded {
+  font-size: 4vh;
+}
+
+@media (max-width: 960px) {
+  .table-container {
+    height: 50vh; /* ความสูงคงที่สำหรับ mobile/tablet */
+    overflow-y: auto; /* อนุญาตให้เลื่อนในแนวตั้ง */
+    padding: 8px; /* ลด padding เพื่อให้เหมาะกับหน้าจอเล็ก */
+  }
+
+  .card {
+    height: 100%;
+  }
+
+  .vessel-header, .table-header {
+    font-size: 1.8vh; /* ปรับขนาดฟอนต์สำหรับหน้าจอเล็ก */
+  }
+
+  .custom-table :deep(th), .custom-table :deep(td) {
+    font-size: 1.4vh !important; /* ปรับขนาดฟอนต์ตาราง */
+  }
+
+  .measurement-card {
+    padding: 6px; /* ลด padding สำหรับหน้าจอเล็ก */
+  }
 }
 </style>

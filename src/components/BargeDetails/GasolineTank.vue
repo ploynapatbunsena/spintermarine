@@ -61,10 +61,10 @@ const oilPercentage = computed(() => {
 
 .tank {
   position: relative;
-  width: 20vw;
-  height: 14vh;
+  width: 40vh;
+  height: 12vh;
   border: 1vh solid #ffffff;
-  border-radius: 200px;
+  border-radius: 6vh;
   background-color: #ffffff;
   overflow: hidden;
   display: flex;
@@ -89,8 +89,8 @@ const oilPercentage = computed(() => {
   left: 50%;
   transform: translateX(-50%);
   transform: translate(-50%, 50%);
-  font-size: 3vw;
-  font-weight: 600;
+  font-size: 6vh;
+  font-weight: bold;
   color: #333;  
   display: flex;
   justify-content: center;

@@ -2,16 +2,18 @@
   <div class="gauge-container">
     <vue-gauge
       :refid="'_' + Math.random().toString(36).substr(2, 9)"
-      :class="'metricsGauge'"
+      class="metricsGauge"
       :options="gaugeOptions"
-      :key="value"
+      :key="componentKey"
     />
-    <div class="central-label">{{ label }}: {{ value }}</div>
+    <v-card-text class="central-label text-center pa-0">
+      {{ label }}: {{ formattedValue }} {{ unit }}
+    </v-card-text>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, onBeforeUnmount, ref, defineProps } from 'vue';
+import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue';
 import VueGauge from 'vue-gauge';
 
 const props = defineProps({
@@ -23,50 +25,87 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  maxValue: {
+    type: Number,
+    default: 5,
+  },
+  warningThreshold: {
+    type: Number,
+    default: 3,
+  },
+  dangerThreshold: {
+    type: Number,
+    default: 4,
+  },
 });
 
-const chartWidthVw = ref(10);
+const unit = "°";
+const chartWidth = ref(300);
+const componentKey = ref(0);
+
+const formattedValue = computed(() => {
+  return props.value;
+});
 
 const gaugeOptions = computed(() => {
-  const needlePercentage = ((props.value + 6) / 12) * 100;
-
-  const delimiters = [
-    (1 / 12) * 100, // -5
-    (3 / 12) * 100, // -3
-    (9 / 12) * 100, // 3
-    (11 / 12) * 100, // 5
-  ];
-
-  const colors = ["#DC2B2B", "#FFC107", "#28A745", "#FFC107", "#DC2B2B"];
-  const labels = ["-5", "-3", "3", "5"];
-
-  const chartWidth = (chartWidthVw.value / 100) * window.innerWidth;
+  const rangeMax = props.maxValue;
+  const totalRange = rangeMax * 2; // จาก -max ถึง +max
+  
+  // คำนวณตำแหน่งเข็ม (0 ถึง 100%)
+  const needlePercentage = ((props.value + rangeMax) / totalRange) * 100;
+  
+  // คำนวณจุดแบ่งสำหรับทั้งสองด้าน (บวกและลบ)
+  const positiveWarning = ((rangeMax + props.warningThreshold) / totalRange) * 100;
+  const positiveDanger = ((rangeMax + props.dangerThreshold) / totalRange) * 100;
+  const negativeWarning = ((rangeMax - props.warningThreshold) / totalRange) * 100;
+  const negativeDanger = ((rangeMax - props.dangerThreshold) / totalRange) * 100;
 
   return {
     needleValue: needlePercentage,
-    needleColor: "#355F2E",
-    arcDelimiters: delimiters,
-    arcColors: colors,
-    arcLabels: labels,
-    rangeLabelFontSize: 16,
-    arcLabelFontSize: 14,
+    needleColor: '#2c3e50',
+    arcDelimiters: [negativeDanger, negativeWarning, positiveWarning, positiveDanger],
+    arcColors: ['#F44336', '#FFD54F', '#3DCC5B', '#FFD54F', '#F44336'],
+    arcLabels: [
+      `-${props.dangerThreshold}`,
+      `-${props.warningThreshold}`,
+      `${props.warningThreshold}`,
+      `${props.dangerThreshold}`
+    ],
+    rangeLabel: [`-${rangeMax}`, `${rangeMax}`],
+    rangeLabelFontSize: window.innerWidth < 600 ? 8 : 10,
+    arcLabelFontSize: window.innerWidth < 600 ? 6 : 8,
     arcOverEffect: true,
-    chartWidth: chartWidth,
-    rangeLabel: ["-6", "6"],
+    chartWidth: chartWidth.value,
     hasNeedle: true,
   };
 });
 
-const updateChartWidth = () => {
-  chartWidthVw.value = (10 / 100) * window.innerWidth;
+const updateChartSize = () => {
+  const width = window.innerWidth;
+  if (width < 600) {
+    chartWidth.value = width * 0.35;
+  } else if (width < 960) {
+    chartWidth.value = width * 0.25;
+  } else if (width < 1264) {
+    chartWidth.value = width * 0.2;
+  } else {
+    chartWidth.value = width * 0.09;
+  }
+  componentKey.value++; // Force re-render
 };
 
+// Watch for props changes
+watch(() => [props.value, props.maxValue, props.warningThreshold, props.dangerThreshold], () => {
+  componentKey.value++;
+});
+
 onMounted(() => {
-  window.addEventListener("resize", updateChartWidth);
+  updateChartSize();
+  window.addEventListener("resize", updateChartSize);
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", updateChartWidth);
+  window.removeEventListener("resize", updateChartSize);
 });
 </script>
 

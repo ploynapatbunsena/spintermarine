@@ -5,7 +5,7 @@
     overlap
     class="alert-badge"
   >
-    <v-icon style="font-size: 2vh;">mdi-bell-ring</v-icon>
+    <v-icon style="font-size: 3vh;">mdi-bell-ring</v-icon>
   </v-badge>
   <v-badge
     :content="warningCount"
@@ -13,7 +13,7 @@
     overlap
     class="warning-badge"
   >
-    <v-icon style="font-size: 2vh;">mdi-alert</v-icon>
+    <v-icon style="font-size: 3vh;">mdi-alert</v-icon>
   </v-badge>
 </template>
 

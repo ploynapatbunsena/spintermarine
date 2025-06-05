@@ -382,7 +382,7 @@ onMounted(async() => {
 
 .edit {
   cursor: pointer;
-  width: 2vw;
+  width: 4vh;
   height: 2vh;
   border-radius: 24px;
   font-size: 2vh;
@@ -461,31 +461,31 @@ onMounted(async() => {
 }
 
 .status-standby {
-  font-size: 1.5vh;
+  /* font-size: 1.5vh; */
   color: var(--text-standby);
   background-color: var(--bg-standby);
 }
 
 .status-running {
-  font-size: 1.5vh;
+  /* font-size: 1.5vh; */
   color: var(--text-running);
   background-color: var(--bg-running);
 }
 
 .status-standby-maintenance {
-  font-size: 1.5vh;
+  /* font-size: 1.5vh; */
   color: var(--text-s-m);
   background-color: var(--bg-s-m);
 }
 
 .status-running-maintenance {
-  font-size: 1.5vh;
+  /* font-size: 1.5vh; */
   color: var(--text-gen);
   background-color: var(--bg-r-m);
 }
 
 .status-down {
-  font-size: 1.5vh;
+  /* font-size: 1.5vh; */
   color: var(--black);
   background-color: var(--gray);
 }
@@ -501,7 +501,7 @@ onMounted(async() => {
 }
 
 .status-unknown {
-  font-size: 1.5vh;
+  /* font-size: 1.5vh; */
   color: #000000;
   background-color: #C0C0C0;
 }

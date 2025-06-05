@@ -6,7 +6,7 @@
       <div v-if="!loading">
         <div class="title">Historical Chart Report</div>
         <v-card class="mt-4">
-          <v-card-text class="mx-16 my-6">
+          <v-card-text class="mx-4 my-6">
             <v-row>
               <v-col cols="12" md="6">
                 <v-select
@@ -97,41 +97,49 @@
               </v-col>
             </v-row>
             <v-row>
-              <v-col class="d-flex justify-end">
-                <v-btn
-                  class="cancel-btn elevation-0 text-none mr-4"
-                  @click="resetFilters"
-                >
-                  Cancel
-                </v-btn>
-                <v-btn
-                  class="search-btn mr-4 elevation-0 text-none"
-                  @click="validateAndSearch"
-                  :loading="searchLoading"
-                >
-                  Search
-                </v-btn>
-                <v-menu>
-                  <template v-slot:activator="{ props }">
+              <v-col cols="12" sm="12" lg="3" xxl="2">
+                <v-row>
+                  <v-col cols="4" sm="4">
                     <v-btn
-                      :disabled="!permissionExport('0101020100') || !showResult"
-                      class="download-btn elevation-0 text-none"
-                      v-bind="props"
+                      class="cancel-btn elevation-0 text-none mr-4"
+                      @click="resetFilters"
                     >
-                      Download
+                      Cancel
                     </v-btn>
-                  </template>
-                  <v-list>
-                    <v-list-item
-                      v-for="format in ['CSV', 'JPG']"
-                      :key="format"
-                      :value="format"
-                      @click="downloadReport(format)"
+                  </v-col>
+                  <v-col cols="4" sm="4">
+                    <v-btn
+                      class="search-btn mr-4 elevation-0 text-none"
+                      @click="validateAndSearch"
+                      :loading="searchLoading"
                     >
-                      <v-list-item-title>{{ format }}</v-list-item-title>
-                    </v-list-item>
-                  </v-list>
-                </v-menu>
+                      Search
+                    </v-btn>
+                  </v-col>
+                  <v-col cols="4" sm="4">
+                    <v-menu>
+                      <template v-slot:activator="{ props }">
+                        <v-btn
+                          :disabled="!permissionExport('0101020100') || !showResult"
+                          class="download-btn elevation-0 text-none"
+                          v-bind="props"
+                        >
+                          Download
+                        </v-btn>
+                      </template>
+                      <v-list>
+                        <v-list-item
+                          v-for="format in ['CSV', 'JPG']"
+                          :key="format"
+                          :value="format"
+                          @click="downloadReport(format)"
+                        >
+                          <v-list-item-title>{{ format }}</v-list-item-title>
+                        </v-list-item>
+                      </v-list>
+                    </v-menu>
+                  </v-col>
+                </v-row>
               </v-col>
             </v-row>
           </v-card-text>
@@ -145,7 +153,7 @@
             Error loading data: {{ error }}
           </v-card-text>
   
-          <v-card-text v-if="showResult && !searchLoading" class="mx-16">
+          <v-card-text v-if="showResult && !searchLoading" class="mx-4">
             <div v-if="error" class="text-center error--text py-4">
               <v-icon color="error">mdi-alert-circle</v-icon>
               {{ error }}
@@ -207,14 +215,14 @@ const measurementError = ref(false);
 const showResult = ref(false);
 const searchLoading = ref(false);
 const error = ref(null);
-const startDate = ref(null);
-const endDate = ref(null);
 const vehicleError = ref(false);
 const deviceError = ref(false);
 const startDateError = ref('');
 const endDateError = ref('');
 const selectedInterval = ref(null);
 const permission = ref(null);
+const endDate = ref(new Date());
+const startDate = ref(new Date(new Date().setDate(new Date().getDate() - 7)));
 
 const intervalList = ref([
   { id: '5m', title: '5 minutes' },

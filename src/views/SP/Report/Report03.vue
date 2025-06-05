@@ -6,7 +6,7 @@
       <div class="title">Report on RPM and Speed and %Throttle Affected by Wind Speed of Tugboat</div>
       <div class="title-thai">รายงาน RPM และ ความเร็ว และ %คันเร่ง ที่ถูกกระทบด้วยความเร็วลมของเรือยนต์</div>
       <v-card class="mt-4">
-        <v-card-text class="mx-16 my-6">
+        <v-card-text class="mx-4 my-6">
           <v-row>
             <v-col cols="12" md="3">
               <v-select
@@ -73,9 +73,9 @@
               ></datePicker>
               <div v-if="endDateError" class="error-message">{{ endDateError }}</div>
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6" lg="3">
               <v-row>
-                <v-col cols="6" md="3">
+                <v-col cols="4" md="3" sm="4">
                   <v-btn
                     class="cancel-btn elevation-0 text-none"
                     @click="resetFilters"
@@ -83,7 +83,7 @@
                     Cancel
                   </v-btn>
                 </v-col>
-                <v-col cols="6" md="3">
+                <v-col cols="4" md="3" sm="4">
                   <v-btn
                     class="search-btn elevation-0 text-none"
                     @click="validateAndSearch"
@@ -92,7 +92,7 @@
                     Search
                   </v-btn>
                 </v-col>
-                <v-col cols="6" md="4">
+                <v-col cols="4" md="4" sm="4">
                   <v-menu>
                     <template v-slot:activator="{ props }">
                       <v-btn
@@ -163,13 +163,13 @@ const error = ref(null);
 const series = ref([]);
 const tugboatDevices = ref([]);
 const selectedTugboats = ref([]);
-const startDate = ref(null);
-const endDate = ref(null);
 const chart = ref(null);
 const deviceError = ref('');
 const startDateError = ref('');
 const endDateError = ref('');
 const permission = ref(null);
+const endDate = ref(new Date());
+const startDate = ref(new Date(new Date().setDate(new Date().getDate() - 7)));
 
 const chartOptions = ref({
   chart: {
@@ -492,18 +492,21 @@ onMounted(async() => {
   background-color: var(--yellow);
   color: var(--white);
   border-radius: 24px;  
+  font-size: 1.3vh;
 }
 
 .cancel-btn {
   color: #000000;
   border: 1px solid #E3E3E3;
   border-radius: 24px;
+  font-size: 1.5vh;
 }
 
 .search-btn {
   background-color: #223368;
   color: #ffffff;
   border-radius: 24px;
+  font-size: 1.5vh;
 }
 
 .error--text {

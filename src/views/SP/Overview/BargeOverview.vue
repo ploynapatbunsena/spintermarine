@@ -327,22 +327,22 @@ onUnmounted(() => {
 }
 
 .bottom-line-blue {
-  border: 0.2vh solid #2196F3;
+  border: 0.1vh solid #2196F3;
   border-radius: 10px;
 }
 
 .bottom-line-green {
-  border: 0.2vh solid #4CAF50;
+  border: 0.1vh solid #4CAF50;
   border-radius: 10px;
 }
 
 .bottom-line-grey {
-  border: 0.2vh solid #9E9E9E;
+  border: 0.1vh solid #9E9E9E;
   border-radius: 10px;
 }
 
 .bottom-line-black {
-  border: 0.2vh solid #000000;
+  border: 0.1vh solid #000000;
   border-radius: 10px;
 }
 

@@ -6,7 +6,7 @@
       <div v-if="!loading">
         <div class="title">Notification Report</div>
         <v-card class="mt-4">
-          <v-card-text class="mx-16 my-6">
+          <v-card-text class="mx-4 my-6">
             <v-row>
               <v-col cols="12" md="6">
                 <v-select
@@ -110,41 +110,49 @@
               </v-col>
             </v-row>
             <v-row>
-              <v-col class="d-flex justify-end">
-                <v-btn
-                  class="cancel-button elevation-0 text-none mr-4"
-                  @click="resetFilters"
-                >
-                  Cancel
-                </v-btn>
-                <v-btn
-                  class="search-btn mr-4 elevation-0 text-none"
-                  @click="validateAndSearch"
-                  :loading="searchLoading"
-                >
-                  Search
-                </v-btn>
-                <v-menu>
-                  <template v-slot:activator="{ props }">
+              <v-col cols="12" sm="12" lg="3" xxl="2">
+                <v-row>
+                  <v-col cols="4" sm="4">
                     <v-btn
-                      :disabled="!permissionExport('0101020200') || !showResult"
-                      class="download-btn elevation-0 text-none"
-                      v-bind="props"
+                      class="cancel-btn elevation-0 text-none mr-4"
+                      @click="resetFilters"
                     >
-                      Download
+                      Cancel
                     </v-btn>
-                  </template>
-                  <v-list>
-                    <v-list-item
-                      v-for="format in ['CSV']"
-                      :key="format"
-                      :value="format"
-                      @click="downloadReport(format)"
+                  </v-col>
+                  <v-col cols="4" sm="4">
+                    <v-btn
+                      class="search-btn mr-4 elevation-0 text-none"
+                      @click="validateAndSearch"
+                      :loading="searchLoading"
                     >
-                      <v-list-item-title>{{ format }}</v-list-item-title>
-                    </v-list-item>
-                  </v-list>
-                </v-menu>
+                      Search
+                    </v-btn>
+                  </v-col>
+                  <v-col cols="4" sm="4">
+                    <v-menu>
+                      <template v-slot:activator="{ props }">
+                        <v-btn
+                          :disabled="!permissionExport('0101020100') || !showResult"
+                          class="download-btn elevation-0 text-none"
+                          v-bind="props"
+                        >
+                          Download
+                        </v-btn>
+                      </template>
+                      <v-list>
+                        <v-list-item
+                          v-for="format in ['CSV', 'JPG']"
+                          :key="format"
+                          :value="format"
+                          @click="downloadReport(format)"
+                        >
+                          <v-list-item-title>{{ format }}</v-list-item-title>
+                        </v-list-item>
+                      </v-list>
+                    </v-menu>
+                  </v-col>
+                </v-row>
               </v-col>
             </v-row>
           </v-card-text>
@@ -158,8 +166,9 @@
             Error loading data: {{ error }}
           </v-card-text>
   
-          <v-card-text v-if="showResult && !searchLoading" class="mx-16">
+          <v-card-text v-if="showResult && !searchLoading" class="mx-4">
             <v-data-table
+              :mobile-breakpoint="0"
               :headers="headers"
               :items="tableData"
               :items-per-page="-1"
@@ -296,13 +305,13 @@ const selectedStatuses = ref([]);
 const searchLoading = ref(false);
 const tableData = ref([]);
 const showResult = ref(false);
-const startDate = ref(null);
-const endDate = ref(null);
 const dialog = ref(false);
 const vehicleError = ref('');
 const deviceError = ref('');
 const error = ref(null);
 const permission = ref(null);
+const endDate = ref(new Date());
+const startDate = ref(new Date(new Date().setDate(new Date().getDate() - 7)));
 
 const statusOptions = ref([
   { text: 'รอแจ้งซ่อม', value: false },
@@ -855,7 +864,8 @@ watch(() => route.query, () => {
 .download-btn {
   background-color: var(--yellow);
   color: var(--white);
-  border-radius: 24px;  
+  border-radius: 24px; 
+  font-size: 1.3vh;
 }
 
 .card-dialog {
@@ -893,12 +903,14 @@ watch(() => route.query, () => {
   color: #000000;
   border: 1px solid #E3E3E3;
   border-radius: 24px;
+  font-size: 1.5vh;
 }
 
 .search-btn {
   background-color: #223368;
   color: #ffffff;
   border-radius: 24px;
+  font-size: 1.5vh;
 }
 
 .cancel-btn {
@@ -932,4 +944,36 @@ watch(() => route.query, () => {
   font-size: 12px;
   margin-top: 4px;
 }
+
+/* 2560px */
+
+/* :deep(.v-field__input) {
+  font-size: 1.5vh;
+}
+
+:deep(.v-label) {
+  font-size: 1.5vh;
+}
+
+:deep(.dp__input) {
+  font-size: 1.5vh;
+  padding-left: 3vh;
+}
+
+:deep(.dp__input_icons){
+  width: 1.5vh;
+  height: 1.5vh;
+}
+
+:deep(.v-field) {
+  height: 2vh;
+}
+
+:deep(.v-messages){
+  font-size: 1.5vh;
+}
+
+:deep(.dp__menu) {
+  font-size: 1.5vh;
+} */
 </style>

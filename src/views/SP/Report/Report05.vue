@@ -7,7 +7,7 @@
         <div class="title">Report on Fuel Rate per RPM for Evaluating Engine Efficiency of Motor Barge</div>
         <div class="title-thai">รายงานอัตราการใช้ชื้อเพลิง ต่อ RPM เพื่อดูประสิทธิภาพเครื่องยนต์ของทุ่น</div>
         <v-card class="mt-4">
-          <v-card-text class="mx-16 my-6">
+          <v-card-text class="mx-4 my-6">
             <v-row>
               <v-col cols="12" md="3">
                 <v-select
@@ -83,40 +83,48 @@
                 <div v-if="endDateError" class="error-message">{{ endDateError }}</div>
               </v-col>
               <v-col cols="12" md="3">
-                <v-btn
-                  class="cancel-btn elevation-0 text-none mr-4"
-                  @click="resetFilters"
-                >
-                  Cancel
-                </v-btn>
-                <v-btn
-                  class="search-btn elevation-0 text-none mr-4"
-                  @click="validateAndSearch"
-                  :loading="searchLoading"
-                >
-                  Search
-                </v-btn>
-                <v-menu>
-                  <template v-slot:activator="{ props }">
+                <v-row>
+                  <v-col cols="4">
                     <v-btn
-                      :disabled="!permissionExport('0101020500') || !showResult"
-                      class="download-btn elevation-0 text-none"
-                      v-bind="props"
+                      class="cancel-btn elevation-0 text-none mr-4"
+                      @click="resetFilters"
                     >
-                      Download
+                      Cancel
                     </v-btn>
-                  </template>
-                  <v-list>
-                    <v-list-item
-                      v-for="format in ['CSV', 'JPG']"
-                      :key="format"
-                      :value="format"
-                      @click="downloadReport(format)"
+                  </v-col>
+                  <v-col cols="4">
+                    <v-btn
+                      class="search-btn elevation-0 text-none mr-4"
+                      @click="validateAndSearch"
+                      :loading="searchLoading"
                     >
-                      <v-list-item-title>{{ format }}</v-list-item-title>
-                    </v-list-item>
-                  </v-list>
-                </v-menu>
+                      Search
+                    </v-btn>
+                  </v-col>
+                  <v-col cols="4">
+                    <v-menu>
+                      <template v-slot:activator="{ props }">
+                        <v-btn
+                          :disabled="!permissionExport('0101020500') || !showResult"
+                          class="download-btn elevation-0 text-none"
+                          v-bind="props"
+                        >
+                          Download
+                        </v-btn>
+                      </template>
+                      <v-list>
+                        <v-list-item
+                          v-for="format in ['CSV', 'JPG']"
+                          :key="format"
+                          :value="format"
+                          @click="downloadReport(format)"
+                        >
+                          <v-list-item-title>{{ format }}</v-list-item-title>
+                        </v-list-item>
+                      </v-list>
+                    </v-menu>
+                  </v-col>
+                </v-row>
               </v-col>
             </v-row>
           </v-card-text>
@@ -171,8 +179,6 @@ const datePicker = VueDatePicker;
 const bargeData = ref([]);
 const selectedType = ref(null);
 const selectedDevices = ref([]);
-const startDate = ref(null);
-const endDate = ref(null);
 const showResult = ref(false);
 const searchLoading = ref(false);
 const error = ref(null);
@@ -184,6 +190,8 @@ const deviceError = ref('');
 const startDateError = ref('');
 const endDateError = ref('');
 const permission = ref(null);
+const endDate = ref(new Date());
+const startDate = ref(new Date(new Date().setDate(new Date().getDate() - 7)));
 
 const initialize = async () => {
   const menuPermission = localStorage.getItem('menuPermission');
@@ -567,18 +575,21 @@ onMounted(async() => {
   color: #000000;
   border: 1px solid #E3E3E3;
   border-radius: 24px;
+  font-size: 1.5vh;
 }
 
 .search-btn {
   background-color: #223368;
   color: #ffffff;
   border-radius: 24px;
+  font-size: 1.5vh;
 }
 
 .download-btn {
   background-color: #FAC12A;
   color: #ffffff;
   border-radius: 24px;  
+  font-size: 1.3vh;
 }
 
 .error--text {

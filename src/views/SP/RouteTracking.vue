@@ -52,9 +52,9 @@ const initialize = async () => {
 };
 
 const initMap = () => {
-  map.value = L.map('map').setView([13.7563, 100.5018], 10);
+  map.value = L.map('map').setView([13.7563, 100.5018], 8);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
+    maxZoom: 16,
     attribution: '© OpenStreetMap contributors'
   }).addTo(map.value);
 };
@@ -150,64 +150,63 @@ const createBoatMarker = (boatInfo) => {
   const boatIcon = L.divIcon({
     className: 'custom-boat-icon',
     html: `<div style="color: ${getStatusColor(status)}; ">
-             <i class="mdi mdi-ferry" style="font-size: 30px;"></i>
+             <i class="mdi mdi-ferry" style="font-size: 3vh;"></i>
            </div>`,
-    iconSize: [30, 30]
   });
 
   const marker = L.marker([lat, lng], { icon: boatIcon })
     .bindPopup(`
-      <div style="width: 500px; padding: 10px; font-family: 'Inter', sans-serif">
-        <h3 style="font-size: 18px; margin-bottom: 10px; border-bottom: 1px solid #9F9F9F; padding-bottom: 5px; font-family: 'Sarabun', sans-serif">
-          ${boatInfo.DeviceName}
+      <div style="width: 50vh; padding: 1vh; font-family: 'Inter', sans-serif">
+        <h3 style="font-size: 2vh; margin-bottom: 10px; border-bottom: 1px solid #9F9F9F; padding-bottom: 1vh;">
+          ${deletePrefix(boatInfo.DeviceName)}
         </h3>
         
-        ${(!latObj || !lngObj) ? '<p style="color: red; margin: 5px 0;"><i class="mdi mdi-alert" style="margin-right: 5px;"></i>ตำแหน่งไม่พร้อมใช้งาน กำลังแสดงตำแหน่งเริ่มต้น</p>' : ''}
+        ${(!latObj || !lngObj) ? '<p style="color: red; margin: 5px 0;"><i class="mdi mdi-alert" style="margin-right: 5px;"></i>ตำแหน่งไม่พร้อมใช้งาน</p>' : ''}
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 16px">
           <div id="boat-measurements-left-${deviceId}" style="opacity: 0.5;">
             <p style="margin: 5px 0;">
-              <i class="mdi mdi-speedometer" style="color: #9F9F9F; margin-right: 5px;"></i>
-              <strong style="color: #9F9F9F;">Speed:</strong> กำลังโหลด...
+              <i class="mdi mdi-speedometer" style="color: #9F9F9F; margin-right: 5px; font-size: 2vh;"></i>
+              <strong style="color: #9F9F9F; font-size: 1.5vh;">Speed:</strong> กำลังโหลด...
             </p>
             <p style="margin: 5px 0;">
-              <i class="mdi mdi-weather-windy" style="color: #9F9F9F; margin-right: 5px;"></i>
-              <strong style="color: #9F9F9F;">Wind-Speed:</strong> กำลังโหลด...
+              <i class="mdi mdi-weather-windy" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh;"></i>
+              <strong style="color: #9F9F9F; font-size: 1.5vh;">Wind-Speed:</strong> กำลังโหลด...
             </p>
           </div>
           
           <div id="boat-measurements-right-${deviceId}" style="opacity: 0.5; font-size: 16px">
             <p style="margin: 5px 0;">
-              <i class="mdi mdi-gauge" style="color: #9F9F9F; margin-right: 5px;"></i>
-              <strong style="color: #9F9F9F;">RPM:</strong> กำลังโหลด...
+              <i class="mdi mdi-gauge" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh;"></i>
+              <strong style="color: #9F9F9F; font-size: 1.5vh;">RPM:</strong> กำลังโหลด...
             </p>
             <p style="margin: 5px 0;">
-              <i class="mdi mdi-speedometer-medium" style="color: #9F9F9F; margin-right: 5px; font-size: 24px"></i>
-              <strong style="color: #9F9F9F;">%Throttle:</strong> กำลังโหลด...
+              <i class="mdi mdi-speedometer-medium" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh;"></i>
+              <strong style="color: #9F9F9F; font-size: 1.5vh;">%Throttle:</strong> กำลังโหลด...
             </p>
           </div>
         </div>
-        <div style="display: flex; justify-content: start; align-items: center; margin: 10px 0; font-family: 'Sarabun', sans-serif; font-size: 16px;">
+        <div style="display: flex; justify-content: start; align-items: center; margin: 10px 0; font-family: 'Sarabun', sans-serif; font-size: 2vh;">
           <p style="margin: 5px 0; display: inline-block;">
-            <i class="mdi mdi-package-variant-closed" style="color: #9F9F9F; margin-right: 5px; font-size: 24px""></i>
-            <strong style="color: #9F9F9F;">Barge:</strong> 
-              <span style="color: #2563EB; border: 1px solid #E7F1FF; border-radius: 24px; background-color: #E7F1FF; padding: 6px" id="transport-ship-name-${deviceId}">
+            <i class="mdi mdi-package-variant-closed" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh;"></i>
+            <strong style="color: #9F9F9F; font-size: 1.5vh;">Barge:</strong> 
+              <span style="color: #2563EB; font-size: 1.5vh; border: 1px solid #E7F1FF; border-radius: 2vh; background-color: #E7F1FF; padding: 6px" id="transport-ship-name-${deviceId}">
                 กำลังโหลด...
               </span>
           </p>
         </div>
-        <div style="display: flex; justify-content: start; align-items: center; margin: 10px 0; font-family: 'Sarabun', sans-serif; font-size: 16px;">
+        <div style="display: flex; justify-content: start; align-items: center; margin: 10px 0; font-family: 'Sarabun', sans-serif; font-size: 2vh;">
           <p style="margin: 5px 0; display: inline-block;">
-            <i class="mdi mdi-package-variant" style="color: #9F9F9F; margin-right: 5px; font-size: 24px""></i>
-            <strong style="color: #9F9F9F;">Barge (no product):</strong> 
-              <span style="color: #FAAA2A; border: 1px solid #FFFAE6; border-radius: 24px; background-color: #FFFAE6; padding: 4px" id="transport-ship-no-product-name-${deviceId}">
+            <i class="mdi mdi-package-variant" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh;"></i>
+            <strong style="color: #9F9F9F; font-size: 1.5vh;">Barge (no product):</strong> 
+              <span style="color: #FAAA2A; font-size: 1.5vh; border: 1px solid #FFFAE6; border-radius: 2vh; background-color: #FFFAE6; padding: 4px" id="transport-ship-no-product-name-${deviceId}">
                 กำลังโหลด...
               </span>
           </p>
         </div>
       </div>
     `, {
-      maxWidth: 600
+      maxWidth: 1200
     });
 
     marker.on('click', async () => {
@@ -239,23 +238,23 @@ const createBoatMarker = (boatInfo) => {
         rightDiv.style.opacity = '1';
         
         leftDiv.innerHTML = `
-          <p style="margin: 5px 0; font-family: 'Inter', sans-serif">
-            <i class="mdi mdi-speedometer" style="color: #9F9F9F; margin-right: 5px; font-size: 24px"></i>
+          <p style="margin: 5px 0; font-family: 'Inter', sans-serif; font-size: 1.5vh;">
+            <i class="mdi mdi-speedometer" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh"></i>
             <strong style="color: #9F9F9F;">Speed:</strong> ${deviceDetails.measurements?.Speed?.lastValue || 'N/A'} ${deviceDetails.measurements?.Speed?.unit || ''}
           </p>
-          <p style="margin: 5px 0; font-family: 'Inter', sans-serif">
-            <i class="mdi mdi-weather-windy" style="color: #9F9F9F; margin-right: 5px; font-size: 24px"></i>
+          <p style="margin: 5px 0; font-family: 'Inter', sans-serif; font-size: 1.5vh;">
+            <i class="mdi mdi-weather-windy" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh"></i>
             <strong style="color: #9F9F9F;">Wind Speed:</strong> ${deviceDetails.measurements?.['Wind-Speed']?.lastValue || 'N/A'} ${deviceDetails.measurements?.['Wind-Speed']?.unit || ''}
           </p>
         `;
         
         rightDiv.innerHTML = `
-          <p style="margin: 5px 0; font-family: 'Inter', sans-serif">
-            <i class="mdi mdi-gauge" style="color: #9F9F9F; margin-right: 5px; font-size: 24px"></i>
+          <p style="margin: 5px 0; font-family: 'Inter', sans-serif; font-size: 1.5vh;">
+            <i class="mdi mdi-gauge" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh"></i>
             <strong style="color: #9F9F9F;">RPM:</strong> ${deviceDetails.measurements?.RPM?.lastValue || 'N/A'} ${deviceDetails.measurements?.RPM?.unit || ''}
           </p>
-          <p style="margin: 5px 0; font-family: 'Inter', sans-serif">
-            <i class="mdi mdi-speedometer-medium" style="color: #9F9F9F; margin-right: 5px; font-size: 24px"></i>
+          <p style="margin: 5px 0; font-family: 'Inter', sans-serif; font-size: 1.5vh;">
+            <i class="mdi mdi-speedometer-medium" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh"></i>
             <strong style="color: #9F9F9F;">%Throttle:</strong> ${deviceDetails.measurements?.['%Throttle']?.lastValue || 'N/A'} ${deviceDetails.measurements?.['%Throttle']?.unit || ''}
           </p>
         `;
@@ -303,6 +302,10 @@ const updateMapMarkers = async () => {
     const group = L.featureGroup(boatMarkers.value);
     map.value.fitBounds(group.getBounds(), { padding: [50, 50] });
   }
+};
+
+const deletePrefix = (name) => {
+  return name.replace(/Barge|Tugboat/gi, '').trim();
 };
 
 const getStatusColor = (status) => {
@@ -374,10 +377,10 @@ onUnmounted(() => {
   height: calc(100vh - 64px);
 }
 
-.filter-container {
+/* .filter-container {
   width: 350px;
   height: 100%;
-}
+} */
 
 .map-container {
   flex-grow: 1;
@@ -393,8 +396,8 @@ onUnmounted(() => {
 
 .compass {
   position: absolute;
-  z-index: 999; 
-  width: 202px; 
+  z-index: 500; 
+  width: 15vh; 
   top: 32px;
   right: 32px;
 }

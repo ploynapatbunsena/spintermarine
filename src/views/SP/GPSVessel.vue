@@ -1,35 +1,48 @@
 <template>
   <v-app style="background-color: #F7F9FC;">
     <NavigationBar />
-    <div class="top-space"></div>
-    <div class="page-container">
-      <div class="filter-container">
-        <v-navigation-drawer v-model="open" width="350">
+    <!-- Hamburger Button for Mobile/Tablet -->
+    <v-btn
+      v-if="$vuetify.display.smAndDown"
+      icon="mdi-menu"
+      class="menu-button"
+      @click="open = !open"
+      color="white"
+      variant="elevated"
+    ></v-btn>
+    <!-- <div class="page-container"> -->
+      <div class="filter-container" :class="{ 'hidden': $vuetify.display.smAndDown && !open }">
+        <v-navigation-drawer
+          v-model="open"
+          :temporary="$vuetify.display.smAndDown"
+          :width="$vuetify.display.width > 2560 ? 800 : 350"
+          :permanent="!$vuetify.display.smAndDown"
+        >
           <v-list>
-            <v-list-item class="py-2 title text-center">Tugboat</v-list-item>
+            <v-card-text class="py-2 title text-center">Tugboat</v-card-text>
             <v-divider></v-divider>
             <v-list-item>
               <v-row>
                 <v-col cols="3" class="d-flex align-center">
                   <v-tooltip text="กำลังทำงาน">
                     <template v-slot:activator="{ props }">
-                      <v-icon v-bind="props" icon="mdi-square" size="16" color="#009688" class="me-1"></v-icon>
+                      <v-icon v-bind="props" icon="mdi-square" color="#1CC042" class="me-1 icon-detail"></v-icon>
                     </template>
                   </v-tooltip>
-                  <span style="font-size: 1.5vh;">Running</span>
+                  <span style="font-size: 1.5vh;" class="text-truncate">Running</span>
                 </v-col>
                 <v-col cols="3" class="d-flex align-center">
                   <v-tooltip text="รอเข้าซ่อม">
                     <template v-slot:activator="{ props }">
-                      <v-icon v-bind="props" icon="mdi-square" size="16" color="#FAC12A" class="me-1"></v-icon>
+                      <v-icon v-bind="props" icon="mdi-square" color="#FAC12A" class="me-1 icon-detail"></v-icon>
                     </template>
                   </v-tooltip>
-                  <span style="font-size: 1.5vh;">Pending</span>
+                  <span style="font-size: 1.5vh;" class="text-truncate">Pending</span>
                 </v-col>
                 <v-col cols="3" class="d-flex align-center">
                   <v-tooltip text="ดำเนินการซ่อม">
                     <template v-slot:activator="{ props }">
-                      <v-icon v-bind="props" icon="mdi-square" size="16" color="#DC2B2B" class="me-1"></v-icon>
+                      <v-icon v-bind="props" icon="mdi-square" color="#DC2B2B" class="me-1 icon-detail"></v-icon>
                     </template>
                   </v-tooltip>
                   <span class="text-truncate" style="font-size: 1.5vh;">Maintenance</span>
@@ -37,10 +50,10 @@
                 <v-col cols="3" class="d-flex align-center">
                   <v-tooltip text="ปิดการใช้งาน">
                     <template v-slot:activator="{ props }">
-                      <v-icon v-bind="props" icon="mdi-square" size="16" color="#000000" class="me-1"></v-icon>
+                      <v-icon v-bind="props" icon="mdi-square" color="#000000" class="me-1 icon-detail"></v-icon>
                     </template>
                   </v-tooltip>
-                  <span style="font-size: 1.5vh;">Down</span>
+                  <span class="text-truncate" style="font-size: 1.5vh;">Down</span>
                 </v-col>
               </v-row>
             </v-list-item>
@@ -81,10 +94,10 @@
             :allVessels="allVessels"
             :vesselShips="vesselShips"
             :allJobs="allJobs"
-         />
+          />
         </div>
       </div>
-    </div>
+    <!-- </div> -->
     <v-snackbar v-model="error" color="error">{{ error?.message }}</v-snackbar>
   </v-app>
 </template>
@@ -159,20 +172,16 @@ const fetchAllVessels = async () => {
       });
       const job = jobResponse.data.data.data;
       allJobs.value.push(job);
-      console.log('job', job);
-      
-      
+      // console.log('job', job);
       
       if (job.vessel_name) {
         allVessels.value.push(job.vessel_name);
-        console.log('allVessels', allVessels.value);
-        
+        // console.log('allVessels', allVessels.value);
         
         if (job.jobs_miiot?.job_ship?.ship) {
           vesselShips.value[job.vessel_name] = job.jobs_miiot.job_ship.ship;
         }
-        console.log('vesselShips', vesselShips.value);
-        
+        // console.log('vesselShips', vesselShips.value);
       }
     }
   } catch (error) {
@@ -297,6 +306,17 @@ const processTugboatData = (tugboats, cmmsData) => {
   });
 };
 
+const findVesselStatus = (vesselName) => {
+  if (!vesselShips.value[vesselName]) return 'Unknown';
+  
+  const shipName = vesselShips.value[vesselName].name;
+  const matchingDevice = devices.value.find(device => 
+    device.Note?.trim() === shipName.trim()
+  );
+  
+  return matchingDevice?.status || 'Unknown';
+};
+
 const initMap = () => {
   map.value = L.map('map').setView(position, 10);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -306,32 +326,26 @@ const initMap = () => {
 };
 
 const updateMapMarkers = (options = {}) => {
-  boatMarkers.value.forEach(marker => {
-    if (marker && map.value) {
-      marker.off();
-      map.value.removeLayer(marker);
-    }
-  });
-  shipMarkers.value.forEach(marker => {
-    if (marker && map.value) {
-      map.value.removeLayer(marker);
-    }
-  });
-
+  // ลบมาร์กเกอร์เดิมทั้งหมด
+  boatMarkers.value.forEach(marker => map.value?.removeLayer(marker));
+  shipMarkers.value.forEach(marker => map.value?.removeLayer(marker));
   boatMarkers.value = [];
   shipMarkers.value = [];
 
-  // Case 1: Update vessel
+  // กรณีอัปเดตเรือขนส่ง
   if (options.type === 'vessel' && options.latitude && options.longitude) {
-    const lat = parseFloat(options.latitude);
-    const lng = parseFloat(options.longitude);
-
+    const lat = parseFloat(options.latitude) || position[0];
+    const lng = parseFloat(options.longitude) || position[0];
+    console.log('lat, long', lat, lng);
+    
+    const vesselName = options.vesselName;
+    const status = findVesselStatus(vesselName);    
+    
     const shipIcon = L.divIcon({
       className: 'custom-ship-icon',
-      html: `<div style="color: #979a9a;">
-              <i class="mdi mdi-ferry" style="font-size: 30px;"></i>
+      html: `<div style="color: ${getStatusColor({ status })};">
+              <i class="mdi mdi-ferry" style="font-size: 3vh;"></i>
             </div>`,
-      iconSize: [30, 30]
     });
 
     const marker = L.marker([lat, lng], { icon: shipIcon })
@@ -342,15 +356,13 @@ const updateMapMarkers = (options = {}) => {
     return;
   }
 
-  // Case 2: Update tugboat
+  // กรณีอัปเดตเรือลากจูง (ส่วนเดิม)
   if (selectedBoats.value && selectedBoatData.value && map.value) {
     const tugboat = selectedBoatData.value;
     const latitude = tugboat.Mesurement?.find(m => m.measurementname === 'Latitude')?.lastValue;
     const longitude = tugboat.Mesurement?.find(m => m.measurementname === 'Longitude')?.lastValue;
     const lat = latitude ? parseFloat(latitude) : position[0];
     const lng = longitude ? parseFloat(longitude) : position[1];
-    console.log('พิกัด', lat, lng);
-    
 
     const boatIcon = L.divIcon({
       className: 'custom-boat-icon',
@@ -361,7 +373,7 @@ const updateMapMarkers = (options = {}) => {
     });
 
     const marker = L.marker([lat, lng], { icon: boatIcon })
-      .bindPopup(`<b>${tugboat.DeviceName || 'Unknown'}</b><br>Status: ${getStatusText(tugboat)}`)
+      .bindPopup(`<b>${deletePrefix(tugboat.DeviceName) || 'Unknown'}</b><br>Status: ${getStatusText(tugboat)}`)
       .addTo(map.value);
 
     marker.on('dblclick', (e) => {
@@ -401,12 +413,13 @@ const mapCMMSStatus = (cmmsStatus) => {
   }
 };
 
-const getStatusColor = (tugboat) => {
-  switch (tugboat.status) {
+const getStatusColor = (statusObj) => {
+  const status = typeof statusObj === 'string' ? statusObj : statusObj.status;
+  switch (status) {
     case 'Running': return '#1CC042';
     case 'Maintenance': return '#DC2B2B';
     case 'Pending': return '#FAC12A';
-    case 'Down': return '#FF0000';
+    case 'Down': return '#000000';
     default: return '#979a9a';
   }
 };
@@ -486,36 +499,49 @@ watch(() => route.params.deviceId, async (newDeviceId) => {
   font-size: 3vh;
   font-weight: bold;
 }
+
 .top-space {
   height: 64px;
 }
 
 .page-container {
   display: flex;
-  height: calc(100vh - 64px);
-}
-
-.filter-container {
-  width: 350px;
-  height: 100%;
+  height: 100vh;
 }
 
 .map-container {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .map {
   flex-grow: 1;
+  width: 100%; /* เต็มความกว้าง */
+  height: 100%; /* เต็มความสูงของคอนเทนเนอร์ */
   position: relative;
+}
+
+@media (min-width: 1280px) {
+  .map-container {
+    margin-left: 350px; /* เลื่อน map-container เพื่อชดเชย navigation drawer */
+    width: calc(100% - 350px); /* ปรับความกว้างให้พอดี */
+  }
+}
+
+@media (min-width: 2560px) {
+  .map-container {
+    margin-left: 800px; /* ปรับสำหรับ drawer ที่กว้างขึ้น */
+    width: calc(100% - 800px);
+  }
 }
 
 .compass {
   position: absolute;
-  z-index: 999; 
-  width: 202px; 
-  top: 32px;
+  z-index: 500; 
+  width: 15vh; 
+  top: 52px;
   right: 32px;
 }
 
@@ -553,4 +579,34 @@ watch(() => route.params.deviceId, async (newDeviceId) => {
 :deep(.v-navigation-drawer__content)::-webkit-scrollbar {
   display: none !important;
 }
+
+.icon-detail {
+  font-size: 1.5vh;
+}
+
+.menu-button {
+  position: fixed; /* ทำให้ปุ่มลอยอิสระ */
+  top: 72px; /* 64px (NavigationBar) + 8px margin */
+  left: 16px;
+  z-index: 600; /* อยู่เหนือ map และ drawer */
+  background-color: white; /* พื้นหลังทึบเพื่อซ่อนสีเทา */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* เพิ่มเงาให้ดูเด่น */
+}
+
+@media(min-width: 2560px) {
+  :deep(.v-list-item) {
+    font-size: 1.5vh !important;
+    padding: 1vh;
+  }
+
+  :deep(.v-checkbox .v-selection-control) {
+    font-size: 1.5vh !important;
+    padding: 1vh;
+  }
+}
+
+:deep(.v-navigation-drawer__content)::-webkit-scrollbar {
+  display: none !important;
+}
+
 </style>

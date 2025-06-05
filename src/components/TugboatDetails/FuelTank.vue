@@ -74,7 +74,7 @@ const formattedTotalCapacity = computed(() => {
   font-weight: bold;
   text-align: center;
   padding: 2.5vh 0px;
-  font-size: 1.5vh;
+  font-size: 2vh;
 }
 
 .tank-container {
@@ -85,7 +85,7 @@ const formattedTotalCapacity = computed(() => {
 
 .tank {
   position: relative;
-  width: 12vw;
+  width: 25vh;
   height: 12vh;
   border: 12px solid var(--white);
   border-radius: 6vh;
@@ -114,7 +114,7 @@ const formattedTotalCapacity = computed(() => {
   transform: translateX(-50%);
   transform: translate(-50%, 50%);
   font-size: 3vh;
-  font-weight: 600;
+  font-weight: bold;
   color: #333;  
   display: flex;
   justify-content: center;
@@ -131,7 +131,7 @@ const formattedTotalCapacity = computed(() => {
   p {
     font-family: 'Sarabun', serif;
     font-size: 1.5vh;
-    font-weight: 500;
+    font-weight: bold;
   }
 }
 

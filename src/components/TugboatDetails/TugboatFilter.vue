@@ -1,76 +1,85 @@
 <template>
-  <v-navigation-drawer
-    width="350"
-    v-model="open"
-    permanent
-  >
-    <div class="pa-4 dropdown-list">
-      <div class="d-flex justify-space-between align-center">
-        <v-select
-          v-model="selectedCategory"
-          :items="categories"
-          label="All Type"
-          variant="plain"
-          class="mr-2 dropdown-custom"
-          clearable
-          hide-details
-          density="compact"
-          style="width: 48%"
-        ></v-select>
-        
-        <v-select
-          v-model="selectedStatus"
-          :items="statuses"
-          label="All Status"
-          variant="plain"
-          class="dropdown-custom"
-          clearable
-          hide-details
-          density="compact"
-          style="width: 48%"
-        ></v-select>
-      </div>
-    </div>
-
-    <v-divider></v-divider>
-
-    <v-list>
-      <v-list-item class="d-flex align-center py-3 ml-6">
-        <template v-slot:prepend>
-          <v-checkbox 
-            v-model="selectAll"
-            :indeterminate="selectSome && !selectAll"
-            density="compact" 
+  <v-btn
+    v-if="$vuetify.display.smAndDown"
+    icon="mdi-menu"
+    class="menu-button"
+    @click="open = !open"
+    color="white"
+    variant="elevated"
+  ></v-btn>
+  <div class="filter-container" :class="{ 'hidden': $vuetify.display.smAndDown && !open }">
+    <v-navigation-drawer
+      v-model="open"
+      :temporary="$vuetify.display.smAndDown"
+      :width="$vuetify.display.width > 2560 ? 800 : 350"
+      :permanent="!$vuetify.display.smAndDown"
+    >
+      <v-row class="dropdown-list">
+        <v-col cols="6">
+          <v-select
+            v-model="selectedCategory"
+            :items="categories"
+            label="All Type"
+            variant="plain"
+            class="mr-2 dropdown-custom"
+            clearable
             hide-details
-            @click="toggleSelectAll"
-          ></v-checkbox>
-        </template>
-        <div class="ml-2 font">Select All</div>
-      </v-list-item>
-
-      <v-divider></v-divider>
-
-      <v-list-item
-        v-for="tugboat in filteredTugboats"
-        :key="tugboat.DeviceId"
-        class="d-flex align-center py-3 ml-6"
-      >
-        <template v-slot:prepend>
-          <v-checkbox 
-            v-model="selectedBoats" 
-            :value="tugboat.DeviceId" 
-            density="compact" 
+            density="compact"
+          ></v-select>
+        </v-col>
+        <v-col cols="6">
+          <v-select
+            v-model="selectedStatus"
+            :items="statuses"
+            label="All Status"
+            variant="plain"
+            class="dropdown-custom"
+            clearable
             hide-details
-            @change="emitSelectedBoats"
-          ></v-checkbox>
-        </template>
-        <div class="d-flex align-center">
-          <v-icon class="mx-3 icon" :class="getStatusClass(tugboat)">mdi-ferry</v-icon>
-          <span>{{ deletePrefix(tugboat.DeviceName) }}</span>
-        </div>
-      </v-list-item>
-    </v-list>
-  </v-navigation-drawer>
+            density="compact"
+          ></v-select>
+        </v-col>
+      </v-row>
+  
+      <v-list>
+        <v-list-item class="d-flex align-center py-3 ml-6">
+          <template v-slot:prepend>
+            <v-checkbox 
+              v-model="selectAll"
+              :indeterminate="selectSome && !selectAll"
+              density="compact" 
+              hide-details
+              @click="toggleSelectAll"
+            ></v-checkbox>
+          </template>
+          <div class="ml-2">Select All</div>
+        </v-list-item>
+  
+        <v-divider></v-divider>
+  
+        <v-list-item
+          v-for="tugboat in filteredTugboats"
+          :key="tugboat.DeviceId"
+          class="d-flex align-center py-3 ml-6"
+        >
+          <template v-slot:prepend>
+            <v-checkbox 
+              v-model="selectedBoats" 
+              :value="tugboat.DeviceId" 
+              density="compact" 
+              hide-details
+              @change="emitSelectedBoats"
+            ></v-checkbox>
+          </template>
+          <div class="d-flex align-center">
+            <v-icon class="mx-3 icon" :class="getStatusClass(tugboat)">mdi-ferry</v-icon>
+            <span>{{ deletePrefix(tugboat.DeviceName) }}</span>
+          </div>
+        </v-list-item>
+      </v-list>
+    </v-navigation-drawer>
+
+  </div>
 </template>
 
 <script setup>
@@ -239,12 +248,21 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.dropdown-custom .v-field {
-  background-color: #FFC107 !important;
+:deep(.dropdown-custom .v-field__input) {
+  font-size: 1.5vh;
 }
 
-.dropdown-custom .v-field__input {
-  color: black !important;
+:deep(.dropdown-custom .v-label) {
+  font-size: 1.2vh;
+}
+
+:deep(.dropdown-custom .v-select__selection) {
+  margin-top: 1.5vh;
+  font-size: 1.5vh;
+}
+
+:deep(.v-select__content .v-list-item) {
+  font-size: 1.5vh;
 }
 
 .status-maintenance {
@@ -267,6 +285,7 @@ onMounted(() => {
 
 .dropdown-list {
   background-color: #FFC107;
+  padding: 1vh;
 }
 
 :deep(.v-navigation-drawer__content)::-webkit-scrollbar {
@@ -275,5 +294,26 @@ onMounted(() => {
 
 .icon {
   border: #000000;
+}
+
+@media(min-width: 2560px) {
+  :deep(.v-list-item) {
+    font-size: 1.5vh !important;
+    padding: 1vh;
+  }
+
+  :deep(.v-checkbox .v-selection-control) {
+    font-size: 1.5vh !important;
+    padding: 1vh;
+  }
+}
+
+.menu-button {
+  position: fixed; 
+  top: 72px;
+  left: 16px;
+  z-index: 600;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 </style>

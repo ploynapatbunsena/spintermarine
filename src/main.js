@@ -6,129 +6,36 @@ import router from './router'
 import axios from 'axios'
 
 const $api = axios.create({
-  baseURL: 'http://127.0.0.1:5001/api',
-  // baseURL: 'https://iot.spintermarine.co.th/api',
+  // baseURL: 'http://127.0.0.1:5001/api',
+  baseURL: 'https://iot.spintermarine.co.th/api',
   headers: {
     'Content-Type': 'application/json'
   }
 });
 
-// $api.interceptors.request.use(
-//   (config) => {
-//     const token = localStorage.getItem('accessToken')
-//     if (token) {
-//       config.headers.Authorization = `Bearer ${token}`
-//     }
-//     return config
-//   },
-//   (error) => {
-//     return Promise.reject(error)
-//   }
-// );
-
-// $api.interceptors.response.use(
-//   (response) => response,
-//   (error) => {
-//     if (error.response?.status === 401) {
-//       console.log('Token expired or invalid, redirecting to login');
-//       localStorage.removeItem('accessToken');
-//       localStorage.removeItem('member');
-//       localStorage.removeItem('menuPermission');
-//       router.push('/login');
-//     }
-//     return Promise.reject(error);
-//   }
-// );
-
-let isRefreshingMFEC = false;
-let failedRequestsQueue = [];
-
-const processQueueMFEC = (error, token = null) => {
-  failedRequestsQueue.forEach(prom => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
-  });
-  failedRequestsQueue = [];
-};
-
 $api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem('accessToken')
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token}`
     }
-    return config;
+    return config
   },
   (error) => {
-    return Promise.reject(error);
+    return Promise.reject(error)
   }
 );
 
 $api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-    
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      if (isRefreshingMFEC) {
-        return new Promise((resolve, reject) => {
-          failedRequestsQueue.push({ resolve, reject });
-        }).then(token => {
-          originalRequest.headers['Authorization'] = 'Bearer ' + token;
-          return $api(originalRequest);
-        }).catch(err => {
-          return Promise.reject(err);
-        });
-      }
-
-      originalRequest._retry = true;
-      isRefreshingMFEC = true;
-
-      try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (!refreshToken) {
-          throw new Error('No refresh token available');
-        }
-
-        const response = await $api.get('/Member/refresh', {
-          refreshToken: refreshToken
-        });
-
-        const newAccessToken = response.data.accessToken; // ตรวจสอบ field name ใน response ว่าตรงกัน
-        localStorage.setItem('accessToken', newAccessToken);
-        
-        // Update the Authorization header
-        $api.defaults.headers.common['Authorization'] = 'Bearer ' + newAccessToken;
-        originalRequest.headers['Authorization'] = 'Bearer ' + newAccessToken;
-        
-        // Process queued requests
-        processQueueMFEC(null, newAccessToken);
-        
-        // Retry the original request
-        return $api(originalRequest);
-      } catch (refreshError) {
-        console.error('Refresh token failed:', refreshError);
-        processQueueMFEC(refreshError, null);
-        
-        // Clear storage and redirect to login
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('member');
-        localStorage.removeItem('menuPermission');
-        
-        if (router.currentRoute.path !== '/login') {
-          router.push('/login');
-        }
-        
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshingMFEC = false;
-      }
+  (error) => {
+    if (error.response?.status === 401) {
+      console.log('Token expired or invalid, redirecting to login');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('member');
+      localStorage.removeItem('menuPermission');
+      router.push('/login');
     }
-    
     return Promise.reject(error);
   }
 );

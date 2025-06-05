@@ -17,13 +17,14 @@
         <v-col cols="12">
           <v-card elevation="0" class="pa-4">
             <v-row>
-              <v-col md="8" sm="8" cols="12">
+              <!-- Generator Section for Desktop -->
+              <v-col md="8" sm="12" cols="12" class="d-none d-md-block">
                 <!-- Row ที่ 1 ของ Generator -->
                 <v-row>
                   <v-col
                     v-for="device in filteredDevices.slice(0, 5)"
                     :key="device.DeviceId"
-                    class="mx-auto"
+                    class="pa-0 mx-auto"
                     cols="auto"
                   >
                     <v-card
@@ -34,7 +35,7 @@
                         <v-icon v-if="getStatusIcon(device)" class="status-icon">
                           {{ getStatusIcon(device) }}
                         </v-icon>
-                        <p class="gen-name">{{ device.DeviceLabel }}</p>
+                        <p class="text-truncate gen-name">{{ device.DeviceLabel }}</p>
                       </div>
                       <v-img
                         :src="require('@/assets/Images/generator.png')"
@@ -48,8 +49,8 @@
                           class="column-detail" 
                           :style="{ backgroundColor: index % 2 === 0 ? '#F9F9FA' : 'transparent' }"
                         >
-                          <v-col cols="8">{{ item.name }}</v-col>
-                          <v-col cols="2">{{ item.value }}</v-col>
+                          <v-col cols="6" class="text-truncate">{{ item.name }}</v-col>
+                          <v-col cols="4" style="font-weight: bold; text-align: end; padding-right: 2vh;">{{ item.value }}</v-col>
                           <v-col cols="2">{{ item.unit }}</v-col>
                         </v-row>
                       </div>
@@ -57,7 +58,202 @@
                   </v-col>
                 </v-row>
               </v-col>
-              <v-col md="4" sm="4" cols="12">
+              
+              <!-- Generator Section for Mobile/Tablet -->
+              <v-col cols="12" class="d-block d-md-none">
+                <!-- Row ที่ 1 ของ Generator สำหรับ Mobile/Tablet -->
+                <v-row>
+                  <v-col
+                    v-for="device in filteredDevices.slice(0, 2)"
+                    :key="device.DeviceId"
+                    cols="6"
+                  >
+                    <v-card
+                      class="gen-card pa-0 d-flex flex-column align-center"
+                      @click="goToGeneratorDetails(device.DeviceId)"
+                    >
+                      <div class="gen-status" :class="[getAlertColorClass(device), getStatusClass(device)]">
+                        <v-icon v-if="getStatusIcon(device)" class="status-icon">
+                          {{ getStatusIcon(device) }}
+                        </v-icon>
+                        <p class="text-truncate gen-name">{{ device.DeviceLabel }}</p>
+                      </div>
+                      <v-img
+                        :src="require('@/assets/Images/generator.png')"
+                        class="gen-img"
+                      />
+                      <div class="gen-details">
+                        <v-row 
+                          v-for="(item, index) in deviceMeasurements(device)"
+                          :key="index"
+                          no-gutters 
+                          class="column-detail" 
+                          :style="{ backgroundColor: index % 2 === 0 ? '#F9F9FA' : 'transparent' }"
+                        >
+                          <v-col cols="6" class="text-truncate">{{ item.name }}</v-col>
+                          <v-col cols="4" style="font-weight: bold; text-align: end; padding-right: 2vh;">{{ item.value }}</v-col>
+                          <v-col cols="2">{{ item.unit }}</v-col>
+                        </v-row>
+                      </div>
+                    </v-card>
+                  </v-col>
+                </v-row>
+                
+                <!-- Row ที่ 2 ของ Generator สำหรับ Mobile/Tablet -->
+                <v-row>
+                  <v-col
+                    v-for="device in filteredDevices.slice(2, 4)"
+                    :key="device.DeviceId"
+                    cols="6"
+                  >
+                    <v-card
+                      class="gen-card pa-0 d-flex flex-column align-center"
+                      @click="goToGeneratorDetails(device.DeviceId)"
+                    >
+                      <div class="gen-status" :class="[getAlertColorClass(device), getStatusClass(device)]">
+                        <v-icon v-if="getStatusIcon(device)" class="status-icon">
+                          {{ getStatusIcon(device) }}
+                        </v-icon>
+                        <p class="text-truncate gen-name">{{ device.DeviceLabel }}</p>
+                      </div>
+                      <v-img
+                        :src="require('@/assets/Images/generator.png')"
+                        class="gen-img"
+                      />
+                      <div class="gen-details">
+                        <v-row 
+                          v-for="(item, index) in deviceMeasurements(device)"
+                          :key="index"
+                          no-gutters 
+                          class="column-detail" 
+                          :style="{ backgroundColor: index % 2 === 0 ? '#F9F9FA' : 'transparent' }"
+                        >
+                          <v-col cols="6" class="text-truncate">{{ item.name }}</v-col>
+                          <v-col cols="4" style="font-weight: bold; text-align: end; padding-right: 2vh;">{{ item.value }}</v-col>
+                          <v-col cols="2">{{ item.unit }}</v-col>
+                        </v-row>
+                      </div>
+                    </v-card>
+                  </v-col>
+                </v-row>
+                
+                <!-- Row ที่ 3 ของ Generator สำหรับ Mobile/Tablet -->
+                <v-row>
+                  <v-col
+                    v-for="device in filteredDevices.slice(4, 6)"
+                    :key="device.DeviceId"
+                    cols="6"
+                  >
+                    <v-card
+                      class="gen-card pa-0 d-flex flex-column align-center"
+                      @click="goToGeneratorDetails(device.DeviceId)"
+                    >
+                      <div class="gen-status" :class="[getAlertColorClass(device), getStatusClass(device)]">
+                        <v-icon v-if="getStatusIcon(device)" class="status-icon">
+                          {{ getStatusIcon(device) }}
+                        </v-icon>
+                        <p class="text-truncate gen-name">{{ device.DeviceLabel }}</p>
+                      </div>
+                      <v-img
+                        :src="require('@/assets/Images/generator.png')"
+                        class="gen-img"
+                      />
+                      <div class="gen-details">
+                        <v-row 
+                          v-for="(item, index) in deviceMeasurements(device)"
+                          :key="index"
+                          no-gutters 
+                          class="column-detail" 
+                          :style="{ backgroundColor: index % 2 === 0 ? '#F9F9FA' : 'transparent' }"
+                        >
+                          <v-col cols="6" class="text-truncate">{{ item.name }}</v-col>
+                          <v-col cols="4" style="font-weight: bold; text-align: end; padding-right: 2vh;">{{ item.value }}</v-col>
+                          <v-col cols="2">{{ item.unit }}</v-col>
+                        </v-row>
+                      </div>
+                    </v-card>
+                  </v-col>
+                </v-row>
+                
+                <!-- Row ที่ 4 ของ Generator สำหรับ Mobile/Tablet -->
+                <v-row>
+                  <v-col
+                    v-for="device in filteredDevices.slice(6, 8)"
+                    :key="device.DeviceId"
+                    cols="6"
+                  >
+                    <v-card
+                      class="gen-card pa-0 d-flex flex-column align-center"
+                      @click="goToGeneratorDetails(device.DeviceId)"
+                    >
+                      <div class="gen-status" :class="[getAlertColorClass(device), getStatusClass(device)]">
+                        <v-icon v-if="getStatusIcon(device)" class="status-icon">
+                          {{ getStatusIcon(device) }}
+                        </v-icon>
+                        <p class="text-truncate gen-name">{{ device.DeviceLabel }}</p>
+                      </div>
+                      <v-img
+                        :src="require('@/assets/Images/generator.png')"
+                        class="gen-img"
+                      />
+                      <div class="gen-details">
+                        <v-row 
+                          v-for="(item, index) in deviceMeasurements(device)"
+                          :key="index"
+                          no-gutters 
+                          class="column-detail" 
+                          :style="{ backgroundColor: index % 2 === 0 ? '#F9F9FA' : 'transparent' }"
+                        >
+                          <v-col cols="6" class="text-truncate">{{ item.name }}</v-col>
+                          <v-col cols="4" style="font-weight: bold; text-align: end; padding-right: 2vh;">{{ item.value }}</v-col>
+                          <v-col cols="2">{{ item.unit }}</v-col>
+                        </v-row>
+                      </div>
+                    </v-card>
+                  </v-col>
+                </v-row>
+                
+                <!-- Row ที่ 5 ของ Generator สำหรับ Mobile/Tablet -->
+                <v-row>
+                  <v-col
+                    v-for="device in filteredDevices.slice(8, 10)"
+                    :key="device.DeviceId"
+                    cols="6"
+                  >
+                    <v-card
+                      class="gen-card pa-0 d-flex flex-column align-center"
+                      @click="goToGeneratorDetails(device.DeviceId)"
+                    >
+                      <div class="gen-status" :class="[getAlertColorClass(device), getStatusClass(device)]">
+                        <v-icon v-if="getStatusIcon(device)" class="status-icon">
+                          {{ getStatusIcon(device) }}
+                        </v-icon>
+                        <p class="text-truncate gen-name">{{ device.DeviceLabel }}</p>
+                      </div>
+                      <v-img
+                        :src="require('@/assets/Images/generator.png')"
+                        class="gen-img"
+                      />
+                      <div class="gen-details">
+                        <v-row 
+                          v-for="(item, index) in deviceMeasurements(device)"
+                          :key="index"
+                          no-gutters 
+                          class="column-detail" 
+                          :style="{ backgroundColor: index % 2 === 0 ? '#F9F9FA' : 'transparent' }"
+                        >
+                          <v-col cols="6" class="text-truncate">{{ item.name }}</v-col>
+                          <v-col cols="4" style="font-weight: bold; text-align: end; padding-right: 2vh;">{{ item.value }}</v-col>
+                          <v-col cols="2">{{ item.unit }}</v-col>
+                        </v-row>
+                      </div>
+                    </v-card>
+                  </v-col>
+                </v-row>
+              </v-col>
+              
+              <!-- Crane Section for Desktop -->
+              <v-col md="4" sm="12" cols="12" class="d-none d-md-block">
                 <v-row>
                   <v-col class="d-flex justify-center" cols="auto">
                     <v-card class="crane-card" elevation="0">
@@ -117,14 +313,80 @@
                 </v-row>
               </v-col>
             </v-row>
-            <!-- Row ที่ 2 ของ Generator -->
+            
+            <!-- Crane Section for Mobile/Tablet -->
+            <v-row class="d-block d-md-none">
+              <v-col cols="12">
+                <v-card class="crane-card" elevation="0">
+                  <div class="d-flex justify-space-between align-center pb-2">
+                    <h2 class="text-h6 text-lg-h6 text-xxl-h4" style="font-family: 'Inter', sans-serif;">Crane</h2>
+                    <router-link :to="{ name: 'StatusUpdateForm', params: { typeDeviceName: typeDeviceName } }">
+                      <v-icon icon="mdi-pencil" class="edit"></v-icon>
+                    </router-link>
+                  </div>
+                  
+                  <v-row class="mx-2">
+                    <v-col 
+                      v-for="crane in craneDevices" 
+                      :key="crane.DeviceId" 
+                      cols="4"
+                    >
+                      <v-card class="d-flex flex-column align-center rounded-lg">
+                        <div class="crane-title" :class="getStatusCrane(crane)">
+                          {{ crane.DeviceLabel }}
+                        </div>
+                        <v-img
+                          width="8vh"
+                          height="10vh"
+                          :src="require('@/assets/Images/crane.png')"
+                          class="crane-img"
+                          cover
+                        ></v-img>
+                      </v-card>
+                    </v-col>
+                  </v-row>
+                  
+                  <v-row class="mx-2">
+                    <v-col cols="4">
+                      <v-card>
+                        <div class="d-flex justify-space-between align-center mx-4 my-2">
+                          <p class="text-status">Standby</p>
+                          <span class="text-blue">{{ craneStatusCounts[1] }}</span>
+                        </div>
+                        <div class="bottom-line-blue"></div>
+                      </v-card>
+                    </v-col>
+                    <v-col cols="4">
+                      <v-card>
+                        <div class="d-flex justify-space-between align-center mx-4 my-2">
+                          <p class="text-status">Running</p>
+                          <span class="text-green">{{ craneStatusCounts[2] }}</span>
+                        </div>
+                        <div class="bottom-line-green"></div>
+                      </v-card>
+                    </v-col>
+                    <v-col cols="4">
+                      <v-card>
+                        <div class="d-flex justify-space-between align-center mx-4 my-2">
+                          <p class="text-status">Maintenance</p>
+                          <span class="text-black">{{ craneStatusCounts[3] }}</span>
+                        </div>
+                        <div class="bottom-line-black"></div>
+                      </v-card>
+                    </v-col>
+                  </v-row>
+                </v-card>
+              </v-col>
+            </v-row>
+
+            <!-- Row ที่ 2 ของ Generator for Desktop -->
             <v-row>
-              <v-col md="8" sm="8" cols="12">
+              <v-col md="8" sm="12" cols="12" class="d-none d-md-block">
                 <v-row>
                   <v-col
                     v-for="device in filteredDevices.slice(5, 10)"
                     :key="device.DeviceId"
-                    class="mx-auto"
+                    class="pa-0 mx-auto"
                     cols="auto"
                   >
                     <v-card
@@ -135,7 +397,7 @@
                         <v-icon v-if="getStatusIcon(device)" class="status-icon">
                           {{ getStatusIcon(device) }}
                         </v-icon>
-                        <p class="gen-name">{{ device.DeviceLabel }}</p>
+                        <p class="text-truncate gen-name">{{ device.DeviceLabel }}</p>
                       </div>
                       <v-img
                         :src="require('@/assets/Images/generator.png')"
@@ -149,8 +411,8 @@
                           class="column-detail" 
                           :style="{ backgroundColor: index % 2 === 0 ? '#F9F9FA' : 'transparent' }"
                         >
-                          <v-col cols="8">{{ item.name }}</v-col>
-                          <v-col cols="2">{{ item.value }}</v-col>
+                          <v-col cols="6" class="text-truncate">{{ item.name }}</v-col>
+                          <v-col cols="4" style="font-weight: bold; text-align: end; padding-right: 2vh;">{{ item.value }}</v-col>
                           <v-col cols="2">{{ item.unit }}</v-col>
                         </v-row>
                       </div>
@@ -161,7 +423,7 @@
                     <v-col
                       v-for="i in 10 - filteredDevices.length"
                       :key="`empty-${i}`"
-                      class="mx-auto"
+                      class="mx-2"
                       cols="auto"
                     >
                       <v-card class="gen-card pa-0 d-flex flex-column align-center" style="visibility: hidden;"></v-card>
@@ -170,7 +432,7 @@
                 </v-row>
               </v-col>
               <!-- Gasoline Tank -->
-              <v-col md="4" sm="4" cols="12" class="">
+              <v-col md="4" sm="12" cols="12">
                 <v-card class="gasoline-card" elevation="0">
                   <GasolineTank
                     :remainingVolume="fuelLevel"
@@ -179,63 +441,76 @@
                 </v-card>
               </v-col>    
             </v-row>
+            
+            <!-- Gasoline Tank for Mobile/Tablet -->
+            <!-- <v-row class="d-block d-md-none">
+              <v-col cols="12">
+                <v-card class="gasoline-card" elevation="0">
+                  <GasolineTank
+                    :remainingVolume="fuelLevel"
+                    :totalCapacity="totalCapacity"
+                  />
+                </v-card>
+              </v-col>
+            </v-row> -->
+            
             <!-- deatil status GEN -->
-            <v-row class="status-detail">
-              <v-col cols="12" lg="8">
+            <v-row class="pt-4">
+              <v-col class="status-detail-gen" cols="12" lg="8">
                 <v-row>
-                  <v-list-item>Generator status details</v-list-item>
+                  <v-list-item class="detail-status">Generator status</v-list-item>
                   <v-col class="d-flex align-center">
-                    <v-icon icon="mdi-square" size="16" color="#00B8F2" class="me-1"></v-icon>
-                    <span style="font-size: 1.5vh;">Standby</span>
+                    <v-icon icon="mdi-square" color="#00B8F2" class="me-1 detail-status"></v-icon>
+                    <span class="detail-status">Standby</span>
                   </v-col>
                   <v-col class="d-flex align-center">
-                    <v-icon icon="mdi-square" size="16" color="#28A745" class="me-1"></v-icon>
-                    <span style="font-size: 1.5vh;">Running</span>
+                    <v-icon icon="mdi-square" color="#28A745" class="me-1 detail-status"></v-icon>
+                    <span class="detail-status">Running</span>
                   </v-col>
                   <v-col class="d-flex align-center">
-                    <v-icon icon="mdi-square" size="16" color="#007BFF" class="me-1"></v-icon>
-                    <span class="text-truncate" style="font-size: 1.5vh;">Standby/Maintenance</span>
+                    <v-icon icon="mdi-square" color="#007BFF" class="me-1 detail-status"></v-icon>
+                    <span class="text-truncate detail-status">Standby/Maintenance</span>
                   </v-col>
                   <v-col class="d-flex align-center">
-                    <v-icon icon="mdi-square" size="16" color="#8DEB51" class="me-1"></v-icon>
-                    <span style="font-size: 1.5vh;">Running/Maintenance</span>
+                    <v-icon icon="mdi-square" color="#8DEB51" class="me-1 detail-status"></v-icon>
+                    <span class="detail-status">Running/Maintenance</span>
                   </v-col>
                   <v-col class="d-flex align-center">
-                    <v-icon icon="mdi-square" size="16" color="#000000" class="me-1"></v-icon>
-                    <span style="font-size: 1.5vh;">Down</span>
+                    <v-icon icon="mdi-square" color="#000000" class="me-1 detail-status"></v-icon>
+                    <span class="detail-status">Down</span>
                   </v-col>
                   <v-col class="d-flex align-center">
-                    <v-icon icon="mdi-square" size="16" color="#DC2B2B" class="me-1"></v-icon>
-                    <span style="font-size: 1.5vh;">Danger</span>
+                    <v-icon icon="mdi-square" color="#DC2B2B" class="me-1 detail-status"></v-icon>
+                    <span class="detail-status">Danger</span>
                   </v-col>
                   <v-col class="d-flex align-center">
-                    <v-icon icon="mdi-square" size="16" color="#FAC12A" class="me-1"></v-icon>
-                    <span style="font-size: 1.5vh;">Warning</span>
+                    <v-icon icon="mdi-square" color="#FAC12A" class="me-1 detail-status"></v-icon>
+                    <span class="detail-status">Warning</span>
                   </v-col>
                   <v-col class="d-flex align-center">
-                    <v-icon icon="mdi-square" size="16" color="#979a9a" class="me-1"></v-icon>
-                    <span style="font-size: 1.5vh;">Offline</span>
+                    <v-icon icon="mdi-square" color="#979a9a" class="me-1 detail-status"></v-icon>
+                    <span class="detail-status">Offline</span>
                   </v-col>
                 </v-row>
               </v-col>
-              <v-col cols="12" lg="4">
+              <v-col class="status-detail-crane" cols="12" lg="4">
                 <v-row>
-                  <v-list-item>Crane status details</v-list-item>
+                  <v-list-item class="detail-status">Crane status</v-list-item>
                   <v-col class="d-flex align-center">
-                    <v-icon icon="mdi-circle" size="16" color="#00B8F2" class="me-1"></v-icon>
-                    <span style="font-size: 1.5vh;">Standby</span>
+                    <v-icon icon="mdi-square" color="#00B8F2" class="me-1 detail-status"></v-icon>
+                    <span class="detail-status">Standby</span>
                   </v-col>
                   <v-col class="d-flex align-center">
-                    <v-icon icon="mdi-square" size="16" color="#28A745" class="me-1"></v-icon>
-                    <span style="font-size: 1.5vh;">Running</span>
+                    <v-icon icon="mdi-square" color="#28A745" class="me-1 detail-status"></v-icon>
+                    <span class="detail-status">Running</span>
                   </v-col>
                   <v-col class="d-flex align-center">
-                    <v-icon icon="mdi-square" size="16" color="#000000" class="me-1"></v-icon>
-                    <span style="font-size: 1.5vh;">Maintenance</span>
+                    <v-icon icon="mdi-square" color="#000000" class="me-1 detail-status"></v-icon>
+                    <span class="detail-status">Maintenance</span>
                   </v-col>
                   <v-col class="d-flex align-center">
-                    <v-icon icon="mdi-square" size="16" color="#979a9a" class="me-1"></v-icon>
-                    <span style="font-size: 1.5vh;">Offline</span>
+                    <v-icon icon="mdi-square" color="#979a9a" class="me-1 detail-status"></v-icon>
+                    <span class="detail-status">Offline</span>
                   </v-col>
                 </v-row>
               </v-col>
@@ -243,12 +518,12 @@
             <!-- Row ที่สามของ Generator -->
             <v-row>
               <!-- Tilt Barge -->
-              <v-col md="4" sm="4" cols="12">
+              <v-col md="4" sm="12" cols="12">
                 <v-card class="pa-4 rounded-xl h-100">
                   <h2 class="d-flex align-center justify-center pb-2 text-h6 text-lg-h6 text-xxl-h4" style="font-family: 'Sarabun', sans-serif;">ระดับความเอียงทุ่น</h2>
                   <!-- Barge Img -->
                   <v-row>
-                    <v-col cols="12" lg="6" >
+                    <v-col cols="6">
                       <div class="barge-container">
                         <v-img class="bg_barge" :src="require('@/assets/Images/bg_barge_tilt.png')"></v-img>
                         <v-img
@@ -258,7 +533,7 @@
                         ></v-img>
                       </div>
                     </v-col>
-                    <v-col cols="12" lg="6">
+                    <v-col cols="6">
                       <div class="barge-container">
                         <v-img class="bg_barge" :src="require('@/assets/Images/bg_barge_tilt.png')"></v-img>
                         <v-img
@@ -271,17 +546,29 @@
                   </v-row>
                   <!-- Gauge Chart -->
                   <v-row>
-                    <v-col class="gauge-chart" >
-                      <GaugeTiltLevel label="X" :value="xValue" />
+                    <v-col cols="6" class="gauge-chart">
+                      <GaugeTiltLevel 
+                        label="X" 
+                        :value="xValue" 
+                        :max-value="tiltThresholds.value?.valuemax || 6"
+                        :warning-threshold="tiltThresholds.value?.thresholdmaxwarning || 3"
+                        :danger-threshold="tiltThresholds.value?.thresholdmaxdanger || 5"
+                      />
                     </v-col>
-                    <v-col class="gauge-chart">
-                      <GaugeTiltLevel label="Y" :value="yValue" />
+                    <v-col cols="6" class="gauge-chart">
+                      <GaugeTiltLevel 
+                        label="Y" 
+                        :value="yValue" 
+                        :max-value="tiltThresholds.value?.valuemax || 6"
+                        :warning-threshold="tiltThresholds.value?.thresholdmaxwarning || 3"
+                        :danger-threshold="tiltThresholds.value?.thresholdmaxdanger || 5"
+                      />
                     </v-col>
                   </v-row>
                 </v-card>
               </v-col>
               <!-- Map -->
-              <v-col md="4" sm="4" cols="12">
+              <v-col sm="12" md="4" cols="12">
                 <v-card class="rounded-xl h-100">
                   <MapOfBarge 
                     :position="bargePosition"
@@ -292,7 +579,7 @@
                 </v-card>
               </v-col>
               <!-- Notification Table-->
-              <v-col md="4" sm="4" cols="12">
+              <v-col sm="12" md="4" cols="12">
                 <v-card class=" rounded-xl h-100">
                   <div class="notification-header">
                     <p class="header">Notification</p>
@@ -348,7 +635,8 @@ const devices = ref([]);
 const noti = ref([]);
 const typeDeviceName = ref(route.params.typeDeviceName);
 const isLoading = ref(true);
-let intervalId  = null; 
+let intervalId  = null;
+const tiltThresholds = ref(null);
 
 const xValue = computed(() => tiltValues.value.x);
 const yValue = computed(() => tiltValues.value.y);
@@ -376,7 +664,6 @@ const initialize = async () => {
 const fetchDeviceBargesGrouped = async () => {
   try {
     isLoading.value = true;
-
     const response = await $api.get('/MachineStatus/GetDeviceByTypeDeviceName', {
       params: { typeDeviceName: typeDeviceName.value }
     });
@@ -402,11 +689,47 @@ const fetchDeviceBargesGrouped = async () => {
     });
     devices.value = processedDevices;
     
+    // Find Barge Master and fetch its thresholds
+    const bargeMaster = devices.value.find(d => d.DeviceName === 'Barge Master');
+    if (bargeMaster) {
+      await fetchTiltThresholds(bargeMaster.DeviceId);
+    }
   } catch (error) {
     console.error('Fetch error:', error);
     devices.value = [];
   } finally {
     isLoading.value = false;
+  }
+}; 	
+
+const fetchTiltThresholds = async (deviceId) => {
+  try {
+    const response = await $api.get('/MachineStatus/GetDeviceByDeviceId', {
+      params: { deviceid: deviceId }
+    });
+    
+    if (response.data && response.data.length > 0) {
+      const device = response.data[0];
+      const axisX = device.Mesurement?.find(m => m.measurementname === 'Axis-X');
+      tiltThresholds.value = {
+        valuemax: axisX?.valuemax || 6,
+        thresholdmaxwarning: axisX?.thresholdmaxwarning || 3,
+        thresholdmaxdanger: axisX?.thresholdmaxdanger || 5,
+      };
+      const axisY = device.Mesurement?.find(m => m.measurementname === 'Axis-Y');
+      tiltThresholds.value = {
+        valuemax: axisY?.valuemax || 6,
+        thresholdmaxwarning: axisY?.thresholdmaxwarning || 3,
+        thresholdmaxdanger: axisY?.thresholdmaxdanger || 5,
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching tilt thresholds:', error);
+    tiltThresholds.value = {
+      valuemax: 6,
+      thresholdmaxwarning: 3,
+      thresholdmaxdanger: 5
+    };
   }
 };
 
@@ -531,6 +854,7 @@ const fuelLevel = computed(() => {
   return parseInt(fuelMeasurement?.lastvalue) || 0;
 });
 
+// Tilt
 const tiltValues = computed(() => {
   const bargeMaster = devices.value.find(d => d.DeviceName === 'Barge Master');
   if (!bargeMaster) return { x: 0, y: 0 };
@@ -682,9 +1006,19 @@ onUnmounted(() => {
 .status-icon {
   margin-right: 1vh;
   color: #FFFFFF;
+  font-size: 2vh;
 }
 
-.status-detail {
+.detail-status {
+  font-size: 1.5vh;
+}
+
+.status-detail-gen {
+  background-color: #f8f9f9;
+  // background-color: #40E0D0;
+}
+
+.status-detail-crane {
   background-color: #f8f9f9;
 }
 
@@ -708,12 +1042,19 @@ onUnmounted(() => {
 
 .gen-card {
   width: 11.5vw;
+  min-width: 20vh;
   height: 25vh;
   background: #FFFFFF;
 }
 
+@media(max-width: 1024px) {
+  .gen-card {
+    width: 100%;
+  }
+}
+
 .gen-img {
-  width: 10vw;
+  width: 20vh;
   height: 5vh;
   display: flex;
   justify-content: center;
@@ -751,7 +1092,8 @@ onUnmounted(() => {
 }
 
 .crane-card {
-  width: 35vw;
+  width: 100%;
+  min-width: 32vw;
   height: 25vh;
 }
 
