@@ -161,6 +161,7 @@
         <v-list-group>
           <template v-slot:activator="{ props }">
             <v-list-item
+              v-if="hasPermission('0101020000')"
               v-bind="props"
               prepend-icon="mdi-chart-timeline-variant-shimmer"
               title="Report"
@@ -180,6 +181,7 @@
         <v-list-group>
           <template v-slot:activator="{ props }">
             <v-list-item
+              v-if="hasPermission('0101030000')"
               v-bind="props"
               prepend-icon="mdi-account-cog"
               title="Setting"

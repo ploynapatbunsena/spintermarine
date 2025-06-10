@@ -548,20 +548,26 @@
                   <v-row>
                     <v-col cols="6" class="gauge-chart">
                       <GaugeTiltLevel 
+                        v-if="tiltThresholdsX"
                         label="X" 
                         :value="xValue" 
-                        :max-value="tiltThresholds.value?.valuemax || 6"
-                        :warning-threshold="tiltThresholds.value?.thresholdmaxwarning || 3"
-                        :danger-threshold="tiltThresholds.value?.thresholdmaxdanger || 5"
+                        :max-value="tiltThresholdsX?.valuemax"
+                        :min-warning-threshold="tiltThresholdsX?.thresholdminwarning"
+                        :max-warning-threshold="tiltThresholdsX?.thresholdmaxwarning"
+                        :min-danger-threshold="tiltThresholdsX?.thresholdmindanger"
+                        :max-danger-threshold="tiltThresholdsX?.thresholdmaxdanger"
                       />
                     </v-col>
                     <v-col cols="6" class="gauge-chart">
-                      <GaugeTiltLevel 
+                      <GaugeTiltLevel
+                        v-if="tiltThresholdsY"
                         label="Y" 
                         :value="yValue" 
-                        :max-value="tiltThresholds.value?.valuemax || 6"
-                        :warning-threshold="tiltThresholds.value?.thresholdmaxwarning || 3"
-                        :danger-threshold="tiltThresholds.value?.thresholdmaxdanger || 5"
+                        :max-value="tiltThresholdsY?.valuemax"
+                        :min-warning-threshold="tiltThresholdsY?.thresholdminwarning"
+                        :max-warning-threshold="tiltThresholdsY?.thresholdmaxwarning"
+                        :min-danger-threshold="tiltThresholdsY?.thresholdmindanger"
+                        :max-danger-threshold="tiltThresholdsY?.thresholdmaxdanger"
                       />
                     </v-col>
                   </v-row>
@@ -636,7 +642,8 @@ const noti = ref([]);
 const typeDeviceName = ref(route.params.typeDeviceName);
 const isLoading = ref(true);
 let intervalId  = null;
-const tiltThresholds = ref(null);
+const tiltThresholdsX = ref(null);
+const tiltThresholdsY = ref(null);
 
 const xValue = computed(() => tiltValues.value.x);
 const yValue = computed(() => tiltValues.value.y);
@@ -689,7 +696,6 @@ const fetchDeviceBargesGrouped = async () => {
     });
     devices.value = processedDevices;
     
-    // Find Barge Master and fetch its thresholds
     const bargeMaster = devices.value.find(d => d.DeviceName === 'Barge Master');
     if (bargeMaster) {
       await fetchTiltThresholds(bargeMaster.DeviceId);
@@ -700,7 +706,7 @@ const fetchDeviceBargesGrouped = async () => {
   } finally {
     isLoading.value = false;
   }
-}; 	
+};
 
 const fetchTiltThresholds = async (deviceId) => {
   try {
@@ -711,25 +717,27 @@ const fetchTiltThresholds = async (deviceId) => {
     if (response.data && response.data.length > 0) {
       const device = response.data[0];
       const axisX = device.Mesurement?.find(m => m.measurementname === 'Axis-X');
-      tiltThresholds.value = {
-        valuemax: axisX?.valuemax || 6,
-        thresholdmaxwarning: axisX?.thresholdmaxwarning || 3,
-        thresholdmaxdanger: axisX?.thresholdmaxdanger || 5,
+      tiltThresholdsX.value = {
+        valuemax: axisX?.valuemax,
+        thresholdminwarning: axisX?.thresholdminwarning,
+        thresholdmaxwarning: axisX?.thresholdmaxwarning,
+        thresholdmindanger: axisX?.thresholdmindanger,
+        thresholdmaxdanger: axisX?.thresholdmaxdanger,
       };
+      console.log('tiltThresholdsX:', tiltThresholdsX.value);
+
       const axisY = device.Mesurement?.find(m => m.measurementname === 'Axis-Y');
-      tiltThresholds.value = {
-        valuemax: axisY?.valuemax || 6,
-        thresholdmaxwarning: axisY?.thresholdmaxwarning || 3,
-        thresholdmaxdanger: axisY?.thresholdmaxdanger || 5,
-      }
+      tiltThresholdsY.value = {
+        valuemax: axisY?.valuemax,
+        thresholdminwarning: axisY?.thresholdminwarning,
+        thresholdmaxwarning: axisY?.thresholdmaxwarning,
+        thresholdmindanger: axisY?.thresholdmindanger,
+        thresholdmaxdanger: axisY?.thresholdmaxdanger,
+      };
+      console.log('tiltThresholdsY:', tiltThresholdsY.value);
     }
   } catch (error) {
     console.error('Error fetching tilt thresholds:', error);
-    tiltThresholds.value = {
-      valuemax: 6,
-      thresholdmaxwarning: 3,
-      thresholdmaxdanger: 5
-    };
   }
 };
 
@@ -767,7 +775,7 @@ const fetchNotification = async () => {
 const mappedNotices = computed(() => {
   return noti.value.map(item => ({
     date: item.AlertTime,
-    name: item.DeviceName,
+    name: item.DeviceLabel,
     measuremnet: item.MeasurementName,
     details: item.Description,
     status: item.IsAccept ? 'ดำเนินการเสร็จสิ้น' : 'รอแจ้งซ่อม',

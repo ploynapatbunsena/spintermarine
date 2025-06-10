@@ -29,13 +29,21 @@ const props = defineProps({
     type: Number,
     default: 5,
   },
-  warningThreshold: {
+  minWarningThreshold: {
+    type: Number,
+    default: 1,
+  },
+  maxWarningThreshold: {
     type: Number,
     default: 3,
   },
-  dangerThreshold: {
+  minDangerThreshold: {
     type: Number,
     default: 4,
+  },
+  maxDangerThreshold: {
+    type: Number,
+    default: 5,
   },
 });
 
@@ -44,32 +52,40 @@ const chartWidth = ref(300);
 const componentKey = ref(0);
 
 const formattedValue = computed(() => {
-  return props.value;
+  return props.value.toFixed(1); // แสดงทศนิยม 1 ตำแหน่ง
 });
 
 const gaugeOptions = computed(() => {
   const rangeMax = props.maxValue;
-  const totalRange = rangeMax * 2; // จาก -max ถึง +max
-  
-  // คำนวณตำแหน่งเข็ม (0 ถึง 100%)
+  const totalRange = rangeMax * 2;
   const needlePercentage = ((props.value + rangeMax) / totalRange) * 100;
   
-  // คำนวณจุดแบ่งสำหรับทั้งสองด้าน (บวกและลบ)
-  const positiveWarning = ((rangeMax + props.warningThreshold) / totalRange) * 100;
-  const positiveDanger = ((rangeMax + props.dangerThreshold) / totalRange) * 100;
-  const negativeWarning = ((rangeMax - props.warningThreshold) / totalRange) * 100;
-  const negativeDanger = ((rangeMax - props.dangerThreshold) / totalRange) * 100;
+  const negativeWarningStartPos = ((-props.maxWarningThreshold + rangeMax) / totalRange) * 100; // -3 => 20%
+  const negativeWarningEndPos = ((-props.minWarningThreshold + rangeMax) / totalRange) * 100; // -1 => 40%
+  const positiveWarningStartPos = ((props.minWarningThreshold + rangeMax) / totalRange) * 100; // +1 => 60%
+  const positiveWarningEndPos = ((props.maxWarningThreshold + rangeMax) / totalRange) * 100; // +3 => 80%
 
   return {
     needleValue: needlePercentage,
     needleColor: '#2c3e50',
-    arcDelimiters: [negativeDanger, negativeWarning, positiveWarning, positiveDanger],
-    arcColors: ['#F44336', '#FFD54F', '#3DCC5B', '#FFD54F', '#F44336'],
+    arcDelimiters: [
+      negativeWarningStartPos, // -3 (20%)
+      negativeWarningEndPos,   // -1 (40%)
+      positiveWarningStartPos, // +1 (60%)
+      positiveWarningEndPos    // +3 (80%)
+    ],
+    arcColors: [
+      '#F44336', // -5 ถึง -3 (แดง)
+      '#FFD54F', // -3 ถึง -1 (เหลือง)
+      '#3DCC5B', // -1 ถึง +1 (เขียว)
+      '#FFD54F', // +1 ถึง +3 (เหลือง)
+      '#F44336'  // +3 ถึง +5 (แดง)
+    ],
     arcLabels: [
-      `-${props.dangerThreshold}`,
-      `-${props.warningThreshold}`,
-      `${props.warningThreshold}`,
-      `${props.dangerThreshold}`
+      `-${props.maxWarningThreshold}`, // -3
+      `-${props.minWarningThreshold}`, // -1
+      `+${props.minWarningThreshold}`, // +1
+      `+${props.maxWarningThreshold}`, // +3
     ],
     rangeLabel: [`-${rangeMax}`, `${rangeMax}`],
     rangeLabelFontSize: window.innerWidth < 600 ? 8 : 10,
@@ -91,11 +107,17 @@ const updateChartSize = () => {
   } else {
     chartWidth.value = width * 0.09;
   }
-  componentKey.value++; // Force re-render
+  componentKey.value++;
 };
 
-// Watch for props changes
-watch(() => [props.value, props.maxValue, props.warningThreshold, props.dangerThreshold], () => {
+watch(() => [
+  props.value, 
+  props.maxValue, 
+  props.minWarningThreshold,
+  props.maxWarningThreshold,
+  props.minDangerThreshold,
+  props.maxDangerThreshold
+], () => {
   componentKey.value++;
 });
 
@@ -108,6 +130,7 @@ onBeforeUnmount(() => {
   window.removeEventListener("resize", updateChartSize);
 });
 </script>
+
 
 <style lang="scss" scoped>
 .gauge-container {
@@ -128,6 +151,6 @@ onBeforeUnmount(() => {
 }
 
 :deep(text) {
-  font-size: 16px;
+  font-size: 1vh;
 }
 </style>

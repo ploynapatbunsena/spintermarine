@@ -27,21 +27,21 @@
               <div class="device-detail">
                 <p class="label">Device Name</p>
                 <v-text-field
-                  :disabled="!permissionWrite('0101030400')"
                   v-model="deviceData.DeviceName"
                   variant="outlined" 
                   density="compact" 
                   class="input-field"
+                  disabled
                 ></v-text-field>
               </div>
               <div class="device-detail">
                 <p class="label">Device Label</p>
                 <v-text-field
+                  :disabled="!permissionWrite('0101030400')"
                   v-model="deviceData.DeviceLabel"
                   variant="outlined" 
                   density="compact"
                   class="input-field"
-                  disabled
                 ></v-text-field>
               </div>
               <div class="device-detail">

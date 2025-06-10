@@ -65,7 +65,7 @@
                       <td style="font-size: 1.5vh;">{{ item.vessel }}</td>
                       <td style="font-size: 1.5vh;">{{ item.jobOrder }}</td>
                       <td style="font-size: 1.5vh;">{{ item.cargo || 'N/A' }}</td>
-                      <td style="font-size: 1.5vh;">{{ formatDate(item.eta) }}</td>
+                      <td style="font-size: 1.5vh;">{{ formatTimeShow(item.eta) }}</td>
                     </tr>
                   </template>
                 </v-data-table>
@@ -216,7 +216,7 @@ const tugboatTableData = computed(() => {
       vessel: job.vessel_name || 'N/A',
       jobOrder: job.doc_no || 'N/A',
       cargo: transport.job_transport_ships?.product?.name || 'N/A',
-      eta: formatDate(transport.end_date) || 'N/A',
+      eta: formatTimeShow(transport.end_date) || 'N/A',
     })) || []
   );
 });
@@ -342,13 +342,11 @@ watch(
   { immediate: true }
 );
 
-const formatDate = (datetime) => {
+const formatTimeShow = (datetime) => {
   if (datetime==null) {
     return null
   } else {
     var dateTime = new Date(datetime);
-    dateTime.setHours(dateTime.getHours() - 7);
-    
     var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
     var day = ("0" + dateTime.getDate()).slice(-2);
     var year = dateTime.getFullYear();
@@ -377,8 +375,10 @@ const rpm = computed(() => {
 const speed = computed(() => {
   if (!localSelectedBoat.value) return { value: '0', unit: 'km/h' };
   const measurement = localSelectedBoat.value?.Mesurement?.find(m => m.measurementname === 'Speed');
+  const adjustedValue = measurement?.lastValue ? parseFloat(measurement.lastValue) / 10 : 0;
+
   return {
-    value: parseMeasurementValue(measurement?.lastValue, 0, 1),
+    value: parseMeasurementValue(adjustedValue, 0, 1),
     unit: measurement?.measurementunit || 'km/h',
   };
 });

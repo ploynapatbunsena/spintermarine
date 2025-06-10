@@ -34,7 +34,9 @@ $api.interceptors.response.use(
       localStorage.removeItem('accessToken');
       localStorage.removeItem('member');
       localStorage.removeItem('menuPermission');
-      router.push('/login');
+      // router.push('/login');
+
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }

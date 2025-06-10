@@ -1,11 +1,11 @@
 export const fuelCapacityConfig = {
-  "Barge BUNGA": 20000,
-  "Barge JAMJUREE": 7500,
-  "Barge KAENTAWAN": 20000,
-  "Barge KARAKED": 17000,
-  "Barge LADAWAN": 16000,
-  "Barge SUPARACH": 16000,
-  "Barge TONGARUN": 20000,
+  "Barge Bunga": 20000,
+  "Barge Jamjuree": 7500,
+  "Barge Kaentawan": 20000,
+  "Barge Karaked": 17000,
+  "Barge Ladawan": 16000,
+  "Barge Suparach": 16000,
+  "Barge Tongarun": 20000,
   "default": 20000
 };
 
@@ -42,7 +42,7 @@ export const fuelFeedCapacityTugboat = {
   // "Tugboat Ketsarin01": ,
   // "Tugboat Ketsarin02": ,
   "Tugboat Ketsarin04": 500,
-  // "Tugboat Ketsarin05": 4500,
+  // "Tugboat Ketsarin05": ,
   "Tugboat Ketsarin06": 1200,
   "Tugboat Ketsarin08": 500,
   "Tugboat Ketsarin10": 1800,

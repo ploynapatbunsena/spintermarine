@@ -20,9 +20,12 @@
               <v-col cols="12" sm="12" lg="3">
                 <v-card class="card-map h-100 rounded-xl" elevation="1" @click="navigateToGPSVessel(device.DeviceId)">
                   <p class="card-title">ตำแหน่งเรือ</p>
-                  <div id="mapContainer">
-                    <v-img :src="require('@/assets/Icons/compass_map.svg')" style="z-index: 999; width: 7vw; top: 3vh;"></v-img>
-                  </div>
+                  <div id="mapContainer" style="height: 100%; width: 100%;"></div>
+                  <v-img 
+                    v-if="!mapInitialized"
+                    :src="require('@/assets/Icons/compass_map.svg')" 
+                    style="z-index: 999; width: 7vw; top: 3vh; position: absolute;"
+                  ></v-img>
                 </v-card>
               </v-col>
               <v-col cols="12" sm="12" md="9">
@@ -190,7 +193,6 @@ const fetchDeviceData = async () => {
     });
 
     devices.value = response.data;
-    console.log(devices.value);
     updateDevicePosition();
     
   } catch (err) {
@@ -222,7 +224,6 @@ const fetchNotification = async () => {
         console.error(`Failed to fetch notifications for DeviceId ${device.DeviceId}:`, err);
       }
     }
-    // console.log("Notifications:", noti.value);
   } catch (err) {
     error.value = 'Failed to fetch notifications. Please try again later.';
     console.error(err);
@@ -234,24 +235,34 @@ const fetchNotification = async () => {
 const initializeMap = () => {
   if (mapInitialized.value || !document.getElementById('mapContainer')) return;
 
-  setTimeout(() => {
-    map.value = L.map('mapContainer').setView(position.value, 13);
+  nextTick(() => {
+    try {
+      const mapContainer = document.getElementById('mapContainer');
+      if (mapContainer && mapContainer.offsetWidth > 0 && mapContainer.offsetHeight > 0) {
+        map.value = L.map('mapContainer').setView(position.value, 13);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map.value);
-  
-    const shipIcon = L.icon({
-      iconUrl: markerIconUrl,
-      iconSize: [52, 52],
-      iconAnchor: [26, 26],
-      popupAnchor: [0, -16]
-    });
-  
-    marker.value = L.marker(position.value, { icon: shipIcon }).addTo(map.value);
-    marker.value.bindPopup(`ตำแหน่งเรือ: ${position.value[0].toFixed(4)}, ${position.value[1].toFixed(4)}`);
-    mapInitialized.value = true;
-  }, 100);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map.value);
+      
+        const shipIcon = L.icon({
+          iconUrl: markerIconUrl,
+          iconSize: [52, 52],
+          iconAnchor: [26, 26],
+          popupAnchor: [0, -16]
+        });
+      
+        marker.value = L.marker(position.value, { icon: shipIcon }).addTo(map.value);
+        marker.value.bindPopup(`ตำแหน่งเรือ: ${position.value[0].toFixed(4)}, ${position.value[1].toFixed(4)}`);
+        mapInitialized.value = true;
+      } else {
+        setTimeout(initializeMap, 100);
+      }
+    } catch (error) {
+      console.error('Error initializing map:', error);
+      setTimeout(initializeMap, 100);
+    }
+  });
 };
 
 const updateDevicePosition = () => {
@@ -260,7 +271,6 @@ const updateDevicePosition = () => {
 
     const longitudeMeasurement = device.Mesurement?.find(m => m.measurementname === "Longitude" || m.measurementlabel === "Longitude");
     const latitudeMeasurement = device.Mesurement?.find(m => m.measurementname === "Latitude" || m.measurementlabel === "Latitude");
-    console.log("พิกัด", latitudeMeasurement, longitudeMeasurement);
     
     if (longitudeMeasurement && latitudeMeasurement) {
       const longitude = parseFloat(longitudeMeasurement.lastValue);
@@ -278,18 +288,34 @@ const updateDevicePosition = () => {
 };
 
 const updatePosition = () => {
-  if (!position.value || !Array.isArray(position.value) || position.value.length !== 2) {
-    console.error('Invalid position:', position.value);
-    position.value = [13.1486, 100.8122];
+  if (!mapInitialized.value || !position.value || !Array.isArray(position.value) || position.value.length !== 2) {
+    return;
   }
 
-  if (marker.value) {
-    marker.value.setLatLng(position.value);
-    marker.value.setPopupContent(`ตำแหน่งเรือ: ${position.value[0].toFixed(4)}, ${position.value[1].toFixed(4)}`);
-  }
+  try {
+    if (marker.value) {
+      marker.value.setLatLng(position.value);
+      marker.value.setPopupContent(`ตำแหน่งเรือ: ${position.value[0].toFixed(4)}, ${position.value[1].toFixed(4)}`);
+    }
 
+    if (map.value) {
+      map.value.setView(position.value, 13);
+    }
+  } catch (error) {
+    console.error('Error updating position:', error);
+  }
+};
+
+const destroyMap = () => {
   if (map.value) {
-    map.value.setView(position.value, 10);
+    try {
+      map.value.remove();
+      map.value = null;
+      marker.value = null;
+      mapInitialized.value = false;
+    } catch (error) {
+      console.error('Error destroying map:', error);
+    }
   }
 };
 
@@ -338,12 +364,12 @@ const filteredMeasurements = computed(() => {
       unit: measurements.find(m => m.measurementname === 'Battery Volts')?.measurementunit || 'Volts'
     },
     'Wind-Speed': {
-      value: measurements.find(m => m.measurementname === 'Oil Pressure')?.lastValue || '0',
-      unit: measurements.find(m => m.measurementname === 'Oil Pressure')?.measurementunit || 'm/s'
+      value: measurements.find(m => m.measurementname === 'Wind-Speed')?.lastValue || '0',
+      unit: measurements.find(m => m.measurementname === 'Wind-Speed')?.measurementunit || 'm/s'
     },
     '%Throttle': {
-      value: measurements.find(m => m.measurementname === 'Water Temp')?.lastValue || '0',
-      unit: measurements.find(m => m.measurementname === 'Water Temp')?.measurementunit || ''
+      value: measurements.find(m => m.measurementname === '%Throttle')?.lastValue || '0',
+      unit: measurements.find(m => m.measurementname === '%Throttle')?.measurementunit || '%'
     },
     'Total Fuel Consumption': {
       value: measurements.find(m => m.measurementname === 'Total Fuel Consumption')?.lastValue || '0',
@@ -434,7 +460,6 @@ watch(totalDangerCount, (newCount, oldCount) => {
   
   prevDangerCount.value = newCount;
 }, { immediate: true });
-// sound
 
 const getMeasurementValue = (measurementName) => {
   if (!devices.value.length) return 0;
@@ -523,7 +548,9 @@ const fetchDataWithInterval = async () => {
   await fetchNotification();
 };
 
-const startDataInterval = () => {intervalId = setInterval(fetchDataWithInterval, 2 * 60 * 1000);};
+const startDataInterval = () => {
+  intervalId = setInterval(fetchDataWithInterval, 2 * 60 * 1000);
+};
 
 const stopDataInterval = () => {
   if (intervalId) {
@@ -533,22 +560,23 @@ const stopDataInterval = () => {
 };
 
 onMounted(async () => {
-  console.log('Component mounted');
   await initialize();
   await fetchDataWithInterval();
   startDataInterval();
   isDataLoaded.value = true;
   updateChartSize();
   window.addEventListener('resize', updateChartSize);
+  
+  nextTick(() => {
+    if (!mapInitialized.value) {
+      initializeMap();
+    }
+  });
 });
 
 onUnmounted(() => {
-  console.log('Component unmounted');
+  destroyMap();
   window.removeEventListener('resize', updateChartSize);
-  if (map.value) { 
-    map.value.remove(); 
-    map.value = null;
-  }
   stopDataInterval();
 });
 
@@ -561,9 +589,10 @@ watch(() => route.params.deviceId, (newId) => {
   fetchDeviceData(newId);
 });
 
-watch(devices, () => {
-  if (devices.value.length > 0) {
-    nextTick(async () => {
+watch(devices, (newDevices) => {
+  if (newDevices.length > 0) {
+    updateDevicePosition();
+    nextTick(() => {
       initializeMap();
     });
   }
@@ -584,6 +613,14 @@ watch(devices, () => {
   align-items: center;
   position: relative;
   padding: 1vh;
+  
+  #mapContainer {
+    height: calc(100% - 40px);
+    width: 100%;
+    border-radius: 16px;
+    z-index: 1;
+    min-height: 250px;
+  }
 }
 
 .card-title {
@@ -592,13 +629,6 @@ watch(devices, () => {
   color: var(--dark-gray);
   margin-bottom: 8px;
   font-size: 1.5vh;
-}
-
-#mapContainer {
-  height: calc(100% - 40px); /* ลบความสูงของ title */
-  width: 100%;
-  border-radius: 16px;
-  z-index: 1;
 }
 
 .gauge-card {

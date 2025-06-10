@@ -240,7 +240,11 @@ const createBoatMarker = (boatInfo) => {
         leftDiv.innerHTML = `
           <p style="margin: 5px 0; font-family: 'Inter', sans-serif; font-size: 1.5vh;">
             <i class="mdi mdi-speedometer" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh"></i>
-            <strong style="color: #9F9F9F;">Speed:</strong> ${deviceDetails.measurements?.Speed?.lastValue || 'N/A'} ${deviceDetails.measurements?.Speed?.unit || ''}
+            <strong style="color: #9F9F9F;">Speed:</strong> ${
+              deviceDetails.measurements?.Speed?.lastValue
+                ? (parseFloat(deviceDetails.measurements.Speed.lastValue) / 10).toFixed(1)
+                : 'N/A'
+            } ${deviceDetails.measurements?.Speed?.unit || ''}
           </p>
           <p style="margin: 5px 0; font-family: 'Inter', sans-serif; font-size: 1.5vh;">
             <i class="mdi mdi-weather-windy" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh"></i>

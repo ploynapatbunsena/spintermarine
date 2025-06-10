@@ -472,7 +472,7 @@ onBeforeUnmount(() => {
 
 :deep(text) {
   font-family: 'Inter', sans-serif;
-  font-size: 1  vh;
+  font-size: 1vh;
 }
 
 .edit {

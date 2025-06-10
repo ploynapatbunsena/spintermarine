@@ -18,7 +18,7 @@
               hide-default-footer
             >
               <template v-slot:[`item.lastTimestamp`]="{ item }">
-                {{ formatTimeShow(item.statusData.lastTimestamp) }}
+                {{ item.statusData.lastTimestamp ? formatTimeShow(item.statusData.lastTimestamp) : formatTimeShow(new Date()) }}
               </template>
               <template v-slot:[`item.status`]="{ item }">
                 <v-chip :class="getGeneratorStatusClass(item.statusData.statusValue)">
@@ -48,7 +48,7 @@
               hide-default-footer
             >
               <template v-slot:[`item.lastTimestamp`]="{ item }">
-                {{ formatTimeShow(item.statusData.lastTimestamp) }}
+                {{ item.statusData.lastTimestamp ? formatTimeShow(item.statusData.lastTimestamp) : formatTimeShow(new Date()) }}
               </template>
               <template v-slot:[`item.status`]="{ item }">
                 <v-chip :class="getCraneStatusClass(item.statusData.statusValue)">
@@ -85,7 +85,7 @@
                     readonly
                     rounded="lg"
                   >
-                    {{ formatTimeShow(editedItem.lastTimestamp) || '-' }}
+                    {{ editedItem.lastTimestamp ? formatTimeShow(editedItem.lastTimestamp) : formatTimeShow(new Date()) }}
                   </v-text-field>
                 </div>
               </v-col>
@@ -229,7 +229,7 @@ const processedDevices = computed(() => {
   return devices.value.map(device => {
     const statusMeasurement = device.Mesurement?.find(m => m.measurementname === 'Status') 
     || { lastvalue: '0', lastTimestamp: '' };
-    
+    console.log(statusMeasurement.value)
     return {
       ...device,
       statusData: {
@@ -261,8 +261,6 @@ const formatTimeShow = (datetime) => {
     return null
   } else {
     var dateTime = new Date(datetime);
-    dateTime.setHours(dateTime.getHours() - 7); // ปรับเวลาลง 7 ชั่วโมง
-    
     var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
     var day = ("0" + dateTime.getDate()).slice(-2);
     var year = dateTime.getFullYear();

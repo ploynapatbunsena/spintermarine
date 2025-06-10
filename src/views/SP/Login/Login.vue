@@ -116,13 +116,12 @@ const validateForm = () => {
     errors.password = 'รหัสผ่านต้องมีความยาวอย่างน้อย 4 ตัวอักษร'
     isValid = false
   }
-
   return isValid
-}
+};
 
 const togglePassword = () => {
   showPassword.value = !showPassword.value
-}
+};
 
 const fetchMemberData = async () => {
   if (!validateForm()) return
@@ -184,7 +183,7 @@ const fetchMemberData = async () => {
   } finally {
     isLoading.value = false
   }
-}
+};
 </script>
 
 <style lang="scss" scoped>
