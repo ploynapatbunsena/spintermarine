@@ -401,11 +401,13 @@ onUnmounted(() => {
   & .name-thai {
     font-family: 'Sarabun', serif;
     font-size: 3vh;
+    text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.4);
   }
 
   & .name-eng {
     font-size: 2vh;
     font-weight: 200;
+    text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.4);
   }
 }
 

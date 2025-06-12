@@ -54,7 +54,7 @@ const initialize = async () => {
 const initMap = () => {
   map.value = L.map('map').setView([13.7563, 100.5018], 8);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 16,
+    maxZoom: 14,
     attribution: '© OpenStreetMap contributors'
   }).addTo(map.value);
 };
@@ -135,7 +135,7 @@ const fetchTransportShip_NoProduct = async (shipName) => {
   }
 };
 
-const DEFAULT_POSITION = [13.7563, 100.5018]; 
+const DEFAULT_POSITION = [13.166172, 100.814708];
 
 const createBoatMarker = (boatInfo) => {
   const latObj = boatInfo.value?.find(v => v.Name === 'Latitude');
@@ -242,24 +242,36 @@ const createBoatMarker = (boatInfo) => {
             <i class="mdi mdi-speedometer" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh"></i>
             <strong style="color: #9F9F9F;">Speed:</strong> ${
               deviceDetails.measurements?.Speed?.lastValue
-                ? (parseFloat(deviceDetails.measurements.Speed.lastValue) / 10).toFixed(1)
+                ? (parseFloat(deviceDetails.measurements?.Speed.lastValue) / 10).toFixed(2)
                 : 'N/A'
             } ${deviceDetails.measurements?.Speed?.unit || ''}
           </p>
           <p style="margin: 5px 0; font-family: 'Inter', sans-serif; font-size: 1.5vh;">
             <i class="mdi mdi-weather-windy" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh"></i>
-            <strong style="color: #9F9F9F;">Wind Speed:</strong> ${deviceDetails.measurements?.['Wind-Speed']?.lastValue || 'N/A'} ${deviceDetails.measurements?.['Wind-Speed']?.unit || ''}
+            <strong style="color: #9F9F9F;">Wind Speed:</strong> ${
+              deviceDetails.measurements?.['Wind-Speed']?.lastValue
+                ? parseFloat(deviceDetails.measurements['Wind-Speed']?.lastValue).toFixed(2)
+                : 'N/A'
+              } ${deviceDetails.measurements?.['Wind-Speed']?.unit || ''}
           </p>
         `;
         
         rightDiv.innerHTML = `
           <p style="margin: 5px 0; font-family: 'Inter', sans-serif; font-size: 1.5vh;">
             <i class="mdi mdi-gauge" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh"></i>
-            <strong style="color: #9F9F9F;">RPM:</strong> ${deviceDetails.measurements?.RPM?.lastValue || 'N/A'} ${deviceDetails.measurements?.RPM?.unit || ''}
+            <strong style="color: #9F9F9F;">RPM:</strong> ${
+              deviceDetails.measurements?.RPM?.lastValue
+                ? parseFloat(deviceDetails.measurements?.RPM.lastValue).toFixed(2)
+                : 'N/A'
+              } ${deviceDetails.measurements?.RPM?.unit || ''}
           </p>
           <p style="margin: 5px 0; font-family: 'Inter', sans-serif; font-size: 1.5vh;">
             <i class="mdi mdi-speedometer-medium" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh"></i>
-            <strong style="color: #9F9F9F;">%Throttle:</strong> ${deviceDetails.measurements?.['%Throttle']?.lastValue || 'N/A'} ${deviceDetails.measurements?.['%Throttle']?.unit || ''}
+            <strong style="color: #9F9F9F;">%Throttle:</strong> ${
+              deviceDetails.measurements?.['%Throttle']?.lastValue 
+                ? parseFloat(deviceDetails.measurements['%Throttle']?.lastValue).toFixed(2)
+                : 'N/A'
+              } ${deviceDetails.measurements?.['%Throttle']?.unit || ''}
           </p>
         `;
       }

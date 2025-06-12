@@ -6,8 +6,8 @@ import router from './router'
 import axios from 'axios'
 
 const $api = axios.create({
-  // baseURL: 'http://127.0.0.1:5001/api',
-  baseURL: 'https://iot.spintermarine.co.th/api',
+  baseURL: 'http://127.0.0.1:5001/api',
+  // baseURL: 'https://iot.spintermarine.co.th/api',
   headers: {
     'Content-Type': 'application/json'
   }
@@ -43,20 +43,18 @@ $api.interceptors.response.use(
 );
 
 // CMMS
-const CMMS_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRmluZ2VycHJpbnQiOiI0RkI1NTc1NDM3MEQzNEU0N0ZGRTg5RTVCNkY1RjM1MEI2NjJEQkM1N0U3QzhERTgwOUYyN0M0RkQ1RjYzNUY5IiwiaWF0IjoxNzQ3MzAyMjQxfQ.QZSdwjlA_Syz4uixhCrOm0szyp2UP3plh6UdPkg1CLw';
-const open_api_company = 'f655b52094e9fa4ddeb3fbc770b9dce95d954c8de3a95692fdd59a12ad543513';
+const CMMS_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRmluZ2VycHJpbnQiOiJBREI1MDJDNTdFNDE2NzM0MzM4MDRFQzA3MzE2RkIzODgwOTg4QUMxODg4QkE3NzQ2QjlFRTI4RTJERjI0MDc4IiwiaWF0IjoxNzQ5NDY0MTM4fQ.XF86UIXHUhWuUejNuGhga2C6gTDF-dYcQldBvyhCIJQ';
+const open_api_company = 'cc7633cfe644bcea3b2b4fb9e25b770ab48baacf9bcdb9cddc019b11dcfc474a';
 
 const $api_cmms = axios.create({
-  baseURL: 'https://test-openapi-public.systemstone.com/',
+  baseURL: 'https://openapi.systemstone.com/',
   headers: {
     'Content-Type': 'application/json',
-    'Cookie': '__Secure-Fgp=bc9b23842a2a504b9d93dfe359487a81ab5db833847ff62248ad293dbafbf6bb56ac9ec51680f47be04c4ac3083d2fbae5f4; Path=/; Secure; HttpOnly',
-    'Authorization': `Bearer ${CMMS_ACCESS_TOKEN}`,
-    'Access-Control-Allow-Origin': '*'
+    'Cookie': '__Secure-Fgp=b7a69c8f0b3a646159ffff349e858700d234978ca6883b0c82ee244117fd876ef0370b9b63e51943495f08d950afbd67b285; Path=/; Secure',
+    'Authorization': `Bearer ${CMMS_ACCESS_TOKEN}`, 
   },
   withCredentials: true
 });
-
 
 // Vessel
 const $api_vessel = axios.create({

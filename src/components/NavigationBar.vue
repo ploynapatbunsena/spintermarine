@@ -1,15 +1,22 @@
 <template>
   <nav>
     <v-app-bar color="#080F25" :height="$vuetify.display.width > 2560 ? 120 : 64">
-      <v-app-bar-nav-icon class="nav-icon" variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
+      <v-app-bar-nav-icon class="nav-icon" variant="text" @click.stop="!isVisitor && (drawer = !drawer)"></v-app-bar-nav-icon>
       <v-row class="logo-container">
-        <v-col cols="8" sm="6" lg="2">
+        <v-col v-if="!isVisitor" cols="8" sm="6" lg="2">
           <router-link :to="{ name: 'Homepage'}">
             <v-img
               :src="require('@/assets/Images/logo_navbar.png')"
               class="navbar-logo"
             ></v-img>
           </router-link>
+        </v-col>
+        <v-col v-else cols="8" sm="6" lg="2">
+          <v-img
+            :src="require('@/assets/Images/logo_navbar.png')"
+            class="navbar-logo"
+            style="cursor: default"
+          ></v-img>
         </v-col>
       </v-row>
       <template v-if="$vuetify.display.mdAndUp">
@@ -157,6 +164,7 @@
             ></v-list-item>
           </v-list-group>
         </v-list-group>
+        <!-- <v-list-item v-if="hasPermission('0101010700')" prepend-icon="mdi-calendar" title="Job Tracking" class="nav-icon" style="padding: 0vw 1vw;" :to="{ name: 'RouteTracking' }"></v-list-item> -->
         <v-list-item v-if="hasPermission('0101010700')" prepend-icon="mdi-map-marker-radius" title="Route Tracking" class="nav-icon" style="padding: 0vw 1vw;" :to="{ name: 'RouteTracking' }"></v-list-item>
         <v-list-group>
           <template v-slot:activator="{ props }">
@@ -237,8 +245,14 @@ const userPosition = computed(() => {
   return memberData ? JSON.parse(memberData).Position : null;
 });
 
+const isVisitor = computed(() => {
+  const position = userPosition.value;
+  return position === 'Visitor';
+});
+
 const isAdmin = computed(() => {
   const position = userPosition.value;
+  // return position === 'Admin' || position === 'User' || position === 'Integration' || false;
   return position === 'Admin' || position === 'User' || position === 'Integration' || false;
 });
 

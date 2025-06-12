@@ -742,30 +742,26 @@ const fetchTiltThresholds = async (deviceId) => {
 };
 
 const fetchNotification = async () => {
-  
   isLoading.value = true;
-  if (!devices.value.length) {
-    await fetchDeviceBargesGrouped();
-  }
+  if (!devices.value.length) await fetchDeviceBargesGrouped();
   
   noti.value = [];
+  
   try {
     for (const device of devices.value) {
-      const requestBody = {
-        DeviceId: device.DeviceId,
-        IsAccept: false
-      };
-
       try {
-        const response = await $api.put('/device/notificationlistStatus', requestBody);
-        const filteredData = response.data.filter(item =>  item.Title.includes("Danger"));
-        noti.value = [...noti.value, ...filteredData];
+        const response = await $api.put('/device/notificationlistStatus', {
+          DeviceId: device.DeviceId,
+          IsAccept: false
+        });
+        
+        noti.value.push(...response.data);
       } catch (err) {
-        console.error(`Failed to fetch notifications for DeviceId ${device.DeviceId}:`, err);
+        console.error(`Error for Device ${device.DeviceId}:`, err);
       }
     }
   } catch (error) {
-    error.value = 'Failed to fetch notifications. Please try again later.';
+    error.value = 'Failed to fetch notifications';
     console.error(error);
   } finally {
     isLoading.value = false;
@@ -777,7 +773,12 @@ const mappedNotices = computed(() => {
     date: item.AlertTime,
     name: item.DeviceLabel,
     measuremnet: item.MeasurementName,
-    details: item.Description,
+    // details: item.Description,
+    details: {
+      text: item.Description,
+      isDanger: item.Description === "Danger",
+      isWarning: item.Description === "Warning"
+    },
     status: item.IsAccept ? 'ดำเนินการเสร็จสิ้น' : 'รอแจ้งซ่อม',
   }));
 });

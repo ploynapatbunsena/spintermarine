@@ -47,12 +47,12 @@
               <div class="device-detail">
                 <p>Description</p>
                 <v-text-field
-                  :disabled="!permissionWrite('0101030400')"
                   v-model="deviceData.Note"
                   variant="outlined" 
                   density="compact" 
                   class="input-field"
                   style="font-family: 'Sarabun', sans-serif;"
+                  disabled
                 ></v-text-field>
               </div>
             </v-col>

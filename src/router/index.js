@@ -59,8 +59,8 @@ const routes = [
   },
   {
     path: "/GPS/:deviceId",
-    name: "GPSVessel",
-    component: () => import("../views/SP/GPSVessel.vue"),
+    name: "JobTracking",
+    component: () => import("../views/SP/JobTracking.vue"),
     props: true,
     meta: { title: "GPS" }
   },

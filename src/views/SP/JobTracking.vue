@@ -58,12 +58,16 @@
               </v-row>
             </v-list-item>
             <v-divider></v-divider>
-            <v-list-item 
+            <!-- <v-list-item 
               v-for="tugboat in devices" 
               :key="tugboat.DeviceId"
               class="d-flex align-center py-3 ml-6"
               @click="selectSingleBoat(tugboat.DeviceId)"
-              :class="{ 'selected-boat': selectedBoats === tugboat.DeviceId }"
+              :class="{ 
+                'selected-boat': selectedBoats === tugboat.DeviceId,
+                'disabled-item': deviceId && tugboat.DeviceId !== deviceId
+              }"
+              :disabled="deviceId && tugboat.DeviceId !== deviceId"
             >
               <template v-slot:prepend>
                 <v-checkbox
@@ -72,6 +76,35 @@
                   @change="emitSelectedBoats"
                   density="compact" 
                   hide-details
+                  :disabled="deviceId && tugboat.DeviceId !== deviceId"
+                ></v-checkbox>
+              </template>
+              <div class="d-flex align-center">
+                <v-icon class="mx-3" :class="getStatusClass(tugboat)">mdi-ferry</v-icon>
+                <span>{{ deletePrefix(tugboat.DeviceName) }}</span>
+              </div>
+            </v-list-item> -->
+          
+            <v-list-item 
+              v-for="tugboat in devices" 
+              :key="tugboat.DeviceId"
+              class="d-flex align-center py-3 ml-6"
+              @click="handleBoatClick(tugboat.DeviceId)"
+              :class="{ 
+                'selected-boat': selectedBoats === tugboat.DeviceId,
+                'disabled-item': isVisitor && !allowedDeviceIds.includes(tugboat.DeviceId),
+                
+              }"
+              :disabled="isVisitor && !allowedDeviceIds.includes(tugboat.DeviceId)"
+            >
+              <template v-slot:prepend>
+                <v-checkbox
+                  :value="tugboat.DeviceId"
+                  v-model="selectedBoats"
+                  @change="emitSelectedBoats"
+                  density="compact" 
+                  hide-details
+                  :disabled="isVisitor && !allowedDeviceIds.includes(tugboat.DeviceId)"
                 ></v-checkbox>
               </template>
               <div class="d-flex align-center">
@@ -97,25 +130,29 @@
           />
         </div>
       </div>
-    <!-- </div> -->
-    <v-snackbar v-model="error" color="error">{{ error?.message }}</v-snackbar>
+    <!-- <v-snackbar v-model="showError" color="error">
+      {{ errorMessage }}
+    </v-snackbar> -->
   </v-app>
 </template>
 
 <script setup>
 import { ref, onMounted, watch, inject, onUnmounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import NavigationBar from '@/components/NavigationBar.vue';
 import TransportTable from '@/components/TugboatDetails/TransportTable.vue';
 
+const router = useRouter();
 const $api = inject('$api');
 const $api_vessel = inject('$api_vessel');
 const $api_cmms = inject('$api_cmms');
 const open_api_company = inject('open_api_company');
 const route = useRoute();
 const deviceId = ref(route.params.deviceId);
+const allowedDeviceIds = ref([]);
+const isVisitor = ref(false);
 const map = ref(null);
 const boatMarkers = ref([]);
 const selectedBoats = ref(null);
@@ -124,36 +161,74 @@ const open = ref(true);
 const devices = ref([]);
 const loading = ref(false);
 const error = ref(null);
-const position = [13.1486, 100.8122];
+const position = [13.166172, 100.814708];
 const shipMarkers = ref([]);
 const allVessels = ref([]);
 const vesselShips = ref({});
 const allJobs = ref([]);
 let intervalId  = null;
+const permission = ref(null);
+
+// const showError = ref(false);
+// const errorMessage = ref('');
+
+const initialize = async () => {
+  const menuPermission = localStorage.getItem('menuPermission');
+  if (!menuPermission) {
+    return router.push('/Homepage');
+  }
+
+  const permissionList = JSON.parse(menuPermission);
+  const foundPermission = permissionList.find(item => item.MenuId === '0101010900');
+  permission.value = foundPermission;
+  
+  if (!foundPermission || !foundPermission.IsActive) {
+    return router.push('/Homepage');
+  }
+  // Visitor Permission
+  const memberPermission = localStorage.getItem('member');
+  if (memberPermission) {
+    const memberData = JSON.parse(memberPermission);
+    isVisitor.value = memberData.Position === 'Visitor';
+    
+    if (isVisitor.value && deviceId.value) {
+      allowedDeviceIds.value = deviceId.value.split(',');
+    }
+  }
+};
+
+const handleBoatClick = (tugboatId) => {
+  // ถ้าเป็น Visitor และ DeviceId ไม่อยู่ในรายการที่อนุญาต ไม่ต้องทำอะไร
+  if (isVisitor.value && !allowedDeviceIds.value.includes(tugboatId)) {
+    return;
+  }
+  selectSingleBoat(tugboatId);
+};
 
 const fetchAllTugboats = async () => {
   try {
     loading.value = true;
     error.value = null;
-    
-    // ดึงข้อมูล Tugboat จาก API เดิม
-    const riverResponse = await $api.get('/MachineStatus/GetTugboatRiver');
+
+    const [riverResponse, seaResponse] = await Promise.all([
+      $api.get('/MachineStatus/GetTugboatRiver'),
+      $api.get('/MachineStatus/GetTugboatSea'),
+    ]);
+
     const riverTugboats = riverResponse.data.flatMap(item => item.Devices);
-    const seaResponse = await $api.get('/MachineStatus/GetTugboatSea');
     const seaTugboats = seaResponse.data.flatMap(item => item.Devices);
     const allTugboats = [...riverTugboats, ...seaTugboats];
-    
-    // ดึงสถานะล่าสุดจาก CMMS API
+
     const cmmsStatusData = await fetchCMMSStatus(allTugboats);
-    
-    // รวมข้อมูลและแมปสถานะ
+
     devices.value = processTugboatData(allTugboats, cmmsStatusData);
-    
+
     if (deviceId.value) {
       await fetchDeviceData(deviceId.value);
     }
-  } catch (error) {
-    console.error('Error fetching tugboats:', error);
+
+  } catch (err) {
+    console.error('Error fetching tugboats:', err);
     error.value = new Error('Failed to fetch tugboat list. Please try again.');
     devices.value = [];
   } finally {
@@ -176,7 +251,7 @@ const fetchAllVessels = async () => {
       
       if (job.vessel_name) {
         allVessels.value.push(job.vessel_name);
-        // console.log('allVessels', allVessels.value);
+        console.log('allVessels', allVessels.value);
         
         if (job.jobs_miiot?.job_ship?.ship) {
           vesselShips.value[job.vessel_name] = job.jobs_miiot.job_ship.ship;
@@ -468,10 +543,36 @@ const stopDataInterval = () => {
   }
 };
 
+// const handleError = (err) => {
+//   console.error(err);
+//   error.value = err;
+//   errorMessage.value = err.message || 'An error occurred';
+//   showError.value = true;
+  
+//   setTimeout(() => {
+//     showError.value = false;
+//   }, 5000);
+// };
+
+// onMounted(async () => {
+//   console.log('Component mounted');
+//   await initialize();
+//   initMap();
+//   await fetchDataWithInterval();
+//   startDataInterval();
+// });
+
 onMounted(async () => {
   console.log('Component mounted');
+  await initialize();
   initMap();
   await fetchDataWithInterval();
+  
+  // ไม่ทำ auto-select ถ้าเป็น Visitor
+  if (!isVisitor.value && deviceId.value) {
+    await fetchDeviceData(deviceId.value);
+  }
+  
   startDataInterval();
 });
 
@@ -607,6 +708,12 @@ watch(() => route.params.deviceId, async (newDeviceId) => {
 
 :deep(.v-navigation-drawer__content)::-webkit-scrollbar {
   display: none !important;
+}
+
+.disabled-item {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
 }
 
 </style>

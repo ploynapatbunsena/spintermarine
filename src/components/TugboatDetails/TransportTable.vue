@@ -8,12 +8,12 @@
   >
     <v-row>
       <v-col cols="12" lg="3">
-        <v-card class="card rounded-lg elevation-0" style="height: 100%;">
+        <v-card class="card rounded-lg elevation-0" style="overflow-y: auto; height: 100%;">
           <v-card-title class="d-flex align-center vessel-header">
             <span class="vessel-title">VESSEL</span>
             <v-chip class="ml-2 vessel-status" prepend-icon="mdi-circle-medium">Running</v-chip>
           </v-card-title>
-          <v-card-text style="overflow-y: auto; height: 100%;">
+          <v-card style="overflow-y: auto; height: 100%;">
             <v-data-table
               :headers="[{ title: 'Vessel Name', value: 'name' }]"
               :items="vesselListWithIcons"
@@ -21,7 +21,6 @@
               hide-default-header
               hide-default-footer
               class="elevation-0 vessel-table"
-              :items-per-page="4"
               @click:row="handleVesselClick"
               style="font-size: 1.5vh;"
             >
@@ -32,7 +31,7 @@
                 </div>
               </template>
             </v-data-table>
-          </v-card-text>
+          </v-card>
         </v-card>
       </v-col>
 
@@ -95,7 +94,7 @@
                   </div>
                   <div class="text-side">
                     <p class="text-grey">Speed</p>
-                    <p class="text-value">{{ speed.value }} {{ speed.unit }}</p>
+                    <p class="text-value">{{ parseFloat(speed.value).toFixed(2) }} {{ speed.unit }}</p>
                   </div>
                 </v-card>
               </v-col>
@@ -117,7 +116,7 @@
                   </div>
                   <div class="text-side">
                     <p class="text-grey">Wind Speed</p>
-                    <p class="text-value">{{ windSpeed.value }} {{ windSpeed.unit }}</p>
+                    <p class="text-value">{{ parseFloat(windSpeed.value).toFixed(2) }} {{ windSpeed.unit }}</p>
                   </div>
                 </v-card>
               </v-col>
@@ -317,6 +316,8 @@ const toggleVessel = async (vessel) => {
 };
 
 const vesselListWithIcons = computed(() => {
+  console.log('vesselList.value', vesselList.value);
+  
   return vesselList.value.map(vessel => ({
     name: vessel,
     isSelected: selectedVessel.value === vessel
@@ -406,7 +407,6 @@ const windSpeed = computed(() => {
 .card {
   border: 1px solid var(--bg-soline);
   border-radius: 16px;
-  padding-bottom: 8px;
 }
 
 .vessel-header {
@@ -557,12 +557,10 @@ const windSpeed = computed(() => {
 
 .table-container {
   padding: 16px;
-  overflow-y: auto; /* เพิ่มการเลื่อนในแนวตั้ง */
+  overflow-y: auto;
 }
 
 @media(min-width: 1280px) {
-
-
   .height-table {
     height: calc(100% - 64px);
   }

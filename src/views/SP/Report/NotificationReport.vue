@@ -177,6 +177,14 @@
               <template v-slot:[`item.date`]="{ item }">
                 {{ formatTimeShow(item.date) }}
               </template>
+              <template v-slot:[`item.details`]="{ item }">
+                <v-chip
+                  :color="item.details.isDanger ? 'red' : item.details.isWarning ? 'amber' : 'grey'"
+                  dark
+                >
+                  {{ item.details.text }}
+                </v-chip>
+              </template>
               <template v-slot:[`item.status`]="{ item }">
                 <v-chip :class="getStatusColor(item.status)">
                   {{ item.status }}
@@ -585,7 +593,12 @@ const searchRecords = async () => {
       deviceName: item.DeviceLabel,
       measurement: `${item.MeasurementLabel} (${item.MeasurementUnit})`,
       solution: item.Solution,
-      details: item.Description,
+      // details: item.Description,
+      details: {
+        text: item.Description,
+        isDanger: item.Description === "Danger",
+        isWarning: item.Description === "Warning"
+      },
       status: item.IsAccept ? 'ดำเนินการเสร็จสิ้น' : 'รอแจ้งซ่อม',
       originalData: item
     }));
@@ -807,7 +820,7 @@ watch(() => route.query, () => {
 </script>
 
 <style scoped>
-.status-pending {
+/* .status-pending {
   font-family: 'Sarabun', serif;
   color: var(--red);
   background-color: var(--light-red);
@@ -817,6 +830,18 @@ watch(() => route.query, () => {
   font-family: 'Sarabun', serif;
   color: var(--text-running);
   background-color: var(--bg-running);
+} */
+
+.status-pending {
+  font-family: 'Sarabun', serif;
+  color: #FFFFFF;
+  background-color: #e73232;
+}
+
+.status-finish {
+  font-family: 'Sarabun', serif;
+  color: #FFFFFF;
+  background-color: #52be80;
 }
 
 .striped-table :deep(tbody tr:nth-child(odd)) {

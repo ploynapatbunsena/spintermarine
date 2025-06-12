@@ -1,13 +1,11 @@
 <template>
   <v-container fluid class="fill-height">
     <v-row class="fill-height">
-      <!-- Column 1: Map (ด้านซ้าย) -->
       <v-col cols="6">
         <v-card class="rounded-xl h-100" elevation="0">
           <div id="map"></div>
         </v-card>
       </v-col>
-      <!-- Column 2: Wind Speed and Wind Direction (ด้านขวา) -->
       <v-col cols="6" class="d-flex flex-column">
         <v-card class="wind-speed-card rounded-xl mb-4 h-100" elevation="0">
           <v-row>
@@ -21,7 +19,7 @@
               ></v-img>
             </v-col>
             <v-col cols="6">
-              <p class="detail">{{ windSpeed }} {{ measurementUnit }}</p>
+              <p class="detail">{{ windSpeed.toFixed(2) }} {{ measurementUnit }}</p>
             </v-col>
           </v-row>
         </v-card>
@@ -62,7 +60,7 @@ import markerIconUrl from '@/assets/Images/barge_location.png';
 const props = defineProps({
   position: {
     type: Object,
-    default: () => ({ lat: 13.122581, lng: 100.816189 })
+    default: () => ({ lat: 13.166172, lng: 100.814708 })
   },
   windSpeed: {
     type: Number,
@@ -78,13 +76,11 @@ const props = defineProps({
   }
 });
 
-// ตัวแปร reactive
 const currentBearing = ref(props.windDirection);
 const map = ref(null);
 const marker = ref(null);
 const compassControl = ref(null);
 
-// คำนวณทิศทางลมเป็นตัวอักษร (N, NE, E, etc.)
 const currentDirection = computed(() => {
   const angle = currentBearing.value;
   if (angle >= 337.5 || angle < 22.5) return 'N';
@@ -98,7 +94,6 @@ const currentDirection = computed(() => {
   return 'N/A';
 });
 
-// ตั้งค่า map และ marker
 onMounted(async() => {
   await nextTick();
   map.value = L.map('map').setView([props.position.lat, props.position.lng], 13);
@@ -132,7 +127,6 @@ onMounted(async() => {
 const updateCompassDirection = (angle) => {
   currentBearing.value = angle;
 
-  // อัพเดท rotation ของ compass ใน plugin
   const compassElem = document.querySelector('.leaflet-compass .compass-icon');
   if (compassElem) {
     compassElem.style.transform = `rotate(${angle}deg)`;
@@ -144,7 +138,6 @@ const updateCompassDirection = (angle) => {
   }
 };
 
-// Watch เปลี่ยนค่าพิกัด
 watch(() => props.position, (newVal) => {
   if (map.value && marker.value) {
     map.value.setView([newVal.lat, newVal.lng]);
@@ -152,19 +145,16 @@ watch(() => props.position, (newVal) => {
   }
 }, { deep: true });
 
-// Watch เปลี่ยนทิศทางลม
 watch(() => props.windDirection, (newVal) => {
   updateCompassDirection(newVal);
 });
 
-// Cleanup
 onBeforeUnmount(() => {
   if (map.value) {
     map.value.remove();
   }
 });
 
-// ส่งค่ากลับไปให้ template ใช้
 defineExpose({
   currentDirection,
   currentBearing

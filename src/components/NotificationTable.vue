@@ -6,19 +6,26 @@
           :headers="headers"
           :items="notices"
           item-value="name"
-          items-per-page="3"
+          items-per-page="4"
           hide-default-footer
           class="elevation-0 striped-table custom-table custom-scroll"
           style="font-size: 1.5vh;"
         >
           <template v-slot:item="{ item }">
             <tr class="custom-row">
-              <td>{{ formatTimeShow(item.date) }}</td>
-              <td>{{ deletePrefix(item.name) }}</td>
+              <td class="text-truncate">{{ formatTimeShow(item.date) }}</td>
+              <td class="text-truncate">{{ deletePrefix(item.name) }}</td>
               <td>{{ item.measuremnet }}</td>
-              <td>{{ item.details }}</td>
               <td>
-                <v-chip style="font-size: 1.2vh;" class="notice-status">
+                <v-chip
+                  :color="item.details.isDanger ? 'red' : item.details.isWarning ? 'amber' : 'grey'"
+                  dark
+                >
+                  {{ item.details.text }}
+                </v-chip>
+              </td>
+              <td>
+                <v-chip :class="getStatusColor(item.status)" class="notice-status">
                   {{ item.status }}
                 </v-chip>
               </td>
@@ -31,7 +38,6 @@
 </template>
 
 <script setup>
-
 defineProps({
   notices: {
     type: Array,
@@ -64,9 +70,42 @@ const formatTimeShow = (datetime) => {
 const deletePrefix = (name) => {
   return name.replace(/Barge|Tugboat/gi, '').trim();
 };
+
+const getDetailColor = (details) => {
+  switch (details) {
+    case 'Danger':
+      return 'red';
+    case 'Warning':
+      return 'amber';
+    default:
+      return 'grey';
+  }
+};
+
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'รอแจ้งซ่อม':
+      return 'status-pending';
+    case 'ดำเนินการเสร็จสิ้น':
+      return 'status-finish';
+    default:
+      return '';
+  }
+};
 </script>
 
 <style scoped>
+.status-pending {
+  font-family: 'Sarabun', serif;
+  color: #FFFFFF;
+  background-color: #e73232;
+}
+
+.status-finish {
+  font-family: 'Sarabun', serif;
+  color: #FFFFFF;
+  background-color: #52be80;
+}
 
 .custom-row :deep(tbody tr){
   height: 10px !important;
@@ -96,11 +135,11 @@ const deletePrefix = (name) => {
   padding: 0;
 }
 
-.notice-status {
+/* .notice-status {
   font-family: 'Sarabun', serif;
   background-color: var(--light-red);
   color: var(--red);
-}
+} */
 
 .edit {
   width: 46px;

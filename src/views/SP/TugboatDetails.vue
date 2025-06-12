@@ -211,15 +211,13 @@ const fetchNotification = async () => {
   
   try {
     for (const device of devices.value) {
-      const requestBody = {
-        DeviceId: device.DeviceId,
-        IsAccept: false
-      };
-
       try {
-        const response = await $api.put('/device/notificationlistStatus', requestBody);
-        const filteredData = response.data.filter(item =>  item.Title.includes("Danger"));
-        noti.value = [...noti.value, ...filteredData];
+        const response = await $api.put('/device/notificationlistStatus', {
+          DeviceId: device.DeviceId,
+          IsAccept: false
+        });
+      
+        noti.value.push(...response.data);
       } catch (err) {
         console.error(`Failed to fetch notifications for DeviceId ${device.DeviceId}:`, err);
       }
@@ -233,7 +231,9 @@ const fetchNotification = async () => {
 };
 
 const initializeMap = () => {
-  if (mapInitialized.value || !document.getElementById('mapContainer')) return;
+  if (map.value) {
+    destroyMap();
+  }
 
   nextTick(() => {
     try {
@@ -333,7 +333,7 @@ const updateChartSize = () => {
 };
 
 const navigateToGPSVessel = (deviceId) => {
-  router.push({ name: 'GPSVessel', params: { deviceId: deviceId } });
+  router.push({ name: 'JobTracking', params: { deviceId: deviceId } });
 };
 
 const mappedNotices = computed(() => {
@@ -341,7 +341,12 @@ const mappedNotices = computed(() => {
     date: item.AlertTime,
     name: item.DeviceLabel,
     measuremnet: item.MeasurementName,
-    details: item.Description,
+    // details: item.Description,
+    details: {
+      text: item.Description,
+      isDanger: item.Description === "Danger",
+      isWarning: item.Description === "Warning"
+    },
     status: item.IsAccept ? 'ดำเนินการเสร็จสิ้น' : 'รอแจ้งซ่อม',
   }));
 });
@@ -546,6 +551,13 @@ const getGaugeOptions = (measurementName, device) => {
 const fetchDataWithInterval = async () => {
   await fetchDeviceData();
   await fetchNotification();
+  nextTick(() => {
+    if (!mapInitialized.value) {
+      initializeMap();
+    } else {
+      updatePosition(); // อัปเดตตำแหน่งถ้าแผนที่ถูกสร้างแล้ว
+    }
+  });
 };
 
 const startDataInterval = () => {
@@ -556,7 +568,7 @@ const stopDataInterval = () => {
   if (intervalId) {
     clearInterval(intervalId);
     intervalId = null;
-  }
+  } 
 };
 
 onMounted(async () => {
@@ -656,7 +668,7 @@ watch(devices, (newDevices) => {
 
 :deep(text) {
   font-family: 'Inter', sans-serif;
-  font-size: 1  vh;
+  font-size: 1vh;
 }
 
 .notification-header {

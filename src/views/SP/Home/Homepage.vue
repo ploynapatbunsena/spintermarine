@@ -100,6 +100,7 @@ const checkPermission = async () => {
   const memberPermissionList = JSON.parse(memberPermission);
 
   const position = memberPermissionList.Position;
+  const noteVisitor = memberPermissionList.Note;
 
   // Supervisor
   if (position === "Barge Supervisor") {
@@ -110,9 +111,41 @@ const checkPermission = async () => {
   // Barge Sections
   } else if (position.startsWith("Barge ")) {
     return router.push({ name: "BargeDetail", params: { typeDeviceName: position } });
-  } 
+  }
+  
+  // Visitor Section
+  else if (position === "Visitor") {
+    if (!noteVisitor) {
+      console.error('No Note found for Visitor');
+      return router.push('/Homepage');
+    }
+    
+    try {
+      const allDevices = await getAllTugboatDevices();
+      const noteDevices = noteVisitor.split(',').map(item => item.trim());
+      
+      const matchedDevices = allDevices.filter(device => 
+        noteDevices.includes(device.TypeDevicename)
+      );
+      
+      if (matchedDevices.length > 0) {
+        const deviceIds = matchedDevices.map(device => device.DeviceId);
+        
+        return router.push({ 
+          name: "JobTracking", 
+          params: { deviceId: deviceIds.join(',') } 
+        });
+      } else {
+        console.error('No matching devices found for Visitor Note');
+        return router.push('/Homepage');
+      }
+    } catch (error) {
+      console.error('Error processing Visitor devices:', error);
+      return router.push('/Homepage');
+    }
+  }
 
-  // Tugboat Sections
+  // Tugboat Sections (for non-Visitor positions)
   try {
     const allDevices = await getAllTugboatDevices();
     const matchedDevice = allDevices.find(device => device.DeviceName === position);
@@ -126,7 +159,6 @@ const checkPermission = async () => {
     return router.push('/Homepage');
   }
 };
-
 
 onMounted(async() => {
   initialize();

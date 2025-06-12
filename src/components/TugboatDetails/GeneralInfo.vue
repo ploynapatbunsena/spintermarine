@@ -25,7 +25,7 @@
         </div>
         <div class="text-side">
           <p class="text-grey">Wind Speed</p>
-          <p class="text-value">{{ measurements['Wind-Speed'].value }} {{ measurements['Wind-Speed'].unit }}</p>
+          <p class="text-value">{{ (+measurements['Wind-Speed'].value).toFixed(2) }}  {{ measurements['Wind-Speed'].unit }}</p>
         </div>
       </v-col>
     </v-row>
