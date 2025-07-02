@@ -1,5 +1,5 @@
 <template>
-  <v-app style="background-color: #F7F9FC;">
+  <v-app style="background-color: #f7f9fc">
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
@@ -13,23 +13,11 @@
                 <p>Device Details</p>
               </div>
               <div class="device-detail">
-                <p>Vehicel Type</p>
-                <v-select
-                  :disabled="!permissionWrite('0101030400')"
-                  variant="outlined"
-                  density="compact"
-                  :items="vehicleItems"
-                  v-model="deviceData.TypeDevicename"
-                  item-title="name"
-                  item-value="name"
-                ></v-select>
-              </div>
-              <div class="device-detail">
                 <p class="label">Device Name</p>
                 <v-text-field
                   v-model="deviceData.DeviceName"
-                  variant="outlined" 
-                  density="compact" 
+                  variant="outlined"
+                  density="compact"
                   class="input-field"
                   disabled
                 ></v-text-field>
@@ -39,7 +27,7 @@
                 <v-text-field
                   :disabled="!permissionWrite('0101030400')"
                   v-model="deviceData.DeviceLabel"
-                  variant="outlined" 
+                  variant="outlined"
                   density="compact"
                   class="input-field"
                 ></v-text-field>
@@ -48,32 +36,47 @@
                 <p>Description</p>
                 <v-text-field
                   v-model="deviceData.Note"
-                  variant="outlined" 
-                  density="compact" 
+                  variant="outlined"
+                  density="compact"
                   class="input-field"
-                  style="font-family: 'Sarabun', sans-serif;"
+                  style="font-family: 'Sarabun', sans-serif"
                   disabled
                 ></v-text-field>
               </div>
             </v-col>
             <v-col cols="12" sm="12" lg="4"></v-col>
-            <v-col cols="12" sm="12" lg="4" class="h-100">
+            <v-col
+              cols="12"
+              sm="12"
+              lg="4"
+              class="h-100"
+              v-if="!isBargeMaster(deviceResponse)"
+            >
               <div class="header">
-                <span class="material-symbols-rounded">add_photo_alternate</span>
+                <span class="material-symbols-rounded"
+                  >add_photo_alternate</span
+                >
                 <p>Device Profile</p>
               </div>
               <v-img
                 :src="preview"
                 :height="340"
                 class="image-preview"
-                style="cursor: pointer;"
-                @click="permissionImport('0101030400') && (showUploadDialog = true)"
+                style="cursor: pointer"
+                @click="
+                  permissionImport('0101030400') && (showUploadDialog = true)
+                "
               ></v-img>
               <v-dialog v-model="showUploadDialog" max-width="600">
                 <template v-slot:default>
                   <v-card rounded="xl">
-                    <v-card-title class="d-flex justify-space-between align-center">
-                      <div class="text-medium-emphasis pa-5" style="font-family: 'Inter', sans-serif;">
+                    <v-card-title
+                      class="d-flex justify-space-between align-center"
+                    >
+                      <div
+                        class="text-medium-emphasis pa-5"
+                        style="font-family: 'Inter', sans-serif"
+                      >
                         Upload New Device Profile
                       </div>
                       <v-btn
@@ -86,8 +89,12 @@
                       <DropZone @file-selected="handleFileSelected" />
                     </v-card-text>
                     <v-card-actions class="pa-5">
-                      <v-btn class="cancel-btn text-none" @click="cancelUpload">Cancel</v-btn>
-                      <v-btn class="save-btn text-none" @click="confirmUpload">Save</v-btn>
+                      <v-btn class="cancel-btn text-none" @click="cancelUpload"
+                        >Cancel</v-btn
+                      >
+                      <v-btn class="save-btn text-none" @click="confirmUpload"
+                        >Save</v-btn
+                      >
                     </v-card-actions>
                   </v-card>
                 </template>
@@ -118,59 +125,74 @@
                 <p>Min</p>
                 <v-text-field
                   type="number"
-                  variant="outlined" 
-                  density="compact" 
+                  variant="outlined"
+                  density="compact"
                   class="input-field"
                   v-model.number="selectedMeasurement.ValueMin"
                 ></v-text-field>
               </div>
               <div class="device-detail">
-                <p>Min Danger</p>
-                <v-text-field 
-                  type="number"
-                  variant="outlined" 
-                  density="compact"
-                  class="input-field"
-                  v-model.number="selectedMeasurement.ThresholdMinDanger"
-                ></v-text-field>
-              </div>
-              <div class="device-detail">
-                <p>Max Warning</p>
-                <v-text-field
-                  type="number"
-                  variant="outlined" 
-                  density="compact"
-                  class="input-field"
-                  v-model.number="selectedMeasurement.ThresholdMaxWarning"
-                ></v-text-field>
-              </div>
-            </v-col>
-            <v-col cols="12" sm="12" lg="4" class="configuration-col">
-              <div class="device-detail">
                 <p>Min Warning</p>
                 <v-text-field
                   type="number"
-                  variant="outlined" 
+                  variant="outlined"
                   density="compact"
                   class="input-field"
                   v-model.number="selectedMeasurement.ThresholdMinWarning"
                 ></v-text-field>
               </div>
               <div class="device-detail">
+                <p>Min Danger</p>
+                <v-text-field
+                  type="number"
+                  variant="outlined"
+                  density="compact"
+                  class="input-field"
+                  v-model.number="selectedMeasurement.ThresholdMinDanger"
+                ></v-text-field>
+              </div>
+            </v-col>
+            <v-col cols="12" sm="12" lg="4" class="configuration-col">
+              <div class="device-detail-noti">
+                <p>Online</p>
+                <v-switch
+                  v-model="selectedMeasurement.NotificationLine"
+                  color="#52be80"
+                  :disabled="!permissionWrite('0101030400')"
+                  class="input-field"
+                ></v-switch>
+                <p>Email</p>
+                <v-switch
+                  v-model="selectedMeasurement.NotificationMail"
+                  color="#52be80"
+                  :disabled="!permissionWrite('0101030400')"
+                ></v-switch>
+              </div>
+              <div class="device-detail">
                 <p>Max</p>
                 <v-text-field
                   type="number"
-                  variant="outlined" 
+                  variant="outlined"
                   density="compact"
                   class="input-field"
                   v-model.number="selectedMeasurement.ValueMax"
                 ></v-text-field>
               </div>
               <div class="device-detail">
+                <p>Max Warning</p>
+                <v-text-field
+                  type="number"
+                  variant="outlined"
+                  density="compact"
+                  class="input-field"
+                  v-model.number="selectedMeasurement.ThresholdMaxWarning"
+                ></v-text-field>
+              </div>
+              <div class="device-detail">
                 <p>Max Danger</p>
                 <v-text-field
                   type="number"
-                  variant="outlined" 
+                  variant="outlined"
                   density="compact"
                   class="input-field"
                   v-model.number="selectedMeasurement.ThresholdMaxDanger"
@@ -180,8 +202,21 @@
           </v-row>
           <v-row>
             <v-col cols="12" md="12" class="button-section">
-              <v-btn class="cancel-btn text-none" @click="resetForm" elevation="0"> Cancel </v-btn>
-              <v-btn class="save-btn text-none" :disabled="!permissionAccept('0101030400')" @click="saveRecord" elevation="0"> Save </v-btn>
+              <v-btn
+                class="cancel-btn text-none"
+                @click="resetForm"
+                elevation="0"
+              >
+                Cancel
+              </v-btn>
+              <v-btn
+                class="save-btn text-none"
+                :disabled="!permissionAccept('0101030400')"
+                @click="saveRecord"
+                elevation="0"
+              >
+                Save
+              </v-btn>
             </v-col>
           </v-row>
         </v-card-text>
@@ -203,11 +238,33 @@
               <td class="text-end">{{ item.ThresholdMaxWarning }}</td>
               <td class="text-end">{{ item.ThresholdMinDanger }}</td>
               <td class="text-end">{{ item.ThresholdMaxDanger }}</td>
-              <td class="action">{{ item.IsActive ? 'Active' : 'Inactive' }}</td>
+              <td class="action">
+                {{ item.IsActive ? "Active" : "Inactive" }}
+              </td>
+              <td class="text-center px-0" style="min-width: 80px">
+                <div class="d-flex justify-center align-center h-100">
+                  <v-switch
+                    v-model="item.NotificationLine"
+                    color="#52be80"
+                    :disabled="!permissionWrite('0101030400')"
+                    class="ma-0"
+                  ></v-switch>
+                </div>
+              </td>
+              <td class="text-center px-0" style="min-width: 80px">
+                <div class="d-flex justify-center align-center h-100">
+                  <v-switch
+                    v-model="item.NotificationMail"
+                    color="#52be80"
+                    :disabled="!permissionWrite('0101030400')"
+                    class="ma-0"
+                  ></v-switch>
+                </div>
+              </td>
               <td>
                 <v-icon
                   :disabled="!permissionWrite('0101030400')"
-                  icon="mdi-pencil" 
+                  icon="mdi-pencil"
                   class="edit"
                   @click="editMeasurement(item)"
                 ></v-icon>
@@ -225,7 +282,10 @@
       class="alert-banner"
       rounded="lg"
     >
-      <div class="pa-5" style="font-family: 'Inter', sans-serif; font-size: 1.5vh;">
+      <div
+        class="pa-5"
+        style="font-family: 'Inter', sans-serif; font-size: 1.5vh"
+      >
         <v-icon class="ma-2">
           {{ alertIcon }}
         </v-icon>
@@ -236,188 +296,188 @@
 </template>
 
 <script setup>
-import NavigationBar from '@/components/NavigationBar.vue';
-import SpaceBar from '@/components/SpaceBar.vue';
-import DropZone from '../DropZone.vue';
-import { inject, onMounted, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import NavigationBar from "@/components/NavigationBar.vue"
+import SpaceBar from "@/components/SpaceBar.vue"
+import DropZone from "../DropZone.vue"
+import { inject, onMounted, ref } from "vue"
+import { useRoute, useRouter } from "vue-router"
 
-const $api = inject('$api');
-const route = useRoute();
-const router = useRouter();
-const deviceData = ref({});
-const deviceId = ref(route.params.deviceId);
-const measurementAll = ref([]);
-const selectedMeasurementId = ref(null);
+const $api = inject("$api")
+const route = useRoute()
+const router = useRouter()
+const deviceData = ref({})
+const deviceId = ref(route.params.deviceId)
+const measurementAll = ref([])
+const selectedMeasurementId = ref(null)
 const selectedMeasurement = ref({
   ValueMin: 0,
   ValueMax: 0,
   ThresholdMinWarning: 0,
   ThresholdMaxWarning: 0,
   ThresholdMinDanger: 0,
-  ThresholdMaxDanger: 0
-});
-const dropzoneFile = ref(null);
-const originalDeviceData = ref({});
-const initialDeviceData = ref({});
-const showAlert = ref(false);
-const alertType = ref('success');
-const alertIcon = ref('mdi-check-circle') 
-const alertMessage = ref('');
-const deviceList = ref([]);
-const vehicleItems = ref([]);
-const showUploadDialog = ref(false);
-const deviceImage = ref(null);
-const preview = ref('https://picsum.photos/id/11/10/6');
-const originalPreview = ref('https://picsum.photos/id/11/10/6');
-const loading = ref(true);
-const permission = ref(null);
+  ThresholdMaxDanger: 0,
+  NotificationLine: false,
+  NotificationMail: false,
+})
+const dropzoneFile = ref(null)
+const originalDeviceData = ref({})
+const initialDeviceData = ref({})
+const showAlert = ref(false)
+const alertType = ref("success")
+const alertIcon = ref("mdi-check-circle")
+const alertMessage = ref("")
+const deviceResponse = ref({})
+const showUploadDialog = ref(false)
+const deviceImage = ref(null)
+const preview = ref("https://picsum.photos/id/11/10/6")
+const originalPreview = ref("https://picsum.photos/id/11/10/6")
+const loading = ref(true)
+const permission = ref(null)
 
 const headers = ref([
-  { title: 'Measurement', value: 'MeasurementName', align: 'start' },
-  { title: 'Threshold Min', value: 'ValueMin', align: 'end' },
-  { title: 'Threshold Max', value: 'ValueMax', align: 'end' },
-  { title: 'Threshold Min Warning', value: 'ThresholdMinWarning', align: 'end' },
-  { title: 'Threshold Max Warning', value: 'ThresholdMaxWarning', align: 'end' },
-  { title: 'Threshold Min Danger', value: 'ThresholdMinDanger', align: 'end' },
-  { title: 'Threshold Max Danger', value: 'ThresholdMaxDanger', align: 'end' },
-  { title: 'Action', value: 'IsActive', align: 'center', sortable: false },
-  { title: 'Edit', value: 'edit', align: 'center', sortable: false },
-]);
+  { title: "Measurement", value: "MeasurementName", align: "start" },
+  { title: "Threshold Min", value: "ValueMin", align: "end" },
+  { title: "Threshold Max", value: "ValueMax", align: "end" },
+  {
+    title: "Threshold Min Warning",
+    value: "ThresholdMinWarning",
+    align: "end",
+  },
+  {
+    title: "Threshold Max Warning",
+    value: "ThresholdMaxWarning",
+    align: "end",
+  },
+  { title: "Threshold Min Danger", value: "ThresholdMinDanger", align: "end" },
+  { title: "Threshold Max Danger", value: "ThresholdMaxDanger", align: "end" },
+  { title: "Action", value: "IsActive", align: "center", sortable: false },
+  { title: "Notification Online", value: "NotificationLine", sortable: false },
+  { title: "Notification Email", value: "NotificationMail", sortable: false },
+  { title: "Edit", value: "edit", align: "center", sortable: false },
+])
 
 const showSuccessAlert = (message) => {
-  showAlert.value = true;
-  alertType.value = 'success';
-  alertMessage.value = message;
-  alertIcon.value = 'mdi-check-circle';
-};
+  showAlert.value = true
+  alertType.value = "success"
+  alertMessage.value = message
+  alertIcon.value = "mdi-check-circle"
+}
 
 const showErrorAlert = (message) => {
-  showAlert.value = true;
-  alertType.value = 'error';
-  alertMessage.value = message;
-  alertIcon.value = 'mdi-alert-circle'
-};
+  showAlert.value = true
+  alertType.value = "error"
+  alertMessage.value = message
+  alertIcon.value = "mdi-alert-circle"
+}
 
 const initialize = async () => {
-  const menuPermission = localStorage.getItem('menuPermission');
+  const menuPermission = localStorage.getItem("menuPermission")
   if (!menuPermission) {
-    return router.push('/Homepage');
+    return router.push("/Homepage")
   }
 
-  const permissionList = JSON.parse(menuPermission);
-  const foundPermission = permissionList.find(item => item.MenuId === '0101030400');
-  permission.value = foundPermission;
-  
+  const permissionList = JSON.parse(menuPermission)
+  const foundPermission = permissionList.find(
+    (item) => item.MenuId === "0101030400",
+  )
+  permission.value = foundPermission
+
   if (!foundPermission || !foundPermission.IsActive) {
-    return router.push('/Homepage');
+    return router.push("/Homepage")
   }
-};
+}
 
 const permissionImport = (menuId) => {
   if (!permission.value || permission.value.MenuId !== menuId) {
-    return false;
+    return false
   }
-  return permission.value?.IsImport;
-};
+  return permission.value?.IsImport
+}
 
 const permissionAccept = (menuId) => {
   if (!permission.value || permission.value.MenuId !== menuId) {
-    return false;
+    return false
   }
-  return permission.value?.IsAccept;
-};
+  return permission.value?.IsAccept
+}
 
 const permissionWrite = (menuId) => {
   if (!permission.value || permission.value.MenuId !== menuId) {
-    return false;
+    return false
   }
-  return permission.value?.IsWrite;
-};
+  return permission.value?.IsWrite
+}
+
+const isBargeMaster = (device) => {
+  return device?.DeviceName?.toUpperCase().includes("GEN") || false
+}
 
 const fetchDeviceData = async () => {
   try {
-    loading.value = true;
+    loading.value = true
 
-    const response = await $api.put('/Device/GetDevice', {
-      DeviceId: deviceId.value
-    });
+    const response = await $api.put("/Device/GetDevice", {
+      DeviceId: deviceId.value,
+    })
 
-    originalDeviceData.value = { ...response.data };
+    deviceResponse.value = { ...response.data }
+    // console.log('Device Response', deviceResponse.value);
+    // console.log('Is Barge Master:', isBargeMaster(deviceResponse.value));
+
+    originalDeviceData.value = { ...response.data }
     initialDeviceData.value = {
       DeviceId: response.data.DeviceId,
       DeviceName: response.data.DeviceName,
       DeviceLabel: response.data.DeviceLabel,
       Note: response.data.Note,
-      TypeDevicename: response.data.TypeDevicename,
-    };
+    }
     deviceData.value = {
       DeviceId: response.data.DeviceId,
       DeviceName: response.data.DeviceName,
       DeviceLabel: response.data.DeviceLabel,
       Note: response.data.Note,
-      TypeDevicename: response.data.TypeDevicename,
-      DeviceImage: response.data.DeviceImage
-    };
-    measurementAll.value = response.data.Measurement.map(m => ({ ...m })) || [];
-    
-  } catch (error) {
-    console.error('Failed to fetch device data:', error);
-    measurementAll.value = [];
-  } finally {
-    loading.value = false;
-  }
-};
+      DeviceImage: response.data.DeviceImage,
+    }
 
-const fetchDeviceList = async () => {
-  try {
-    const response = await $api.put('/device/GetDeviceListProfile', {
-      DeviceId: ''
-    });
-    deviceList.value = response.data;
-    const uniqueVehicles = new Set();
-    vehicleItems.value = deviceList.value
-      .map(device => {
-        if (device.TypeVehicle === 'Barge') {
-          return { name: device.TypeDevicename };
-        } else if (device.TypeVehicle === 'Tugboat river going') {
-          return { name: 'Tugboat River going' };
-        } else if (device.TypeVehicle === 'Tugboat sea going') {
-          return { name: 'Tugboat Sea going' };
-        }
-        return null;
-      })
-      .filter(item => item && !uniqueVehicles.has(item.name) && uniqueVehicles.add(item.name));
+    measurementAll.value =
+      response.data.Measurement.map((m) => ({
+        ...m,
+        NotificationLine: m.NotificationLine,
+        NotificationMail: m.NotificationMail,
+      })) || []
   } catch (error) {
-    console.error('Failed to fetch device list:', error);
+    console.error("Failed to fetch device data:", error)
+    measurementAll.value = []
+  } finally {
+    loading.value = false
   }
-};
+}
 
 const fetchDeviceProfile = async () => {
   try {
-    loading.value = true;
+    loading.value = true
 
     const filename = await deviceData.value?.DeviceImage
-    const response = await $api.get('/Device/Image/' + filename);
-    
+    const response = await $api.get("/Device/Image/" + filename)
+
     if (response.data && response.data.src) {
-      preview.value = response.data.src;
-      originalPreview.value = response.data.src;
+      preview.value = response.data.src
+      originalPreview.value = response.data.src
     } else {
-      preview.value = 'https:/https://picsum./picsum.photos/id/11/10/6';
-      originalPreview.value = 'photos/id/11/10/6';
+      preview.value = "https:/https://picsum./picsum.photos/id/11/10/6"
+      originalPreview.value = "photos/id/11/10/6"
     }
   } catch (error) {
-    console.error('Failed to fetch image:', error);
-    preview.value = 'https://picsum.photos/id/11/10/6';
-    originalPreview.value = 'https://picsum.photos/id/11/10/6';
+    console.error("Failed to fetch image:", error)
+    preview.value = "https://picsum.photos/id/11/10/6"
+    originalPreview.value = "https://picsum.photos/id/11/10/6"
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
 
 const editMeasurement = (item) => {
-  selectedMeasurementId.value = item.MeasurementId;
+  selectedMeasurementId.value = item.MeasurementId
   selectedMeasurement.value = {
     MeasurementId: item.MeasurementId,
     MeasurementName: item.MeasurementName,
@@ -427,92 +487,116 @@ const editMeasurement = (item) => {
     ThresholdMaxWarning: item.ThresholdMaxWarning,
     ThresholdMinDanger: item.ThresholdMinDanger,
     ThresholdMaxDanger: item.ThresholdMaxDanger,
-    IsActive: item.IsActive
-  };
-};
+    NotificationLine: item.NotificationLine,
+    NotificationMail: item.NotificationMail,
+    IsActive: item.IsActive,
+  }
+}
 
 const loadMeasurementData = (measurementId) => {
-  const measurement = measurementAll.value.find(m => m.MeasurementId === measurementId);
+  const measurement = measurementAll.value.find(
+    (m) => m.MeasurementId === measurementId,
+  )
   if (measurement) {
-    selectedMeasurement.value = { ...measurement };
+    selectedMeasurement.value = { ...measurement }
   }
-};
+}
 
 const resetForm = () => {
-  deviceData.value = { ...initialDeviceData.value };
-  selectedMeasurementId.value = null;
+  deviceData.value = { ...initialDeviceData.value }
+  selectedMeasurementId.value = null
   selectedMeasurement.value = {
     ValueMin: 0,
     ValueMax: 0,
     ThresholdMinWarning: 0,
     ThresholdMaxWarning: 0,
     ThresholdMinDanger: 0,
-    ThresholdMaxDanger: 0
-  };
-  dropzoneFile.value = null;
-  preview.value = originalPreview.value;
-  deviceImage.value = null;
-};
+    ThresholdMaxDanger: 0,
+    NotificationLine: false,
+    NotificationMail: false,
+  }
+  dropzoneFile.value = null
+  preview.value = originalPreview.value
+  deviceImage.value = null
+}
 
 const handleFileSelected = (file) => {
   if (file) {
-    const reader = new FileReader();
+    const reader = new FileReader()
     reader.onload = (e) => {
-      preview.value = e.target.result;
-    };
-    reader.readAsDataURL(file);
-    dropzoneFile.value = file;
-    deviceImage.value = null;
+      preview.value = e.target.result
+    }
+    reader.readAsDataURL(file)
+    dropzoneFile.value = file
+    deviceImage.value = null
   } else {
-    dropzoneFile.value = null;
-    preview.value = originalPreview.value;
-    deviceImage.value = null;
+    dropzoneFile.value = null
+    preview.value = originalPreview.value
+    deviceImage.value = null
   }
-};
+}
+
+const formatTimeShow_T = (datetime) => {
+  if (datetime == null) {
+    return null
+  } else {
+    var dateTime = new Date(datetime)
+    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2)
+    var day = ("0" + dateTime.getDate()).slice(-2)
+    var year = dateTime.getFullYear()
+    var hour = ("0" + dateTime.getHours()).slice(-2)
+    var minute = ("0" + dateTime.getMinutes()).slice(-2)
+    var sec = ("0" + dateTime.getSeconds()).slice(-2)
+    return (
+      year + "-" + month + "-" + day + "T" + hour + ":" + minute + ":" + sec
+    )
+  }
+}
 
 const confirmUpload = () => {
   if (!dropzoneFile.value) {
-    showErrorAlert('Please select an image');
-    return;
+    showErrorAlert("Please select an image")
+    return
   }
-  // showSuccessAlert('Upload image successfully!')
-  showUploadDialog.value = false;
-};
+  showUploadDialog.value = false
+}
 
 const cancelUpload = () => {
-  dropzoneFile.value = null;
-  preview.value = originalPreview.value;
-  deviceImage.value = null;
-  showUploadDialog.value = false;
-};
+  dropzoneFile.value = null
+  preview.value = originalPreview.value
+  deviceImage.value = null
+  showUploadDialog.value = false
+}
 
 const saveRecord = async () => {
   try {
-    const memberData = JSON.parse(localStorage.getItem('member'));
-    const memberId = memberData.MemberId;
-    const modifiedDatetime = new Date().toISOString();
-    let newImageName = null;
+    const memberData = JSON.parse(localStorage.getItem("member"))
+    const memberId = memberData.MemberId
+    const modifiedDatetime = new Date()
+    const formattedDatetime = formatTimeShow_T(modifiedDatetime)
+    let newImageName = null
 
-    // Upload image if exists
     if (dropzoneFile.value) {
-      const formData = new FormData();
-      formData.append('image', dropzoneFile.value);
-      formData.append('deviceId', deviceId.value);
-      const uploadResponse = await $api.post('/Device/Upload/Image', formData, {
+      const formData = new FormData()
+      formData.append("image", dropzoneFile.value)
+      formData.append("deviceId", deviceId.value)
+      const uploadResponse = await $api.post("/Device/Upload/Image", formData, {
         headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      
+          "Content-Type": "multipart/form-data",
+        },
+      })
+
       if (uploadResponse.data) {
-        newImageName = uploadResponse.data;
-        deviceImage.value = newImageName;
-        deviceData.value.DeviceImage = newImageName;
+        newImageName = uploadResponse.data
+        deviceImage.value = newImageName
+        deviceData.value.DeviceImage = newImageName
       }
     }
 
     // Update measurement data
-    const index = measurementAll.value.findIndex(m => m.MeasurementId === selectedMeasurement.value.MeasurementId);
+    const index = measurementAll.value.findIndex(
+      (m) => m.MeasurementId === selectedMeasurement.value.MeasurementId,
+    )
     if (index !== -1) {
       measurementAll.value[index] = {
         ...measurementAll.value[index],
@@ -522,21 +606,22 @@ const saveRecord = async () => {
         ThresholdMaxWarning: selectedMeasurement.value.ThresholdMaxWarning,
         ThresholdMinDanger: selectedMeasurement.value.ThresholdMinDanger,
         ThresholdMaxDanger: selectedMeasurement.value.ThresholdMaxDanger,
+        NotificationLine: selectedMeasurement.value.NotificationLine,
+        NotificationMail: selectedMeasurement.value.NotificationMail,
         ModifiedBy: memberId,
-        ModifiedDatetime: modifiedDatetime
-      };
+        ModifiedDatetime: formattedDatetime,
+      }
     }
 
-    // Prepare payload including Vehicle Type
+    // Prepare payload
     const payload = {
       ...originalDeviceData.value,
       DeviceLabel: deviceData.value.DeviceLabel,
       Note: deviceData.value.Note,
-      TypeDevicename: deviceData.value.TypeDevicename, // Include Vehicle Type
       DeviceImage: newImageName || originalDeviceData.value.DeviceImage,
       ModifiedBy: memberId,
-      ModifiedDatetime: modifiedDatetime,
-      Measurement: measurementAll.value.map(m => ({
+      ModifiedDatetime: formattedDatetime,
+      Measurement: measurementAll.value.map((m) => ({
         ...m,
         ValueMin: m.ValueMin,
         ValueMax: m.ValueMax,
@@ -544,36 +629,36 @@ const saveRecord = async () => {
         ThresholdMaxWarning: m.ThresholdMaxWarning,
         ThresholdMinDanger: m.ThresholdMinDanger,
         ThresholdMaxDanger: m.ThresholdMaxDanger,
-        ModifiedBy: m.MeasurementId === selectedMeasurement.value.MeasurementId ? memberId : m.ModifiedBy,
-        ModifiedDatetime: m.MeasurementId === selectedMeasurement.value.MeasurementId ? modifiedDatetime : m.ModifiedDatetime
-      }))
-    };
-
-    const updateResponse = await $api.put('/Device/Update', payload);
-    console.log('Update response:', updateResponse.data);
-    
-    showSuccessAlert('Device updated successfully!');
-
-    await fetchDeviceData();
-    
-    if (deviceData.value.DeviceImage) {
-      await fetchDeviceProfile();
+        ModifiedBy: memberId,
+        ModifiedDatetime: formattedDatetime,
+        NotificationLine: m.NotificationLine,
+        NotificationMail: m.NotificationMail,
+      })),
     }
+    console.log("Payload to save:", payload)
 
-    resetForm();
+    await $api.put("/Device/Update", payload)
+    showSuccessAlert("Device updated successfully!")
 
+    await fetchDeviceData()
+    if (deviceData.value.DeviceImage) {
+      await fetchDeviceProfile()
+    }
+    resetForm()
   } catch (error) {
-    console.error('Failed to save device data:', error);
-    showErrorAlert('Failed to update device information: ' + (error.message || 'Unknown error'));
+    console.error("Failed to save device data:", error)
+    showErrorAlert(
+      "Failed to update device information: " +
+        (error.message || "Unknown error"),
+    )
   }
-};
+}
 
 onMounted(async () => {
-  await initialize();
-  await fetchDeviceData();
-  await fetchDeviceList();
-  await fetchDeviceProfile();
-});
+  await initialize()
+  await fetchDeviceData()
+  await fetchDeviceProfile()
+})
 </script>
 
 <style lang="scss" scoped>
@@ -609,6 +694,20 @@ onMounted(async () => {
   margin: 0;
 }
 
+.device-detail-noti {
+  @media (min-width: 1024px) {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    gap: 64px;
+  }
+}
+
+// .device-detail-noti p {
+//   min-width: 120px;
+//   margin: 0;
+// }
+
 .device-detail .label {
   min-width: 120px;
   margin: 0;
@@ -616,19 +715,18 @@ onMounted(async () => {
 }
 
 .device-detail .label::after {
-  content: '*';
-  color: #E62020;
+  content: "*";
+  color: #e62020;
   margin-left: 4px;
 }
 
-
 .input-field :deep(.v-field__outline) {
   border-radius: 6px;
-  color: #70707B;
+  color: #70707b;
 }
 
 :deep(.v-text-field input) {
-  color: #4B4B4B;
+  color: #4b4b4b;
 }
 
 .button-section {
@@ -648,23 +746,23 @@ onMounted(async () => {
 .cancel-btn {
   color: #000000;
   border-radius: 24px;
-  border: 1px solid #E3E3E3;
-  font-family: 'Inter', sans-serif;
+  border: 1px solid #e3e3e3;
+  font-family: "Inter", sans-serif;
   width: 5vw;
 }
 
 .cancel-btn:hover {
   // background-color: #FF1744;
-  background-color: #FAFAFA;
+  background-color: #fafafa;
   // color: #ffffff;
   color: #000000;
 }
 
 .save-btn {
-  background-color: #1476FF;
+  background-color: #1476ff;
   color: #ffffff;
   border-radius: 24px;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   width: 5vw;
 }
 
@@ -680,12 +778,12 @@ onMounted(async () => {
 }
 
 .custom-table :deep(tbody td) {
-  color: #4B4B4B;
+  color: #4b4b4b;
   font-size: 16px;
 }
 
 .striped-table :deep(tbody tr:nth-child(odd)) {
-  background-color: #F9F9FA;
+  background-color: #f9f9fa;
 }
 
 .striped-table :deep(tbody tr:nth-child(even)) {
@@ -693,7 +791,7 @@ onMounted(async () => {
 }
 
 .upload-img {
-  background-color: #9F9F9F;
+  background-color: #9f9f9f;
   width: 100%;
   height: 100%;
 }
@@ -704,12 +802,12 @@ onMounted(async () => {
   height: 24px;
   border-radius: 24px;
   font-size: 20px;
-  color: #1570EF;
-  background-color: #E3F2FD;
+  color: #1570ef;
+  background-color: #e3f2fd;
 }
 
 td.action {
-  color: #14CA74 !important;
+  color: #14ca74 !important;
   text-align: center;
 }
 
@@ -721,14 +819,14 @@ td.action {
 
 .configuration-col {
   @media (min-width: 1024px) {
-    margin-top: 110px;
+    margin-top: 30px;
   }
 }
 
 .image-preview {
   border-radius: 8px;
   cursor: pointer;
-  background-color: #F7F9FC;
+  background-color: #f7f9fc;
   display: flex;
   justify-content: center;
   align-items: center;
