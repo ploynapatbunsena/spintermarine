@@ -1,5 +1,5 @@
 <template>
-  <v-app style="background-color: #F7F9FC;">
+  <v-app style="background-color: #f7f9fc">
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
@@ -18,15 +18,25 @@
               hide-default-footer
             >
               <template v-slot:[`item.lastTimestamp`]="{ item }">
-                {{ item.statusData.lastTimestamp ? formatTimeShow(item.statusData.lastTimestamp) : formatTimeShow(new Date()) }}
+                {{
+                  item.statusData.lastTimestamp
+                    ? formatTimeShow(item.statusData.lastTimestamp)
+                    : formatTimeShow(new Date())
+                }}
               </template>
               <template v-slot:[`item.status`]="{ item }">
-                <v-chip :class="getGeneratorStatusClass(item.statusData.statusValue)">
+                <v-chip
+                  :class="getGeneratorStatusClass(item.statusData.statusValue)"
+                >
                   {{ getGeneratorStatusText(item.statusData.statusValue) }}
                 </v-chip>
               </template>
               <template v-slot:[`item.actions`]="{ item }">
-                <v-icon :disabled="!permissionWrite('0101010400')" class="mr-2 edit" @click="openEditDialog(item, 'generator')">
+                <v-icon
+                  :disabled="!permissionWrite('0101010400')"
+                  class="mr-2 edit"
+                  @click="openEditDialog(item, 'generator')"
+                >
                   mdi-pencil
                 </v-icon>
               </template>
@@ -48,18 +58,24 @@
               hide-default-footer
             >
               <template v-slot:[`item.lastTimestamp`]="{ item }">
-                {{ item.statusData.lastTimestamp ? formatTimeShow(item.statusData.lastTimestamp) : formatTimeShow(new Date()) }}
+                {{
+                  item.statusData.lastTimestamp
+                    ? formatTimeShow(item.statusData.lastTimestamp)
+                    : formatTimeShow(new Date())
+                }}
               </template>
               <template v-slot:[`item.status`]="{ item }">
-                <v-chip :class="getCraneStatusClass(item.statusData.statusValue)">
+                <v-chip
+                  :class="getCraneStatusClass(item.statusData.statusValue)"
+                >
                   {{ getCraneStatusText(item.statusData.statusValue) }}
                 </v-chip>
               </template>
               <template v-slot:[`item.actions`]="{ item }">
-                <v-icon 
+                <v-icon
                   :disabled="!permissionWrite('0101010400')"
                   small
-                  class="mr-2 edit" 
+                  class="mr-2 edit"
                   @click="openEditDialog(item, 'crane')"
                 >
                   mdi-pencil
@@ -80,12 +96,19 @@
                   <p class="title-field">Date</p>
                   <v-text-field
                     density="compact"
-                    style="font-size: 16px; font-family: 'Inter', sans-serif;"
+                    style="
+                      font-size: 16px;
+                      font-family: 'Inter', sans-serif;
+                    "
                     variant="outlined"
                     readonly
                     rounded="lg"
                   >
-                    {{ editedItem.lastTimestamp ? formatTimeShow(editedItem.lastTimestamp) : formatTimeShow(new Date()) }}
+                    {{
+                      editedItem.lastTimestamp
+                        ? formatTimeShow(editedItem.lastTimestamp)
+                        : formatTimeShow(new Date())
+                    }}
                   </v-text-field>
                 </div>
               </v-col>
@@ -94,12 +117,15 @@
                   <p class="title-field">Device Name</p>
                   <v-text-field
                     density="compact"
-                    style="font-size: 16px; font-family: 'Inter', sans-serif;"
+                    style="
+                      font-size: 16px;
+                      font-family: 'Inter', sans-serif;
+                    "
                     variant="outlined"
                     readonly
                     rounded="lg"
                   >
-                    {{ editedItem.deviceLabel || '-' }}
+                    {{ editedItem.deviceLabel || "-" }}
                   </v-text-field>
                 </div>
               </v-col>
@@ -109,15 +135,31 @@
                 <div>
                   <p class="title-field">Status</p>
                   <v-row class="mt-2">
-                    <v-col 
-                      v-for="status in filteredStatusOptions" 
-                      cols="12" sm="6" md="4" lg="4"
+                    <v-col
+                      v-for="status in filteredStatusOptions"
+                      cols="12"
+                      sm="6"
+                      md="4"
+                      lg="4"
                       :key="status.value"
                     >
                       <v-btn
-                        :style="{ backgroundColor: editedItem.status === status.value ? status.color : '#FFFFFF' }"
-                        :color="editedItem.status === status.value ? '#000000' : '#D9D9D9'"
-                        :variant="editedItem.status === status.value ? 'flat' : 'outlined'"
+                        :style="{
+                          backgroundColor:
+                            editedItem.status === status.value
+                              ? status.color
+                              : '#FFFFFF',
+                        }"
+                        :color="
+                          editedItem.status === status.value
+                            ? '#000000'
+                            : '#D9D9D9'
+                        "
+                        :variant="
+                          editedItem.status === status.value
+                            ? 'flat'
+                            : 'outlined'
+                        "
                         block
                         @click="editedItem.status = status.value"
                         class="status-btn"
@@ -131,8 +173,19 @@
             </v-row>
           </v-card-text>
           <v-col cols="12" md="12" class="button-section">
-            <v-btn class="cancel-btn text-none" variant="text" @click="closeEditDialog">Cancel</v-btn>
-            <v-btn class="save-btn text-none" color="primary" variant="flat" @click="saveEditDialog">Save</v-btn>
+            <v-btn
+              class="cancel-btn text-none"
+              variant="text"
+              @click="closeEditDialog"
+              >Cancel</v-btn
+            >
+            <v-btn
+              class="save-btn text-none"
+              color="primary"
+              variant="flat"
+              @click="saveEditDialog"
+              >Save</v-btn
+            >
           </v-col>
         </v-card>
       </v-dialog>
@@ -141,236 +194,280 @@
 </template>
 
 <script setup>
-import NavigationBar from '@/components/NavigationBar.vue';
-import SpaceBar from '@/components/SpaceBar.vue';
-import '@/assets/colors.scss';
-import { ref, computed, onMounted, inject } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import NavigationBar from "@/components/NavigationBar.vue"
+import SpaceBar from "@/components/SpaceBar.vue"
+import "@/assets/colors.scss"
+import { ref, computed, onMounted, inject } from "vue"
+import { useRoute, useRouter } from "vue-router"
 
-const $api = inject('$api');
-const route = useRoute();
-const router = useRouter();
-const typeDeviceName = ref(route.params.typeDeviceName);
-const devices = ref([]);
-const loading = ref(false);
-const editDialog = ref(false);
-const currentDeviceType = ref('');
-const permission = ref(null);
+const $api = inject("$api")
+const route = useRoute()
+const router = useRouter()
+const typeDeviceName = ref(route.params.typeDeviceName)
+const devices = ref([])
+const loading = ref(false)
+const editDialog = ref(false)
+const currentDeviceType = ref("")
+const permission = ref(null)
 const editedItem = ref({
-  DeviceId: '',
-  deviceLabel: '',
+  DeviceId: "",
+  deviceLabel: "",
   status: 0,
-  lastTimestamp: '',
-  originalItem: null
-});
+  lastTimestamp: "",
+  originalItem: null,
+})
 
 const headers = [
-  { title: 'Last Updated', value: 'lastTimestamp', sortable: true, width: '12.15vw' },
-  { title: 'Device Name', value: 'DeviceLabel', sortable: true, width: '43.6vw' },
-  { title: 'Status', value: 'status', sortable: true, width: '16.3vw' },
-  { title: 'Actions', value: 'actions', sortable: false, width: '9.3vw' }
-];
+  {
+    title: "Last Updated",
+    value: "lastTimestamp",
+    sortable: true,
+    width: "12.15vw",
+  },
+  {
+    title: "Device Name",
+    value: "DeviceLabel",
+    sortable: true,
+    width: "43.6vw",
+  },
+  { title: "Status", value: "status", sortable: true, width: "16.3vw" },
+  { title: "Actions", value: "actions", sortable: false, width: "9.3vw" },
+]
 
 const craneStatusOptions = [
-  { text: 'Offline', value: 0, color: '#C0C0C0' },
-  { text: 'Standby', value: 1, color: '#00B8F2' },
-  { text: 'Running', value: 2, color: '#28A745' },
-  { text: 'Maintenance', value: 3, color: '#000000' }
-];
+  { text: "Offline", value: 0, color: "#C0C0C0" },
+  { text: "Standby", value: 1, color: "#00B8F2" },
+  { text: "Running", value: 2, color: "#28A745" },
+  { text: "Maintenance", value: 3, color: "#000000" },
+]
 
 const generatorStatusOptions = [
-  { text: 'Offline', value: 0, color: '#C0C0C0' },
-  { text: 'Standby', value: 1, color: '#00B8F2' },
-  { text: 'Running', value: 2, color: '#28A745' },
-  { text: 'Standby/Maintenance', value: 3, color: '#007BFF' },
-  { text: 'Running/Maintenance', value: 4, color: '#8DEB51' },
-  { text: 'Down', value: 5, color: '#000000' },
-];
+  { text: "Offline", value: 0, color: "#C0C0C0" },
+  { text: "Standby", value: 1, color: "#00B8F2" },
+  { text: "Running", value: 2, color: "#28A745" },
+  { text: "Standby/Maintenance", value: 3, color: "#007BFF" },
+  { text: "Running/Maintenance", value: 4, color: "#8DEB51" },
+  { text: "Down", value: 5, color: "#000000" },
+]
 
 const initialize = async () => {
-  const menuPermission = localStorage.getItem('menuPermission');
+  const menuPermission = localStorage.getItem("menuPermission")
   if (!menuPermission) {
-    return router.push('/Homepage');
+    return router.push("/Homepage")
   }
 
-  const permissionList = JSON.parse(menuPermission);
-  const foundPermission = permissionList.find(item => item.MenuId === '0101010400');
-  permission.value = foundPermission;
-  console.log(foundPermission);
-  
+  const permissionList = JSON.parse(menuPermission)
+  const foundPermission = permissionList.find(
+    (item) => item.MenuId === "0101010400",
+  )
+  permission.value = foundPermission
+  // console.log(foundPermission);
+
   if (!foundPermission || !foundPermission.IsActive) {
-    return router.push('/Homepage');
+    return router.push("/Homepage")
   }
-};
+}
 
 const permissionWrite = (menuId) => {
   if (!permission.value || permission.value.MenuId !== menuId) {
-    return false;
+    return false
   }
-  console.log(permission.value, permission.value?.IsWrite);
-  return permission.value?.IsWrite;
-};
+  // console.log(permission.value, permission.value?.IsWrite);
+  return permission.value?.IsWrite
+}
 
 const fetchDeviceBargesGrouped = async () => {
   try {
-    loading.value = true;
-    const response = await $api.get('/MachineStatus/GetDeviceByTypeDeviceName', {
-      params: { typeDeviceName: typeDeviceName.value }
-    });
-    devices.value = response.data;
+    loading.value = true
+    const response = await $api.get(
+      "/MachineStatus/GetDeviceByTypeDeviceName",
+      {
+        params: { typeDeviceName: typeDeviceName.value },
+      },
+    )
+    devices.value = response.data
   } catch (error) {
-    console.error('Fetch error:', error);
+    console.error("Fetch error:", error)
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
 
 const processedDevices = computed(() => {
-  return devices.value.map(device => {
-    const statusMeasurement = device.Mesurement?.find(m => m.measurementname === 'Status') 
-    || { lastvalue: '0', lastTimestamp: '' };
-    console.log(statusMeasurement.value)
+  return devices.value.map((device) => {
+    const statusMeasurement = device.Mesurement?.find(
+      (m) => m.measurementname === "Status",
+    ) || { lastvalue: "0", lastTimestamp: "" }
+    // console.log(statusMeasurement.value)
     return {
       ...device,
       statusData: {
         statusValue: parseInt(statusMeasurement.lastvalue) || 0,
-        lastTimestamp: statusMeasurement.lastTimestamp || ''
-      }
-    };
-  });
-});
+        lastTimestamp: statusMeasurement.lastTimestamp || "",
+      },
+    }
+  })
+})
 
 const craneDevices = computed(() => {
-  return processedDevices.value.filter(device => device.DeviceName.includes('CRANE'));
-});
+  return processedDevices.value.filter((device) =>
+    device.DeviceName.includes("CRANE"),
+  )
+})
 
 const generatorDevices = computed(() => {
-  return processedDevices.value.filter(device => device.DeviceName.includes('GEN'));
-});
+  return processedDevices.value.filter((device) =>
+    device.DeviceName.includes("GEN"),
+  )
+})
 
 const filteredStatusOptions = computed(() => {
-  const options = currentDeviceType.value === 'crane' 
-    ? craneStatusOptions 
-    : generatorStatusOptions;
-  
-  return options.filter(option => option.value !== 0);
-});
+  const options =
+    currentDeviceType.value === "crane"
+      ? craneStatusOptions
+      : generatorStatusOptions
+
+  return options.filter((option) => option.value !== 0)
+})
 
 const formatTimeShow = (datetime) => {
-  if (datetime==null) {
+  if (datetime == null) {
     return null
   } else {
-    var dateTime = new Date(datetime);
-    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
-    var day = ("0" + dateTime.getDate()).slice(-2);
-    var year = dateTime.getFullYear();
-    var hour = ("0" + dateTime.getHours()).slice(-2);
-    var minute = ("0" + dateTime.getMinutes()).slice(-2);
-    return year + "-" + month + "-" + day + " " + hour + ":" + minute;
+    var dateTime = new Date(datetime)
+    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2)
+    var day = ("0" + dateTime.getDate()).slice(-2)
+    var year = dateTime.getFullYear()
+    var hour = ("0" + dateTime.getHours()).slice(-2)
+    var minute = ("0" + dateTime.getMinutes()).slice(-2)
+    return year + "-" + month + "-" + day + " " + hour + ":" + minute
   }
-};
+}
 
 const getCraneStatusText = (status) => {
   switch (status) {
-    case 0: return 'Offline';
-    case 1: return 'Standby';
-    case 2: return 'Running';
-    case 3: return 'Maintenance';
-    default: return 'Unknow';
+    case 0:
+      return "Offline"
+    case 1:
+      return "Standby"
+    case 2:
+      return "Running"
+    case 3:
+      return "Maintenance"
+    default:
+      return "Unknow"
   }
-};
+}
 
 const getCraneStatusClass = (status) => {
   switch (status) {
-    case 0: return 'status-unknown';
-    case 1: return 'status-standby';
-    case 2: return 'status-running';
-    case 3: return 'status-down';
-    default: return 'status-unknown';
+    case 0:
+      return "status-unknown"
+    case 1:
+      return "status-standby"
+    case 2:
+      return "status-running"
+    case 3:
+      return "status-down"
+    default:
+      return "status-unknown"
   }
-};
+}
 
 const getGeneratorStatusText = (status) => {
   switch (status) {
-    case 0: default: return 'Offline';
-    case 1: return 'Standby';
-    case 2: return 'Running';
-    case 3: return 'Standby/Maintenance';
-    case 4: return 'Running/Maintenance';
-    case 5: return 'Down';
+    case 0:
+    default:
+      return "Offline"
+    case 1:
+      return "Standby"
+    case 2:
+      return "Running"
+    case 3:
+      return "Standby/Maintenance"
+    case 4:
+      return "Running/Maintenance"
+    case 5:
+      return "Down"
   }
-};
+}
 
 const getGeneratorStatusClass = (status) => {
   switch (status) {
-    case 0: return 'status-unknown';
-    case 1: return 'status-standby';
-    case 2: return 'status-running';
-    case 3: return 'status-standby-maintenance';
-    case 4: return 'status-running-maintenance';
-    case 5: return 'status-down';
-    default: return 'status-unknown';
+    case 0:
+      return "status-unknown"
+    case 1:
+      return "status-standby"
+    case 2:
+      return "status-running"
+    case 3:
+      return "status-standby-maintenance"
+    case 4:
+      return "status-running-maintenance"
+    case 5:
+      return "status-down"
+    default:
+      return "status-unknown"
   }
-};
+}
 
 const openEditDialog = (item, deviceType) => {
-  currentDeviceType.value = deviceType;
+  currentDeviceType.value = deviceType
   editedItem.value = {
     DeviceId: item.DeviceId,
     deviceLabel: item.DeviceLabel,
     status: item.statusData.statusValue,
     lastTimestamp: item.statusData.lastTimestamp,
-    originalItem: item
-  };
-  editDialog.value = true;
-};
+    originalItem: item,
+  }
+  editDialog.value = true
+}
 
 const closeEditDialog = () => {
-  editDialog.value = false;
+  editDialog.value = false
   editedItem.value = {
-    DeviceId: '',
-    deviceLabel: '',
+    DeviceId: "",
+    deviceLabel: "",
     status: 0,
-    lastTimestamp: '',
-    originalItem: null
-  };
-};
+    lastTimestamp: "",
+    originalItem: null,
+  }
+}
 
 const saveEditDialog = async () => {
   try {
-    loading.value = true;
-    
+    loading.value = true
+
     const payload = {
       DeviceId: editedItem.value.DeviceId,
-      Status: editedItem.value.status
-    };
+      Status: editedItem.value.status,
+    }
 
-    const apiUrl = currentDeviceType.value === 'crane' 
-      ? '/MachineStatus/upDateCraneStatus' 
-      : '/MachineStatus/upDateGenStatus';
+    const apiUrl =
+      currentDeviceType.value === "crane"
+        ? "/MachineStatus/upDateCraneStatus"
+        : "/MachineStatus/upDateGenStatus"
 
-    await $api.put(apiUrl, payload);
-    
-    await fetchDeviceBargesGrouped();
-    
+    await $api.put(apiUrl, payload)
+
+    await fetchDeviceBargesGrouped()
   } catch (error) {
-    console.error('Update error:', error);
-    
+    console.error("Update error:", error)
   } finally {
-    loading.value = false;
-    closeEditDialog();
+    loading.value = false
+    closeEditDialog()
   }
-};
+}
 
-onMounted(async() => {
-  await initialize();
-  await fetchDeviceBargesGrouped();
-});
+onMounted(async () => {
+  await initialize()
+  await fetchDeviceBargesGrouped()
+})
 </script>
 
 <style scoped>
 .status-btn {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 1.5vh;
   border-radius: 24px;
   padding: 2vh 0vw;
@@ -384,20 +481,20 @@ onMounted(async() => {
   height: 2vh;
   border-radius: 24px;
   font-size: 2vh;
-  color: #1570EF;
-  background-color: #E3F2FD;
+  color: #1570ef;
+  background-color: #e3f2fd;
 }
 
 .title {
   font-size: 3vh;
   font-weight: bold;
   text-align: center;
-  font-family: 'Sarabun', sans-serif;
+  font-family: "Sarabun", sans-serif;
   padding: 12px;
 }
 
 .card-dialog {
-  font-family: 'Sarabun', sans-serif;
+  font-family: "Sarabun", sans-serif;
   font-size: 2vh;
 }
 
@@ -407,7 +504,7 @@ onMounted(async() => {
   margin-bottom: 6px;
 }
 
-.default-field{
+.default-field {
   background-color: var(--bg-row);
   padding: 1vh;
   border-radius: 10px;
@@ -421,16 +518,16 @@ onMounted(async() => {
 .cancel-btn {
   color: #000000;
   border-radius: 24px;
-  border: 1px solid #E3E3E3;
-  font-family: 'Inter', sans-serif;
+  border: 1px solid #e3e3e3;
+  font-family: "Inter", sans-serif;
   width: 5vw;
 }
 
 .save-btn {
-  background-color: #1476FF;
+  background-color: #1476ff;
   color: #ffffff;
   border-radius: 24px;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   width: 5vw;
 }
 
@@ -501,7 +598,7 @@ onMounted(async() => {
 .status-unknown {
   /* font-size: 1.5vh; */
   color: #000000;
-  background-color: #C0C0C0;
+  background-color: #c0c0c0;
 }
 
 .text-custom {

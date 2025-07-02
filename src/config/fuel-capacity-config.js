@@ -6,8 +6,8 @@ export const fuelCapacityConfig = {
   "Barge Ladawan": 16000,
   "Barge Suparach": 16000,
   "Barge Tongarun": 20000,
-  "default": 20000
-};
+  default: 20000,
+}
 
 export const fuelMainCapacityTugboat = {
   // "Tugboat Ketsarin01": ,
@@ -35,8 +35,8 @@ export const fuelMainCapacityTugboat = {
   // "Tugboat Watthana07": ,
   // "Tugboat Watthana10": ,
   // "Tugboat Buachompoo": ,
-  "default": 3500
-};
+  default: 3500,
+}
 
 export const fuelFeedCapacityTugboat = {
   // "Tugboat Ketsarin01": ,
@@ -64,5 +64,5 @@ export const fuelFeedCapacityTugboat = {
   // "Tugboat Watthana07": ,
   // "Tugboat Watthana10": ,
   // "Tugboat Buachompoo": ,
-  "default": 1800
+  default: 1800,
 }

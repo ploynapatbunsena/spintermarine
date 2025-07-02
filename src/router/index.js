@@ -1,5 +1,5 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import qs from 'qs'
+import { createRouter, createWebHistory } from "vue-router"
+import qs from "qs"
 
 const routes = [
   {
@@ -8,67 +8,67 @@ const routes = [
     component: () => import("../views/SP/Login/Login.vue"),
   },
   {
-    path: '/',
-    redirect: '/Homepage'
+    path: "/",
+    redirect: "/Homepage",
   },
   {
     path: "/Homepage",
     name: "Homepage",
     component: () => import("../views/SP/Home/Homepage.vue"),
-    meta: { title: "Home" }
+    meta: { title: "Home" },
   },
   {
     path: "/Barge",
     name: "Barge",
     component: () => import("../views/SP/Overview/BargeOverview.vue"),
-    meta: { title: "Barge Overview" }
+    meta: { title: "Barge Overview" },
   },
   {
     path: "/Barge/:typeDeviceName",
     name: "BargeDetail",
     component: () => import("../views/SP/BargeDetails.vue"),
     props: true,
-    meta: { title: "Barge Detail" }
+    meta: { title: "Barge Detail" },
   },
   {
     path: "/Generator/:deviceId",
-    name: 'GeneratorDetails',
+    name: "GeneratorDetails",
     component: () => import("../views/SP/GeneratorDetails.vue"),
     props: true,
-    meta: { title: "Generator Detail" }
+    meta: { title: "Generator Detail" },
   },
   {
     path: "/StatusUpdateForm/:typeDeviceName",
     name: "StatusUpdateForm",
     component: () => import("../views/SP/StatusUpdateForm.vue"),
     props: true,
-    meta: { title: "Status Update Form" }
+    meta: { title: "Status Update Form" },
   },
   {
     path: "/Tugboat",
     name: "Tugboat",
     component: () => import("../views/SP/Overview/TugboatOverview.vue"),
-    meta: { title: "Tugboat Overview" }
+    meta: { title: "Tugboat Overview" },
   },
   {
     path: "/Tugboat/:deviceId",
     name: "TugboatDetail",
     component: () => import("../views/SP/TugboatDetails.vue"),
     props: true,
-    meta: { title: "Tugboat Detail" }
+    meta: { title: "Tugboat Detail" },
   },
   {
     path: "/GPS/:deviceId",
     name: "JobTracking",
     component: () => import("../views/SP/JobTracking.vue"),
     props: true,
-    meta: { title: "GPS" }
+    meta: { title: "GPS" },
   },
   {
     path: "/RouteTracking",
     name: "RouteTracking",
     component: () => import("../views/SP/RouteTracking.vue"),
-    meta: { title: "Route Tracker" }
+    meta: { title: "Route Tracker" },
   },
   {
     path: "/NotificationReport",
@@ -80,75 +80,75 @@ const routes = [
     path: "/HistoricalChart",
     name: "HistoricalChart",
     component: () => import("../views/SP/Report/ChartHistorical.vue"),
-    meta: { title: "Historical Chart Report" }
+    meta: { title: "Historical Chart Report" },
   },
   {
     path: "/Tugboat/WindSpeedImpactReport",
     name: "WindSpeedImpactReport",
     component: () => import("../views/SP/Report/Report03.vue"),
-    meta: { title: "Report3" }
+    meta: { title: "Report3" },
   },
   {
     path: "/Tugboat/EncounteringStormsReport",
     name: "EncounteringStormsReport",
     component: () => import("../views/SP/Report/Report04.vue"),
-    meta: { title: "Report4" }
+    meta: { title: "Report4" },
   },
   {
     path: "/Barge/FuelRatePerRPMReport",
     name: "FuelRatePerRPMReport",
     component: () => import("../views/SP/Report/Report05.vue"),
-    meta: { title: "Report5" }
+    meta: { title: "Report5" },
   },
   {
     path: "/Tugboat/ThrottleRPMFuelRateReport",
     name: "ThrottleRPMFuelRateReport",
     component: () => import("../views/SP/Report/Report06.vue"),
-    meta: { title: "Report6" }
+    meta: { title: "Report6" },
   },
   {
     path: "/Barge/DailyFuelConsumtionReport",
     name: "DailyFuelConsumtionReport",
     component: () => import("../views/SP/Report/Report07.vue"),
-    meta: { title: "Report7" }
+    meta: { title: "Report7" },
   },
   {
     path: "/Barge/BargeTiltReport",
     name: "BargeTiltReport",
     component: () => import("../views/SP/Report/Report08.vue"),
-    meta: { title: "Report8" }
+    meta: { title: "Report8" },
   },
   {
     path: "/DeviceManagement",
     name: "DeviceManagementList",
     component: () => import("../views/SP/Setting/DeviceManagementList.vue"),
-    meta: { title: "Device Management" }
+    meta: { title: "Device Management" },
   },
   {
     path: "/DeviceManagement/:deviceId",
     name: "DeviceManagementForm",
     component: () => import("../views/SP/Setting/DeviceManagementForm.vue"),
     props: true,
-    meta: { title: "Device Management" }
+    meta: { title: "Device Management" },
   },
   {
     path: "/MemberManagement",
     name: "MemberManagementList",
     component: () => import("../views/SP/Setting/MemberManagementList.vue"),
-    meta: { title: "Member Management" }
+    meta: { title: "Member Management" },
   },
   {
     path: "/MemberManagement/:memberId",
     name: "MemberManagementForm",
     component: () => import("../views/SP/Setting/MemberManagementForm.vue"),
     props: true,
-    meta: { title: "Member Management" }
+    meta: { title: "Member Management" },
   },
   {
     path: "/:catchAll(.*)",
     name: "Not Found",
     component: () => import("../views/NotFound.vue"),
-    meta: { title: "Page Not Found" }
+    meta: { title: "Page Not Found" },
   },
 ]
 
@@ -157,28 +157,26 @@ const router = createRouter({
   routes: routes,
 
   parseQuery(query) {
-    return qs.parse(query);
+    return qs.parse(query)
   },
   stringifyQuery(query) {
-    return qs.stringify(query, { encode: true, arrayFormat: 'brackets' });
+    return qs.stringify(query, { encode: true, arrayFormat: "brackets" })
   },
-});
+})
 
 // Global Navigation Guard
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = !!localStorage.getItem('accessToken');
-  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
+  const isAuthenticated = !!localStorage.getItem("accessToken")
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
 
   if (requiresAuth && !isAuthenticated) {
-    next('/login');   
+    next("/login")
+  } else if (isAuthenticated && to.path === "/login") {
+    next("/Homepage")
+  } else {
+    next()
   }
-  else if (isAuthenticated && to.path === '/login') {
-    next('/Homepage');
-  }
-  else {
-    next();
-  }
-});
+})
 
 // setting Title Page
 const DEFAULT_TITLE = process.env.VUE_APP_DEFAULT_TITLE || "MIIOT Platform"
@@ -186,4 +184,4 @@ router.afterEach((to) => {
   document.title = to.meta.title || DEFAULT_TITLE
 })
 
-export default router;
+export default router

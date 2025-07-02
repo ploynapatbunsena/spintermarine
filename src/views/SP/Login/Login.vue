@@ -4,7 +4,7 @@
       <v-container class="pa-0 ma-0" fluid>
         <v-row no-gutters>
           <v-col cols="12" md="6" class="background-section">
-            <v-img 
+            <v-img
               :src="require('@/assets/Images/bg_login.jpg')"
               height="100vh"
               cover
@@ -18,44 +18,69 @@
               </v-img>
             </v-img>
           </v-col>
-          <v-col cols="12" md="6" class="login-section"> 
-            <v-card
-              class="login-card"
-              rounded="xl"
-              elevation="0"
-            >
+          <v-col cols="12" md="6" class="login-section">
+            <v-card class="login-card" rounded="xl" elevation="0">
               <v-card-text class="pa-6">
                 <p class="login-title">LOGIN</p>
                 <form @submit.prevent="fetchMemberData">
                   <div class="form-control">
                     <label for="email">Email</label>
-                    <input 
+                    <input
                       type="email"
                       v-model="email"
+                      @input="filterEmails(email)"
+                      @focus="filterEmails(email)"
+                      @blur="handleBlur"
                       placeholder="Enter your email"
-                      :class="{ 'error-input' : errors.email}"
-                      autocomplete="username"
+                      :class="{ 'error-input': errors.email }"
+                      autocomplete="email"
+                    />
+                    <span class="error-text" v-if="errors.email">{{
+                      errors.email
+                    }}</span>
+
+                    <!-- ส่วนแสดงคำแนะนำอีเมล -->
+                    <div
+                      class="suggestions-container"
+                      v-if="showSuggestions && emailSuggestions.length"
                     >
-                    <span class="error-text" v-if="errors.email">{{ errors.email }}</span>
+                      <div
+                        v-for="suggestion in emailSuggestions"
+                        :key="suggestion"
+                        class="suggestion-item"
+                        @mousedown="selectEmail(suggestion)"
+                      >
+                        {{ suggestion }}
+                        <v-icon
+                          small
+                          class="delete-icon"
+                          @click.stop="removeEmail(suggestion)"
+                        >
+                          mdi-close
+                        </v-icon>
+                      </div>
+                    </div>
                   </div>
                   <div class="form-control">
                     <label for="password">Password</label>
                     <div class="password-wrapper">
-                      <input 
+                      <input
                         :type="showPassword ? 'text' : 'password'"
                         v-model="password"
                         placeholder="Enter your password"
-                        :class="{ 'error-input' : errors.password}"
+                        :class="{ 'error-input': errors.password }"
                         autocomplete="current-password"
-                      >
+                      />
                       <v-icon
                         @click="togglePassword"
                         :icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                        class="password-toggle"  
+                        class="password-toggle"
                       >
                       </v-icon>
                     </div>
-                    <span class="error-text" v-if="errors.password">{{ errors.password }}</span>
+                    <span class="error-text" v-if="errors.password">{{
+                      errors.password
+                    }}</span>
                   </div>
                   <div class="login">
                     <button type="submit" :disabled="isLoading">
@@ -67,7 +92,7 @@
                         color="white"
                         class="mr-2"
                       ></v-progress-circular>
-                      {{ isLoading ? 'Loading...' : 'Login Now' }}
+                      {{ isLoading ? "Loading..." : "Login Now" }}
                     </button>
                   </div>
                 </form>
@@ -81,109 +106,172 @@
 </template>
 
 <script setup>
-import { inject } from 'vue';
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { inject } from "vue"
+import { ref, reactive, onMounted } from "vue"
+import { useRouter } from "vue-router"
 
-const $api = inject('$api');
-const router = useRouter();
-const email = ref('')
-const password = ref('')
+const $api = inject("$api")
+const router = useRouter()
+
+// ตัวแปรสำหรับฟีเจอร์จำอีเมล
+const savedEmails = ref([])
+const emailSuggestions = ref([])
+const showSuggestions = ref(false)
+
+// โหลดอีเมลที่บันทึกไว้เมื่อ component ถูกโหลด
+onMounted(() => {
+  const storedEmails = localStorage.getItem("savedEmails")
+  if (storedEmails) {
+    savedEmails.value = JSON.parse(storedEmails)
+  }
+})
+
+// ตัวแปรเดิม
+const email = ref("")
+const password = ref("")
 const showPassword = ref(false)
 const isLoading = ref(false)
 const errors = reactive({
-  email: '',
-  password: ''
+  email: "",
+  password: "",
 })
 
+// ฟังก์ชันสำหรับจัดการอีเมล
+const filterEmails = (input) => {
+  if (input.length > 0) {
+    emailSuggestions.value = savedEmails.value.filter((email) =>
+      email.toLowerCase().includes(input.toLowerCase()),
+    )
+    showSuggestions.value = true
+  } else {
+    emailSuggestions.value = []
+    showSuggestions.value = false
+  }
+}
+
+const selectEmail = (selectedEmail) => {
+  email.value = selectedEmail
+  showSuggestions.value = false
+}
+
+const removeEmail = (emailToRemove) => {
+  savedEmails.value = savedEmails.value.filter(
+    (email) => email !== emailToRemove,
+  )
+  localStorage.setItem("savedEmails", JSON.stringify(savedEmails.value))
+  filterEmails(email.value) // อัพเดตคำแนะนำหลังจากลบ
+}
+
+// ฟังก์ชันเดิม
 const validateForm = () => {
   let isValid = true
-  errors.email = ''
-  errors.password = ''
+  errors.email = ""
+  errors.password = ""
 
   if (!email.value) {
-    errors.email = 'กรุณากรอกอีเมล'
+    errors.email = "กรุณากรอกอีเมล"
     isValid = false
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
-    errors.email = 'รูปแบบอีเมลไม่ถูกต้อง'
+    errors.email = "รูปแบบอีเมลไม่ถูกต้อง"
     isValid = false
   }
 
   if (!password.value) {
-    errors.password = 'กรุณากรอกรหัสผ่าน'
+    errors.password = "กรุณากรอกรหัสผ่าน"
     isValid = false
   } else if (password.value.length < 4) {
-    errors.password = 'รหัสผ่านต้องมีความยาวอย่างน้อย 4 ตัวอักษร'
+    errors.password = "รหัสผ่านต้องมีความยาวอย่างน้อย 4 ตัวอักษร"
     isValid = false
   }
   return isValid
-};
+}
 
 const togglePassword = () => {
   showPassword.value = !showPassword.value
-};
+}
+
+const handleBlur = () => {
+  setTimeout(() => {
+    showSuggestions.value = false
+  }, 200)
+}
 
 const fetchMemberData = async () => {
   if (!validateForm()) return
-  
-  localStorage.removeItem('accessToken')
-  localStorage.removeItem('member')
-  localStorage.removeItem('menuPermission')
-  
+
+  // เพิ่มอีเมลลงในรายการที่เก็บไว้ (ถ้ายังไม่มี)
+  if (email.value && !savedEmails.value.includes(email.value)) {
+    // จำกัดจำนวนอีเมลที่เก็บไว้ไม่เกิน 10 อัน
+    if (savedEmails.value.length >= 10) {
+      savedEmails.value.shift() // ลบอีเมลที่เก่าที่สุด
+    }
+    savedEmails.value.push(email.value)
+    localStorage.setItem("savedEmails", JSON.stringify(savedEmails.value))
+  }
+
+  localStorage.removeItem("accessToken")
+  localStorage.removeItem("member")
+  localStorage.removeItem("menuPermission")
+
   isLoading.value = true
-  errors.password = ''
+  errors.password = ""
 
   try {
-    const loginResponse = await $api.post('/Member/login', {
+    const loginResponse = await $api.post("/Member/login", {
       MemberEmail: email.value,
-      MemberPassword: password.value
+      MemberPassword: password.value,
     })
 
     if (!loginResponse.data?.accessToken) {
-      throw new Error('ไม่พบ Token ใน response')
+      throw new Error("ไม่พบ Token ใน response")
     }
 
     const { accessToken, member } = loginResponse.data
 
-    localStorage.setItem('accessToken', accessToken)
-    localStorage.setItem('member', JSON.stringify(member))
+    localStorage.setItem("accessToken", accessToken)
+    localStorage.setItem("member", JSON.stringify(member))
 
-    if (!localStorage.getItem('accessToken')) {
-      throw new Error('การเก็บ Token ล้มเหลว')
+    if (!localStorage.getItem("accessToken")) {
+      throw new Error("การเก็บ Token ล้มเหลว")
     }
 
     try {
-      const permissionResponse = await $api.get(`/member/permission/${member.MemberId}`)
+      const permissionResponse = await $api.get(
+        `/member/permission/${member.MemberId}`,
+      )
       if (permissionResponse.data?.menuPermission) {
-        localStorage.setItem('menuPermission', JSON.stringify(permissionResponse.data.menuPermission))
+        localStorage.setItem(
+          "menuPermission",
+          JSON.stringify(permissionResponse.data.menuPermission),
+        )
       }
     } catch (permissionError) {
-      console.warn('การดึงข้อมูลสิทธิ์ล้มเหลว:', permissionError)
+      console.warn("การดึงข้อมูลสิทธิ์ล้มเหลว:", permissionError)
     }
-    router.push('/Homepage')
-
+    router.push("/Homepage")
   } catch (error) {
-    console.error('เกิดข้อผิดพลาดในการเข้าสู่ระบบ:', error)
-    
-    localStorage.removeItem('accessToken')
-    
+    console.error("เกิดข้อผิดพลาดในการเข้าสู่ระบบ:", error)
+
+    localStorage.removeItem("accessToken")
+
     if (error.response) {
       if (error.response.status === 401) {
-        errors.password = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง'
+        errors.password = "อีเมลหรือรหัสผ่านไม่ถูกต้อง"
       } else if (error.response.status === 500) {
-        errors.password = 'เซิร์ฟเวอร์มีปัญหา กรุณาลองใหม่ภายหลัง'
+        errors.password = "เซิร์ฟเวอร์มีปัญหา กรุณาลองใหม่ภายหลัง"
       } else {
-        errors.password = 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ (รหัส: ' + error.response.status + ')'
+        errors.password =
+          "เกิดข้อผิดพลาดในการเข้าสู่ระบบ (รหัส: " + error.response.status + ")"
       }
-    } else if (error.message.includes('Network Error')) {
-      errors.password = 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้'
+    } else if (error.message.includes("Network Error")) {
+      errors.password = "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้"
     } else {
-      errors.password = 'เกิดข้อผิดพลาดที่ไม่คาดคิด'
+      errors.password = "เกิดข้อผิดพลาดที่ไม่คาดคิด"
     }
   } finally {
     isLoading.value = false
   }
-};
+}
 </script>
 
 <style lang="scss" scoped>
@@ -217,7 +305,7 @@ const fetchMemberData = async () => {
     max-width: 1000px;
     width: 85%;
   }
-  
+
   .login-title {
     text-align: center;
     font-size: 3vh;
@@ -227,6 +315,7 @@ const fetchMemberData = async () => {
 
   .form-control {
     margin-bottom: 2vh;
+    position: relative;
 
     label {
       font-size: 1.5vh;
@@ -242,21 +331,21 @@ const fetchMemberData = async () => {
     }
 
     input:focus {
-      border-color: #D1E9FF;
-      box-shadow: 0 0 0 2px #D1E9FF;
+      border-color: #d1e9ff;
+      box-shadow: 0 0 0 2px #d1e9ff;
       outline: none;
     }
 
     .error-input {
-      border-color: #FDA29B;
+      border-color: #fda29b;
       &:focus {
-        border-color: #FDA29B;
-        box-shadow: 0 0 0 2px #FEE4E2;
+        border-color: #fda29b;
+        box-shadow: 0 0 0 2px #fee4e2;
       }
     }
 
     .error-text {
-      color: #F04438;
+      color: #f04438;
       font-size: 1.5vh;
       margin-top: 0.5vh;
       display: block;
@@ -275,6 +364,40 @@ const fetchMemberData = async () => {
         font-size: 2.5vh;
       }
     }
+
+    .suggestions-container {
+      position: absolute;
+      width: 100%;
+      max-height: 200px;
+      overflow-y: auto;
+      background: white;
+      border: 1px solid #e5e5e5;
+      border-radius: 0 0 1vh 1vh;
+      z-index: 10;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-top: -1px;
+
+      .suggestion-item {
+        padding: 1vh;
+        cursor: pointer;
+        font-size: 1.8vh;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        &:hover {
+          background-color: #f5f5f5;
+        }
+
+        .delete-icon {
+          opacity: 0.5;
+          &:hover {
+            opacity: 1;
+            color: #f04438;
+          }
+        }
+      }
+    }
   }
 
   .login {
@@ -283,7 +406,7 @@ const fetchMemberData = async () => {
       padding: 1vh;
       margin-top: 4vh;
       font-size: 2vh;
-      background-color: #1570EF;
+      background-color: #1570ef;
       color: white;
       border: none;
       border-radius: 1vh;
@@ -298,7 +421,7 @@ const fetchMemberData = async () => {
     }
 
     button:disabled {
-      background-color: #84CAFF;
+      background-color: #84caff;
       cursor: not-allowed;
     }
   }

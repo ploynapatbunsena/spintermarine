@@ -1,19 +1,17 @@
 <template>
-  <v-app style="background-color: #F7F9FC;">
+  <v-app style="background-color: #f7f9fc">
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
       <div class="title">Report on Daily Fuel Consumption for the Barge</div>
       <div class="title-thai">รายงานการบริโภคน้ำมันรายวันของทุ่น</div>
-      
     </v-container>
   </v-app>
 </template>
 
 <script setup>
-import NavigationBar from '@/components/NavigationBar.vue';
-import SpaceBar from '@/components/SpaceBar.vue';
-
+import NavigationBar from "@/components/NavigationBar.vue"
+import SpaceBar from "@/components/SpaceBar.vue"
 </script>
 
 <style scoped>
@@ -23,13 +21,13 @@ import SpaceBar from '@/components/SpaceBar.vue';
 }
 
 .title-thai {
-  font-family: 'Sarabun', sans-serif;
+  font-family: "Sarabun", sans-serif;
   font-size: 1.5vh;
   font-weight: 400;
 }
 
 .cancel-btn {
-  background-color: #DC2B2B;
+  background-color: #dc2b2b;
   color: #ffffff;
   border-radius: 10px;
 }
@@ -41,21 +39,21 @@ import SpaceBar from '@/components/SpaceBar.vue';
 }
 
 .download-btn {
-  background-color: #FAC12A;
+  background-color: #fac12a;
   color: #ffffff;
-  border-radius: 10px;  
+  border-radius: 10px;
 }
 
 :deep(.v-data-table__td),
 :deep(.v-data-table__th) {
-  border: 1px solid #F4F4F5;
+  border: 1px solid #f4f4f5;
 }
 
 .custom-table :deep(thead th) {
   color: #000000;
   font-weight: bold;
   font-size: 16px;
-  font-family: 'Sarabun', sans-serif;
+  font-family: "Sarabun", sans-serif;
 }
 
 /* .custom-table :deep(tbody tr:hover td) {
@@ -63,11 +61,10 @@ import SpaceBar from '@/components/SpaceBar.vue';
 } */
 
 .striped-table :deep(tbody tr:nth-child(odd)) {
-  background-color: #F9F9FA;
+  background-color: #f9f9fa;
 }
 
 .striped-table :deep(tbody tr:nth-child(even)) {
   background-color: #ffffff;
 }
-
 </style>

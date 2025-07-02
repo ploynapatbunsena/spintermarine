@@ -1,10 +1,12 @@
 <template>
-  <v-app style="background-color: #F7F9FC;">
+  <v-app style="background-color: #f7f9fc">
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
       <div class="title">Report on %Throttle vs. RPM vs. Fuel Rate</div>
-      <div class="title-thai">รายงาน %คันเร่ง ต่อ RPM ต่อ อัตราการใช้ชื้อเพลิง สำหรับเรือยนต์</div>
+      <div class="title-thai">
+        รายงาน %คันเร่ง ต่อ RPM ต่อ อัตราการใช้ชื้อเพลิง สำหรับเรือยนต์
+      </div>
       <v-card class="mt-4">
         <v-card-text class="mx-4 my-6">
           <v-row>
@@ -26,7 +28,9 @@
                   <v-list-item title="Select All" @click="toggleSelectAll">
                     <template v-slot:prepend>
                       <v-checkbox-btn
-                        :color="isPartialSelection ? 'indigo-darken-4' : undefined"
+                        :color="
+                          isPartialSelection ? 'indigo-darken-4' : undefined
+                        "
                         :indeterminate="isPartialSelection"
                         :model-value="isAllSelected"
                       ></v-checkbox-btn>
@@ -34,12 +38,18 @@
                   </v-list-item>
                 </template>
                 <template v-slot:selection="{ index }">
-                  <span v-if="index === 0">{{ selectedTugboats.length }} selected</span>
+                  <span v-if="index === 0"
+                    >{{ selectedTugboats.length }} selected</span
+                  >
                 </template>
                 <template v-slot:item="{ props, item }">
                   <v-list-item v-bind="props">
                     <template v-slot:prepend>
-                      <v-checkbox-btn :model-value="selectedTugboats.includes(item.raw.deviceId)"></v-checkbox-btn>
+                      <v-checkbox-btn
+                        :model-value="
+                          selectedTugboats.includes(item.raw.deviceId)
+                        "
+                      ></v-checkbox-btn>
                     </template>
                   </v-list-item>
                 </template>
@@ -57,7 +67,9 @@
                 placeholder="Select Start Date"
                 :class="{ 'error-border': startDateError }"
               ></datePicker>
-              <div v-if="startDateError" class="error-message">{{ startDateError }}</div>
+              <div v-if="startDateError" class="error-message">
+                {{ startDateError }}
+              </div>
             </v-col>
             <v-col cols="12" md="3">
               <datePicker
@@ -71,7 +83,9 @@
                 placeholder="Select End Date"
                 :class="{ 'error-border': endDateError }"
               ></datePicker>
-              <div v-if="endDateError" class="error-message">{{ endDateError }}</div>
+              <div v-if="endDateError" class="error-message">
+                {{ endDateError }}
+              </div>
             </v-col>
             <v-col cols="12" md="6" lg="3">
               <v-row>
@@ -96,7 +110,9 @@
                   <v-menu>
                     <template v-slot:activator="{ props }">
                       <v-btn
-                        :disabled="!permissionExport('0101020600') || !showResult"
+                        :disabled="
+                          !permissionExport('0101020600') || !showResult
+                        "
                         class="download-btn elevation-0 text-none"
                         v-bind="props"
                       >
@@ -121,7 +137,10 @@
         </v-card-text>
 
         <v-card-text v-if="searchLoading" class="text-center">
-          <v-progress-circular indeterminate color="primary"></v-progress-circular>
+          <v-progress-circular
+            indeterminate
+            color="primary"
+          ></v-progress-circular>
           <div>Loading data...</div>
         </v-card-text>
 
@@ -138,333 +157,395 @@
             :series="series"
           ></apexchart>
         </v-card-text>
-      </v-card> 
+      </v-card>
     </v-container>
   </v-app>
 </template>
 
 <script setup>
-import NavigationBar from '@/components/NavigationBar.vue';
-import SpaceBar from '@/components/SpaceBar.vue';
-import { computed, inject, onMounted, ref } from 'vue';
-import VueApexCharts from 'vue3-apexcharts';
-import VueDatePicker from '@vuepic/vue-datepicker';
-import '@/assets/colors.scss';
-import '@vuepic/vue-datepicker/dist/main.css'
-import { useRouter } from 'vue-router';
+import NavigationBar from "@/components/NavigationBar.vue"
+import SpaceBar from "@/components/SpaceBar.vue"
+import { computed, inject, onMounted, ref } from "vue"
+import VueApexCharts from "vue3-apexcharts"
+import VueDatePicker from "@vuepic/vue-datepicker"
+import "@/assets/colors.scss"
+import "@vuepic/vue-datepicker/dist/main.css"
+import { useRouter } from "vue-router"
 
-const datePicker = VueDatePicker;
-const apexchart = VueApexCharts;
-const $api = inject('$api');
+const datePicker = VueDatePicker
+const apexchart = VueApexCharts
+const $api = inject("$api")
 const router = useRouter()
-const showResult = ref(false);
-const searchLoading = ref(false);
-const error = ref(null);
-const series = ref([]);
-const tugboatDevices = ref([]);
-const selectedTugboats = ref([]);
-const endDate = ref(new Date());
-const startDate = ref(new Date(new Date().setDate(new Date().getDate() - 7)));
-const chart = ref(null);
-const permission = ref(null);
+const showResult = ref(false)
+const searchLoading = ref(false)
+const error = ref(null)
+const series = ref([])
+const tugboatDevices = ref([])
+const selectedTugboats = ref([])
+const endDate = ref(new Date())
+const startDate = ref(new Date(new Date().setDate(new Date().getDate() - 7)))
+const chart = ref(null)
+const permission = ref(null)
 
-const deviceError = ref('');
-const startDateError = ref('');
-const endDateError = ref('');
+const deviceError = ref("")
+const startDateError = ref("")
+const endDateError = ref("")
 
 const validateForm = () => {
-  let isValid = true;
-  deviceError.value = '';
-  startDateError.value = '';
-  endDateError.value = '';
-  
+  let isValid = true
+  deviceError.value = ""
+  startDateError.value = ""
+  endDateError.value = ""
+
   if (selectedTugboats.value.length === 0) {
-    deviceError.value = 'กรุณาเลือกอุปกรณ์อย่างน้อย 1 รายการ';
-    isValid = false;
+    deviceError.value = "กรุณาเลือกอุปกรณ์อย่างน้อย 1 รายการ"
+    isValid = false
   }
-  
+
   if (!startDate.value) {
-    startDateError.value = 'Start date is required';
-    isValid = false;
+    startDateError.value = "Start date is required"
+    isValid = false
   }
-  
+
   if (!endDate.value) {
-    endDateError.value = 'End date is required';
-    isValid = false;
+    endDateError.value = "End date is required"
+    isValid = false
   }
-  
-  return isValid;
-};
+
+  return isValid
+}
 
 const validateAndSearch = () => {
   if (validateForm()) {
-    searchRecords();
+    searchRecords()
   }
-};
+}
 
 const initialize = async () => {
-  const menuPermission = localStorage.getItem('menuPermission');
+  const menuPermission = localStorage.getItem("menuPermission")
   if (!menuPermission) {
-    return router.push('/Homepage');
+    return router.push("/Homepage")
   }
 
-  const permissionList = JSON.parse(menuPermission);
-  const foundPermission = permissionList.find(item => item.MenuId === '0101020600');
-  permission.value = foundPermission;
-  
+  const permissionList = JSON.parse(menuPermission)
+  const foundPermission = permissionList.find(
+    (item) => item.MenuId === "0101020600",
+  )
+  permission.value = foundPermission
+
   if (!foundPermission || !foundPermission.IsActive) {
-    return router.push('/Homepage');
+    return router.push("/Homepage")
   }
-};
+}
 
 const permissionExport = (menuId) => {
   if (!permission.value || permission.value.MenuId !== menuId) {
-    return false;
+    return false
   }
-  return permission.value?.IsExport;
-};
+  return permission.value?.IsExport
+}
 
 const fetchTugboatData = async () => {
   try {
-    error.value = null;
+    error.value = null
 
     const [riverResponse, seaResponse] = await Promise.all([
-      $api.get('/MachineStatus/GetTugboatRiver'),
-      $api.get('/MachineStatus/GetTugboatSea')
-    ]);
+      $api.get("/MachineStatus/GetTugboatRiver"),
+      $api.get("/MachineStatus/GetTugboatSea"),
+    ])
 
-    tugboatDevices.value = [...riverResponse.data, ...seaResponse.data];
+    tugboatDevices.value = [...riverResponse.data, ...seaResponse.data]
   } catch (err) {
-    console.error('Failed to fetch tugboat data:', err);
-    error.value = 'Failed to load device list. Please try again.';
+    console.error("Failed to fetch tugboat data:", err)
+    error.value = "Failed to load device list. Please try again."
   }
-};
+}
 
 const tugboatOptions = computed(() => {
-  return tugboatDevices.value.flatMap(group => 
-    group.Devices.map(device => ({
+  return tugboatDevices.value.flatMap((group) =>
+    group.Devices.map((device) => ({
       deviceId: device.DeviceId,
       deviceName: device.DeviceName,
-      type: group.TypeDevicename
-    }))
-  );
-});
+      type: group.TypeDevicename,
+    })),
+  )
+})
 
 const isAllSelected = computed(() => {
-  return selectedTugboats.value.length === tugboatOptions.value.length;
-});
+  return selectedTugboats.value.length === tugboatOptions.value.length
+})
 
 const isPartialSelection = computed(() => {
-  return selectedTugboats.value.length > 0 && !isAllSelected.value;
-});
+  return selectedTugboats.value.length > 0 && !isAllSelected.value
+})
 
 const toggleSelectAll = () => {
   if (isAllSelected.value) {
-    selectedTugboats.value = [];
+    selectedTugboats.value = []
   } else {
-    selectedTugboats.value = tugboatOptions.value.map(option => option.deviceId);
+    selectedTugboats.value = tugboatOptions.value.map(
+      (option) => option.deviceId,
+    )
   }
-};
+}
 
 const resetFilters = () => {
-  selectedTugboats.value = [];
-  startDate.value = null;
-  endDate.value = null;
-  showResult.value = false;
-  error.value = null;
-  deviceError.value = '';
-  startDateError.value = '';
-  endDateError.value = '';
-};
+  selectedTugboats.value = []
+  startDate.value = null
+  endDate.value = null
+  showResult.value = false
+  error.value = null
+  deviceError.value = ""
+  startDateError.value = ""
+  endDateError.value = ""
+}
 
 const formatTimeShow = (datetime) => {
-  if (datetime==null) {
+  if (datetime == null) {
     return null
   } else {
-    var dateTime = new Date(datetime);
-    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
-    var day = ("0" + dateTime.getDate()).slice(-2);
-    var year = dateTime.getFullYear();
-    var hour = ("0" + dateTime.getHours()).slice(-2);
-    var minute = ("0" + dateTime.getMinutes()).slice(-2);
-    var sec = ("0" + dateTime.getSeconds()).slice(-2);
-    return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + sec;
+    var dateTime = new Date(datetime)
+    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2)
+    var day = ("0" + dateTime.getDate()).slice(-2)
+    var year = dateTime.getFullYear()
+    var hour = ("0" + dateTime.getHours()).slice(-2)
+    var minute = ("0" + dateTime.getMinutes()).slice(-2)
+    var sec = ("0" + dateTime.getSeconds()).slice(-2)
+    return (
+      year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + sec
+    )
   }
-};
+}
 
 const formatDateForFilename = (date) => {
-  if (!date) return '';
-  const dateTime = new Date(date);
-  const year = dateTime.getFullYear();
-  const month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
-  const day = ("0" + dateTime.getDate()).slice(-2);
-  const hour = ("0" + dateTime.getHours()).slice(-2);
-  const minute = ("0" + dateTime.getMinutes()).slice(-2);
-  const second = ("0" + dateTime.getSeconds()).slice(-2);
-  return `${year}${month}${day}_${hour}${minute}${second}`;
-};
+  if (!date) return ""
+  const dateTime = new Date(date)
+  const year = dateTime.getFullYear()
+  const month = ("0" + (dateTime.getMonth() + 1)).slice(-2)
+  const day = ("0" + dateTime.getDate()).slice(-2)
+  const hour = ("0" + dateTime.getHours()).slice(-2)
+  const minute = ("0" + dateTime.getMinutes()).slice(-2)
+  const second = ("0" + dateTime.getSeconds()).slice(-2)
+  return `${year}${month}${day}_${hour}${minute}${second}`
+}
 
 const processChartData = (devices) => {
   const allSeriesData = {
     rpm: [],
     fuel: [],
     throttle: [],
-    times: new Set()
-  };
+    times: new Set(),
+  }
 
-  devices.forEach(device => {
-    const measurements = device.Measurement || [];
-    
-    const rpmMeas = measurements.find(m => m.measurementname === 'RPM');
-    const fuelMeas = measurements.find(m => m.measurementname === 'Fuel Rate');
-    const throttleMeas = measurements.find(m => m.measurementname === '%Throttle');
+  devices.forEach((device) => {
+    const measurements = device.Measurement || []
 
-    if (rpmMeas?.Xdata) rpmMeas.Xdata.forEach(time => allSeriesData.times.add(time));
-    if (fuelMeas?.Xdata) fuelMeas.Xdata.forEach(time => allSeriesData.times.add(time));
-    if (throttleMeas?.Xdata) throttleMeas.Xdata.forEach(time => allSeriesData.times.add(time));
-  });
+    const rpmMeas = measurements.find((m) => m.measurementname === "RPM")
+    const fuelMeas = measurements.find((m) => m.measurementname === "Fuel Rate")
+    const throttleMeas = measurements.find(
+      (m) => m.measurementname === "%Throttle",
+    )
 
-  const allTimes = Array.from(allSeriesData.times).sort((a, b) => new Date(a) - new Date(b));
+    if (rpmMeas?.Xdata)
+      rpmMeas.Xdata.forEach((time) => allSeriesData.times.add(time))
+    if (fuelMeas?.Xdata)
+      fuelMeas.Xdata.forEach((time) => allSeriesData.times.add(time))
+    if (throttleMeas?.Xdata)
+      throttleMeas.Xdata.forEach((time) => allSeriesData.times.add(time))
+  })
 
-  allTimes.forEach(time => {
-    const rpmValue = devices.flatMap(device => {
-      const meas = device.Measurement?.find(m => m.measurementname === 'RPM');
-      if (!meas) return null;
-      const index = meas.Xdata?.indexOf(time);
-      return index !== -1 ? meas.Ydata[0]?.data[index] : null;
-    }).find(val => val !== null) || null;
+  const allTimes = Array.from(allSeriesData.times).sort(
+    (a, b) => new Date(a) - new Date(b),
+  )
 
-    const fuelValue = devices.flatMap(device => {
-      const meas = device.Measurement?.find(m => m.measurementname === 'Fuel Rate');
-      if (!meas) return null;
-      const index = meas.Xdata?.indexOf(time);
-      return index !== -1 ? meas.Ydata[0]?.data[index] : null;
-    }).find(val => val !== null) || null;
+  allTimes.forEach((time) => {
+    const rpmValue =
+      devices
+        .flatMap((device) => {
+          const meas = device.Measurement?.find(
+            (m) => m.measurementname === "RPM",
+          )
+          if (!meas) return null
+          const index = meas.Xdata?.indexOf(time)
+          return index !== -1 ? meas.Ydata[0]?.data[index] : null
+        })
+        .find((val) => val !== null) || null
 
-    const throttleValue = devices.flatMap(device => {
-      const meas = device.Measurement?.find(m => m.measurementname === '%Throttle');
-      if (!meas) return null;
-      const index = meas.Xdata?.indexOf(time);
-      return index !== -1 ? meas.Ydata[0]?.data[index] : null;
-    }).find(val => val !== null) || null;
+    const fuelValue =
+      devices
+        .flatMap((device) => {
+          const meas = device.Measurement?.find(
+            (m) => m.measurementname === "Fuel Rate",
+          )
+          if (!meas) return null
+          const index = meas.Xdata?.indexOf(time)
+          return index !== -1 ? meas.Ydata[0]?.data[index] : null
+        })
+        .find((val) => val !== null) || null
+
+    const throttleValue =
+      devices
+        .flatMap((device) => {
+          const meas = device.Measurement?.find(
+            (m) => m.measurementname === "%Throttle",
+          )
+          if (!meas) return null
+          const index = meas.Xdata?.indexOf(time)
+          return index !== -1 ? meas.Ydata[0]?.data[index] : null
+        })
+        .find((val) => val !== null) || null
 
     if (rpmValue !== null || fuelValue !== null || throttleValue !== null) {
-      allSeriesData.rpm.push(rpmValue);
-      allSeriesData.fuel.push(fuelValue);
-      allSeriesData.throttle.push(throttleValue);
-      allSeriesData.times.add(time);
+      allSeriesData.rpm.push(rpmValue)
+      allSeriesData.fuel.push(fuelValue)
+      allSeriesData.throttle.push(throttleValue)
+      allSeriesData.times.add(time)
     }
-  });
+  })
 
   // สร้าง categories (เวลา) สำหรับแกน X
-  const categories = Array.from(allSeriesData.times).sort((a, b) => new Date(a) - new Date(b));
+  const categories = Array.from(allSeriesData.times).sort(
+    (a, b) => new Date(a) - new Date(b),
+  )
 
   // สร้าง series สำหรับ ApexCharts
   const series = [
     {
-      name: 'RPM',
-      type: 'line',
-      data: allSeriesData.rpm
+      name: "RPM",
+      type: "line",
+      data: allSeriesData.rpm,
     },
     {
-      name: 'Fuel Rate',
-      type: 'line',
-      data: allSeriesData.fuel
+      name: "Fuel Rate",
+      type: "line",
+      data: allSeriesData.fuel,
     },
     {
-      name: '%Throttle',
-      type: 'line',
-      data: allSeriesData.throttle
-    }
-  ];
+      name: "%Throttle",
+      type: "line",
+      data: allSeriesData.throttle,
+    },
+  ]
 
-  return { series, categories };
-};
+  return { series, categories }
+}
 
 const searchRecords = async () => {
   try {
-    searchLoading.value = true;
-    showResult.value = false;
-    error.value = null;
+    searchLoading.value = true
+    showResult.value = false
+    error.value = null
 
-    const deviceIds = [...selectedTugboats.value];
+    const deviceIds = [...selectedTugboats.value]
 
     const request = {
       DeviceId: deviceIds,
+      IntervalTime: calculateAutoInterval(),
       StartDateTime: formatTimeShow(startDate.value),
       EndDatetime: formatTimeShow(endDate.value),
-    };
-
-    const response = await $api.put('MachineStatus/RealtimeChartDataReport06/multiple', request);
-    
-    if (!response.data || response.data.length === 0) {
-      error.value = 'No data found for the selected criteria';
-      return;
     }
 
-    const processedData = processChartData(response.data);
-    
-    series.value = processedData.series;
-    showResult.value = true;
+    const response = await $api.put(
+      "MachineStatus/RealtimeChartDataReport06/multiple",
+      request,
+    )
+    // console.log('Response data:', response.data);
+
+    if (!response.data || response.data.length === 0) {
+      error.value = "No data found for the selected criteria"
+      return
+    }
+
+    const processedData = processChartData(response.data)
+
+    series.value = processedData.series
+    showResult.value = true
   } catch (err) {
-    console.error('Error searching records:', err);
-    error.value = 'Failed to load chart data. Please try again.';
+    console.error("Error searching records:", err)
+    error.value = "Failed to load chart data. Please try again."
   } finally {
-    searchLoading.value = false;
+    searchLoading.value = false
   }
-};
+}
+
+const calculateAutoInterval = () => {
+  if (!startDate.value || !endDate.value) {
+    return 5 // ส่งกลับเป็นตัวเลข (หรือตามที่ API ต้องการ)
+  }
+
+  const start = new Date(startDate.value)
+  const end = new Date(endDate.value)
+  const diffInMs = end - start
+  const diffInDays = diffInMs / (1000 * 60 * 60 * 24)
+
+  if (diffInDays < 1) {
+    return 5 // น้อยกว่า 1 วัน
+  } else if (diffInDays <= 3) {
+    return 15 // 1-3 วัน
+  } else if (diffInDays <= 7) {
+    return 30 // 3-7 วัน
+  } else if (diffInDays <= 28) {
+    return 60 // 1-4 สัปดาห์
+  } else if (diffInDays <= 90) {
+    return 1440 // 1-3 เดือน
+  } else {
+    return 10080 // มากกว่า 3 เดือน
+  }
+}
 
 const downloadReport = (format) => {
   if (!showResult.value || !series.value.length) {
-    error.value = 'No data available to download';
-    return;
+    error.value = "No data available to download"
+    return
   }
 
-  const filename = `รายงาน %คันเร่ง ต่อ RPM ต่อ อัตราการใช้ชื้อเพลิง สำหรับเรือยนต์_${formatDateForFilename(startDate.value)}_${formatDateForFilename(endDate.value)}`;
+  const filename = `รายงาน %คันเร่ง ต่อ RPM ต่อ อัตราการใช้ชื้อเพลิง สำหรับเรือยนต์_${formatDateForFilename(startDate.value)}_${formatDateForFilename(endDate.value)}`
 
-  if (format === 'CSV') {
-    const headers = ['Time,RPM,Fuel Rate,%Throttle'];
-    const rows = [];
-    
-    const times = chartOptions.value.xaxis.categories || [];
-    
-    const rpmData = series.value.find(s => s.name === 'RPM')?.data || [];
-    const fuelData = series.value.find(s => s.name === 'Fuel Rate')?.data || [];
-    const throttleData = series.value.find(s => s.name === '%Throttle')?.data || [];
-    
+  if (format === "CSV") {
+    const headers = ["Time,RPM,Fuel Rate,%Throttle"]
+    const rows = []
+
+    const times = chartOptions.value.xaxis.categories || []
+
+    const rpmData = series.value.find((s) => s.name === "RPM")?.data || []
+    const fuelData =
+      series.value.find((s) => s.name === "Fuel Rate")?.data || []
+    const throttleData =
+      series.value.find((s) => s.name === "%Throttle")?.data || []
+
     times.forEach((time, index) => {
       const row = [
         `"${time}"`,
-        rpmData[index] !== null ? rpmData[index] : '',
-        fuelData[index] !== null ? fuelData[index] : '',
-        throttleData[index] !== null ? throttleData[index] : ''
-      ].join(',');
-      rows.push(row);
-    });
+        rpmData[index] !== null ? rpmData[index] : "",
+        fuelData[index] !== null ? fuelData[index] : "",
+        throttleData[index] !== null ? throttleData[index] : "",
+      ].join(",")
+      rows.push(row)
+    })
 
-    const csvContent = headers.concat(rows).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `${filename}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  } else if (format === 'JPG') {
+    const csvContent = headers.concat(rows).join("\n")
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const link = document.createElement("a")
+    const url = URL.createObjectURL(blob)
+    link.setAttribute("href", url)
+    link.setAttribute("download", `${filename}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  } else if (format === "JPG") {
     if (chart.value) {
       chart.value.chart.dataURI().then(({ imgURI }) => {
-        const link = document.createElement('a');
-        link.href = imgURI;
-        link.download = `${filename}.jpg`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      });
+        const link = document.createElement("a")
+        link.href = imgURI
+        link.download = `${filename}.jpg`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      })
     }
   }
-};
+}
 
 const chartOptions = ref({
   chart: {
@@ -472,39 +553,39 @@ const chartOptions = ref({
     type: "line",
     stacked: false,
     zoom: {
-      enabled: true
-    }
+      enabled: true,
+    },
   },
   colors: ["#352B54", "#FAC12A", "#DC2B2B"],
-  stroke: { 
-    curve: 'smooth',
-    width: 2
+  stroke: {
+    curve: "smooth",
+    width: 2,
   },
   markers: {
-    size: 4
+    size: 4,
   },
-  fill: { 
-    opacity: 1 
+  fill: {
+    opacity: 1,
   },
-  dataLabels: { 
-    enabled: false 
+  dataLabels: {
+    enabled: false,
   },
   xaxis: {
-    type: 'datetime',
+    type: "datetime",
     labels: {
       datetimeUTC: false,
-      format: 'dd MMM yyyy HH:mm'
-    }
+      format: "dd MMM yyyy HH:mm",
+    },
   },
   yaxis: [
     {
       seriesName: "RPM",
       axisTicks: { show: true },
-      labels: { 
+      labels: {
         style: { colors: "#352B54" },
-        formatter: function(val) {
-          return val.toFixed(0);
-        }
+        formatter: function (val) {
+          return val.toFixed(0)
+        },
       },
       title: { text: "RPM (RPM)", style: { color: "#352B54" } },
     },
@@ -512,22 +593,22 @@ const chartOptions = ref({
       seriesName: "Fuel Rate",
       opposite: true,
       axisTicks: { show: true },
-      labels: { 
+      labels: {
         style: { colors: "#FAC12A" },
-        formatter: function(val) {
-          return val.toFixed(2);
-        }
+        formatter: function (val) {
+          return val.toFixed(2)
+        },
       },
       title: { text: "Fuel Rate (L/hr)", style: { color: "#FAC12A" } },
     },
     {
       seriesName: "%Throttle",
       axisTicks: { show: true },
-      labels: { 
+      labels: {
         style: { colors: "#DC2B2B" },
-        formatter: function(val) {
-          return val.toFixed(0) + '%';
-        }
+        formatter: function (val) {
+          return val.toFixed(0) + "%"
+        },
       },
       title: { text: "%Throttle", style: { color: "#DC2B2B" } },
     },
@@ -541,26 +622,25 @@ const chartOptions = ref({
     shared: true,
     intersect: false,
     x: {
-      format: 'dd MMM yyyy HH:mm:ss'
-    }
+      format: "dd MMM yyyy HH:mm:ss",
+    },
   },
   noData: {
     text: "No data available",
-    align: 'center',
-    verticalAlign: 'middle',
+    align: "center",
+    verticalAlign: "middle",
     style: {
       color: "#666",
-      fontSize: '16px'
-    }
-  }
-});
+      fontSize: "16px",
+    },
+  },
+})
 
-onMounted(async() => {
-  await initialize();
-  await fetchTugboatData();
-});
+onMounted(async () => {
+  await initialize()
+  await fetchTugboatData()
+})
 </script>
-
 
 <style scoped>
 .title {
@@ -569,7 +649,7 @@ onMounted(async() => {
 }
 
 .title-thai {
-  font-family: 'Sarabun', sans-serif;
+  font-family: "Sarabun", sans-serif;
   font-size: 1.5vh;
   font-weight: 400;
 }
@@ -583,7 +663,7 @@ onMounted(async() => {
 
 .cancel-btn {
   color: #000000;
-  border: 1px solid #E3E3E3;
+  border: 1px solid #e3e3e3;
   border-radius: 24px;
   font-size: 1.5vh;
 }
@@ -596,18 +676,18 @@ onMounted(async() => {
 }
 
 .error--text {
-  color: #DC2B2B;
+  color: #dc2b2b;
   font-weight: bold;
 }
 
 .error-border {
-  border: 1px solid #DC2B2B;
+  border: 1px solid #dc2b2b;
   border-radius: 4px;
 }
 
 .error-message {
-  font-family: 'Sarabun', sans-serif;
-  color: #DC2B2B;
+  font-family: "Sarabun", sans-serif;
+  color: #dc2b2b;
   font-size: 12px;
   margin-top: 4px;
 }

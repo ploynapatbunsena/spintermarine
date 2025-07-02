@@ -4,17 +4,16 @@
 
 <script>
 export default {
-  name: 'SpaceBar',
-};
+  name: "SpaceBar",
+}
 </script>
 
 <style lang="scss" scoped>
 .space-bar {
   height: 80px;
 
-  @media(min-width: 2560px) {
+  @media (min-width: 2560px) {
     height: 136px;
   }
-
 }
 </style>

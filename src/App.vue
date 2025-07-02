@@ -6,8 +6,8 @@
 
 <script>
 export default {
-  name: 'App',
-};
+  name: "App",
+}
 </script>
 
 <style>
@@ -16,9 +16,8 @@ export default {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  background-color: #F7F9FC !important;
+  background-color: #f7f9fc !important;
   overflow: hidden;
-  overflow-x: visible;;
+  overflow-x: visible;
 }
 </style>
-

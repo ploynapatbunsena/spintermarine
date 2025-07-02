@@ -1,5 +1,5 @@
 <template>
-  <v-app style="background-color: #F7F9FC;">
+  <v-app style="background-color: #f7f9fc">
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
@@ -22,8 +22,7 @@
               <v-row>
                 <v-col cols="6" md="3">
                   <v-btn
-                    prepend-icon="mdi-close"
-                    class="cancel-btn"
+                    class="cancel-btn elevation-0 text-none"
                     @click="resetFilters"
                   >
                     Cancel
@@ -31,8 +30,7 @@
                 </v-col>
                 <v-col cols="6" md="3">
                   <v-btn
-                    prepend-icon="mdi-magnify"
-                    class="search-btn"
+                    class="search-btn elevation-0 text-none"
                     @click="searchRecords"
                   >
                     Search
@@ -55,11 +53,21 @@
                 <td>{{ item.DeviceName }}</td>
                 <td>{{ item.DeviceLabel }}</td>
                 <td class="description">{{ item.Note }}</td>
-                <td class="action" :class="{ 'text-green': item.IsActive, 'text-red': !item.IsActive }">
-                  {{ item.IsActive ? 'Active' : 'Inactive' }}
+                <td
+                  class="action"
+                  :class="{
+                    'text-green': item.IsActive,
+                    'text-red': !item.IsActive,
+                  }"
+                >
+                  {{ item.IsActive ? "Active" : "Inactive" }}
                 </td>
                 <td class="d-flex justify-center align-center">
-                  <v-icon icon="mdi-pencil" class="edit" @click="editDevice(item.DeviceId)"></v-icon>
+                  <v-icon
+                    icon="mdi-pencil"
+                    class="edit"
+                    @click="editDevice(item.DeviceId)"
+                  ></v-icon>
                 </td>
               </tr>
             </template>
@@ -71,98 +79,103 @@
 </template>
 
 <script setup>
-import NavigationBar from '@/components/NavigationBar.vue';
-import SpaceBar from '@/components/SpaceBar.vue';
-import { ref, onMounted, inject } from 'vue';
-import { useRouter } from 'vue-router';
+import NavigationBar from "@/components/NavigationBar.vue"
+import SpaceBar from "@/components/SpaceBar.vue"
+import { ref, onMounted, inject } from "vue"
+import { useRouter } from "vue-router"
 
-const $api = inject('$api');
-const router = useRouter();
-const showResult = ref(false);
-const vehicleItems = ref([]);
-const selectedVehicle = ref(null);
-const deviceList = ref([]);
-const filteredItems = ref([]);
+const $api = inject("$api")
+const router = useRouter()
+const showResult = ref(false)
+const vehicleItems = ref([])
+const selectedVehicle = ref(null)
+const deviceList = ref([])
+const filteredItems = ref([])
 
 const headers = ref([
-  { title: 'Device ID', key: 'DeviceId', align: 'start' },
-  { title: 'Device Name', key: 'DeviceName', align: 'start' },
-  { title: 'Device Label', key: 'DeviceLabel', align: 'start' },
-  { title: 'Description', key: 'Note', align: 'start' },
-  { title: 'Action', key: 'IsActive', align: 'center', sortable: false },
-  { title: 'Edit', key: 'edit', align: 'center', sortable: false },
-]);
+  { title: "Device ID", key: "DeviceId", align: "start" },
+  { title: "Device Name", key: "DeviceName", align: "start" },
+  { title: "Device Label", key: "DeviceLabel", align: "start" },
+  { title: "Description", key: "Note", align: "start" },
+  { title: "Action", key: "IsActive", align: "center", sortable: false },
+  { title: "Edit", key: "edit", align: "center", sortable: false },
+])
 
 const initialize = async () => {
-  const menuPermission = localStorage.getItem('menuPermission');
+  const menuPermission = localStorage.getItem("menuPermission")
   if (!menuPermission) {
-    return router.push('/Homepage');
+    return router.push("/Homepage")
   }
 
-  const permissionList = JSON.parse(menuPermission);
-  const permission = permissionList.find(item => item.MenuId === '0101030400');
+  const permissionList = JSON.parse(menuPermission)
+  const permission = permissionList.find((item) => item.MenuId === "0101030400")
 
   if (!permission || !permission.IsActive) {
-    return router.push('/Homepage');
+    return router.push("/Homepage")
   }
-};
+}
 
 const fetchDeviceList = async () => {
   try {
-    const response = await $api.put('/device/GetDeviceListProfile', {
-      DeviceId: ''
-    });
-    deviceList.value = response.data;
-    const uniqueVehicles = new Set();
-    vehicleItems.value = deviceList.value.map(device => {
-      if (device.TypeVehicle === 'Barge') {
-        return { name: device.TypeDevicename };
-      } else if (device.TypeVehicle === 'Tugboat river going') {
-        return { name: 'Tugboat River Going' };
-      } else if (device.TypeVehicle === 'Tugboat sea going') {
-        return { name: 'Tugboat Sea Going' };
-      }
-      return null;
+    const response = await $api.put("/device/GetDeviceListProfile", {
+      DeviceId: "",
     })
-    .filter(item => item && !uniqueVehicles.has(item.name) && uniqueVehicles.add(item.name));
-
+    deviceList.value = response.data
+    const uniqueVehicles = new Set()
+    vehicleItems.value = deviceList.value
+      .map((device) => {
+        if (device.TypeVehicle === "Barge") {
+          return { name: device.TypeDevicename }
+        } else if (device.TypeVehicle === "Tugboat river going") {
+          return { name: "Tugboat River Going" }
+        } else if (device.TypeVehicle === "Tugboat sea going") {
+          return { name: "Tugboat Sea Going" }
+        }
+        return null
+      })
+      .filter(
+        (item) =>
+          item &&
+          !uniqueVehicles.has(item.name) &&
+          uniqueVehicles.add(item.name),
+      )
   } catch (error) {
-    console.error('Failed to fetch device list:', error);
+    console.error("Failed to fetch device list:", error)
   }
-};
+}
 
 const resetFilters = () => {
-  selectedVehicle.value = null;
-  showResult.value = false;
-  filteredItems.value = [];
-};
+  selectedVehicle.value = null
+  showResult.value = false
+  filteredItems.value = []
+}
 
 const searchRecords = () => {
   if (selectedVehicle.value) {
-    filteredItems.value = deviceList.value.filter(device => {
-      if (device.TypeVehicle === 'Barge') {
-        return device.TypeDevicename === selectedVehicle.value;
-      } else if (device.TypeVehicle === 'Tugboat river going') {
-        return 'Tugboat River Going' === selectedVehicle.value;
-      } else if (device.TypeVehicle === 'Tugboat sea going') {
-        return 'Tugboat Sea Going' === selectedVehicle.value;
+    filteredItems.value = deviceList.value.filter((device) => {
+      if (device.TypeVehicle === "Barge") {
+        return device.TypeDevicename === selectedVehicle.value
+      } else if (device.TypeVehicle === "Tugboat river going") {
+        return "Tugboat River Going" === selectedVehicle.value
+      } else if (device.TypeVehicle === "Tugboat sea going") {
+        return "Tugboat Sea Going" === selectedVehicle.value
       }
-      return false;
-    });
-    showResult.value = true;
+      return false
+    })
+    showResult.value = true
   } else {
-    showResult.value = false;
+    showResult.value = false
   }
-};
+}
 
 const editDevice = (deviceId) => {
-  router.push({ name: "DeviceManagementForm", params: { deviceId }})
-};
+  router.push({ name: "DeviceManagementForm", params: { deviceId } })
+}
 
-onMounted(async() => {
-  await initialize();
-  await fetchDeviceList();
-});
+onMounted(async () => {
+  await initialize()
+  await fetchDeviceList()
+})
 </script>
 
 <style scoped>
@@ -171,20 +184,45 @@ onMounted(async() => {
   font-weight: 600;
 }
 
-.cancel-btn {
+/* .cancel-btn {
   background-color: #DC2B2B;
   color: #ffffff;
   border-radius: 10px;
+} */
+
+.cancel-btn {
+  color: #000000;
+  border: 1px solid #e3e3e3;
+  border-radius: 24px;
+  font-size: 1.5vh;
+  width: 5vw;
 }
+
+.cancel-btn:hover {
+  background-color: #fafafa;
+  color: #000000;
+}
+/* .search-btn {
+  background-color: #223368;
+  color: #ffffff;
+  border-radius: 10px;
+} */
 
 .search-btn {
   background-color: #223368;
   color: #ffffff;
-  border-radius: 10px;
+  border-radius: 24px;
+  font-size: 1.5vh;
+  width: 5vw;
+}
+
+.search-btn:hover {
+  background-color: #2d417e;
+  color: #ffffff;
 }
 
 .add-btn {
-  background-color: #FAC12A;
+  background-color: #fac12a;
   color: #ffffff;
   border-radius: 10px;
 }
@@ -196,12 +234,12 @@ onMounted(async() => {
 }
 
 .custom-table :deep(tbody td) {
-  color: #4B4B4B;
+  color: #4b4b4b;
   font-size: 16px;
 }
 
 .striped-table :deep(tbody tr:nth-child(odd)) {
-  background-color: #F9F9FA;
+  background-color: #f9f9fa;
 }
 
 .striped-table :deep(tbody tr:nth-child(even)) {
@@ -213,15 +251,15 @@ td.action {
 }
 
 .text-green {
-  color: #14CA74 !important;
+  color: #14ca74 !important;
 }
 
 .text-red {
-  color: #DC2B2B !important;
+  color: #dc2b2b !important;
 }
 
 td.description {
-  font-family: 'Sarabun', sans-serif;
+  font-family: "Sarabun", sans-serif;
 }
 
 .edit {
@@ -230,8 +268,7 @@ td.description {
   height: 24px;
   border-radius: 24px;
   font-size: 20px;
-  color: #1570EF;
-  background-color: #E3F2FD;
+  color: #1570ef;
+  background-color: #e3f2fd;
 }
-
 </style>

@@ -12,7 +12,7 @@
         v-show="dangerCount >= 0"
         v-bind="props"
       >
-        <v-icon style="font-size: 2.5vh;">mdi-bell-ring</v-icon>
+        <v-icon style="font-size: 2.5vh">mdi-bell-ring</v-icon>
       </v-badge>
     </template>
 
@@ -30,13 +30,19 @@
           <template v-slot:prepend>
             <v-icon color="red">mdi-alert-circle</v-icon>
           </template>
-          <v-list-item-title>{{ item.title }}: {{ item.value }} {{ item.unit }}</v-list-item-title>
+          <v-list-item-title
+            >{{ item.title }}: {{ item.value }}
+            {{ item.unit }}</v-list-item-title
+          >
           <v-list-item-subtitle>
-            เกณฑ์ปกติ: {{ item.limits.min }} - {{ item.limits.max }} {{ item.unit }}
+            เกณฑ์ปกติ: {{ item.limits.min }} - {{ item.limits.max }}
+            {{ item.unit }}
           </v-list-item-subtitle>
         </v-list-item>
         <v-list-item v-if="dangerMeasurements.length === 0">
-          <v-list-item-title>ไม่พบค่าวัดที่อยู่ในสถานะอันตราย</v-list-item-title>
+          <v-list-item-title
+            >ไม่พบค่าวัดที่อยู่ในสถานะอันตราย</v-list-item-title
+          >
         </v-list-item>
       </v-list>
     </v-card>
@@ -55,7 +61,7 @@
         v-show="warningCount >= 0"
         v-bind="props"
       >
-        <v-icon style="font-size: 2.5vh;">mdi-alert</v-icon>
+        <v-icon style="font-size: 2.5vh">mdi-alert</v-icon>
       </v-badge>
     </template>
 
@@ -73,9 +79,13 @@
           <template v-slot:prepend>
             <v-icon color="amber-darken-2">mdi-alert</v-icon>
           </template>
-          <v-list-item-title>{{ item.title }}: {{ item.value }} {{ item.unit }}</v-list-item-title>
+          <v-list-item-title
+            >{{ item.title }}: {{ item.value }}
+            {{ item.unit }}</v-list-item-title
+          >
           <v-list-item-subtitle>
-            เกณฑ์ปกติ: {{ item.normalLimits.min }} - {{ item.normalLimits.max }} {{ item.unit }}
+            เกณฑ์ปกติ: {{ item.normalLimits.min }} -
+            {{ item.normalLimits.max }} {{ item.unit }}
           </v-list-item-subtitle>
         </v-list-item>
         <v-list-item v-if="warningMeasurements.length === 0">
@@ -87,16 +97,16 @@
 </template>
 
 <script>
-import { measurementLimits_T } from '@/config/config.js';
-import '@/assets/colors.scss';
+import { measurementLimits_T } from "@/config/config.js"
+import "@/assets/colors.scss"
 
 export default {
   name: "AlertFunction",
   props: {
     tugboat: {
       type: Object,
-      required: true
-    }
+      required: true,
+    },
   },
 
   data() {
@@ -104,134 +114,144 @@ export default {
       showDangerMenu: false,
       showWarningMenu: false,
       measurementTitles: {
-        oilPressure: 'แรงดันน้ำมัน',
-        waterTemperature: 'อุณหภูมิน้ำ',
-        rpm: 'ความเร็วรอบ',
-        windSpeed: 'ความเร็วลม',
-        battery: 'แบตเตอรี่'
+        oilPressure: "แรงดันน้ำมัน",
+        waterTemperature: "อุณหภูมิน้ำ",
+        rpm: "ความเร็วรอบ",
+        windSpeed: "ความเร็วลม",
+        battery: "แบตเตอรี่",
       },
       measurementUnits: {
-        oilPressure: 'Bar',
-        waterTemperature: '°C',
-        rpm: 'RPM',
-        windSpeed: 'km/h',
-        battery: 'V'
-      }
-    };
+        oilPressure: "Bar",
+        waterTemperature: "°C",
+        rpm: "RPM",
+        windSpeed: "km/h",
+        battery: "V",
+      },
+    }
   },
 
   computed: {
     // ปรับปรุงส่วนของ dangerMeasurements computed property
     dangerMeasurements() {
-      const result = [];
-      
+      const result = []
+
       if (this.tugboat && this.tugboat.measurements) {
-        const measurements = this.tugboat.measurements;
-        
+        const measurements = this.tugboat.measurements
+
         // ตรวจสอบแต่ละค่าการวัด
         for (const key in measurements) {
-          if (Object.prototype.hasOwnProperty.call(measurements, key) && 
-              Object.prototype.hasOwnProperty.call(measurementLimits_T, key)) {
-            const value = measurements[key];
-            
+          if (
+            Object.prototype.hasOwnProperty.call(measurements, key) &&
+            Object.prototype.hasOwnProperty.call(measurementLimits_T, key)
+          ) {
+            const value = measurements[key]
+
             // ตรวจสอบว่า measurementLimits[key] และ measurementLimits[key].danger มีอยู่จริง
             if (measurementLimits_T[key] && measurementLimits_T[key].danger) {
-              const limits = measurementLimits_T[key].danger;
-              
+              const limits = measurementLimits_T[key].danger
+
               // ตรวจสอบว่า limits.min และ limits.max มีค่าหรือไม่
               if (limits.min !== undefined && limits.max !== undefined) {
                 if (value <= limits.min || value >= limits.max) {
                   // ตรวจสอบว่า normal limits มีอยู่จริง
-                  const normalMin = measurementLimits_T[key].normal?.min;
-                  const normalMax = measurementLimits_T[key].normal?.max;
-                  
+                  const normalMin = measurementLimits_T[key].normal?.min
+                  const normalMax = measurementLimits_T[key].normal?.max
+
                   result.push({
                     title: this.measurementTitles[key] || key,
                     value,
-                    unit: this.measurementUnits[key] || '',
+                    unit: this.measurementUnits[key] || "",
                     limits: {
-                      min: normalMin !== undefined ? normalMin : 'N/A',
-                      max: normalMax !== undefined ? normalMax : 'N/A'
-                    }
-                  });
+                      min: normalMin !== undefined ? normalMin : "N/A",
+                      max: normalMax !== undefined ? normalMax : "N/A",
+                    },
+                  })
                 }
               }
             }
           }
         }
       }
-      return result;
+      return result
     },
-    
+
     warningMeasurements() {
-      const result = [];
-      
+      const result = []
+
       if (this.tugboat && this.tugboat.measurements) {
-        const measurements = this.tugboat.measurements;
-        
+        const measurements = this.tugboat.measurements
+
         // ตรวจสอบแต่ละค่าการวัด
         for (const key in measurements) {
-          if (Object.prototype.hasOwnProperty.call(measurements, key) && 
-              Object.prototype.hasOwnProperty.call(measurementLimits_T, key)) {
-            const value = measurements[key];
-            
+          if (
+            Object.prototype.hasOwnProperty.call(measurements, key) &&
+            Object.prototype.hasOwnProperty.call(measurementLimits_T, key)
+          ) {
+            const value = measurements[key]
+
             // ตรวจสอบว่า properties ที่ต้องการมีอยู่จริง
-            if (measurementLimits_T[key] && 
-                measurementLimits_T[key].warning && 
-                measurementLimits_T[key].danger) {
-              
-              const warningLimits = measurementLimits_T[key].warning;
-              const dangerLimits = measurementLimits_T[key].danger;
-              
+            if (
+              measurementLimits_T[key] &&
+              measurementLimits_T[key].warning &&
+              measurementLimits_T[key].danger
+            ) {
+              const warningLimits = measurementLimits_T[key].warning
+              const dangerLimits = measurementLimits_T[key].danger
+
               // ตรวจสอบว่าค่า min และ max มีอยู่จริง
-              if (warningLimits.min !== undefined && warningLimits.max !== undefined &&
-                  dangerLimits.min !== undefined && dangerLimits.max !== undefined) {
-                
+              if (
+                warningLimits.min !== undefined &&
+                warningLimits.max !== undefined &&
+                dangerLimits.min !== undefined &&
+                dangerLimits.max !== undefined
+              ) {
                 // อยู่ในช่วง warning แต่ไม่อยู่ในช่วง danger
-                if ((value <= warningLimits.max && value >= warningLimits.min) && 
-                    !(value <= dangerLimits.min || value >= dangerLimits.max)) {
-                  
+                if (
+                  value <= warningLimits.max &&
+                  value >= warningLimits.min &&
+                  !(value <= dangerLimits.min || value >= dangerLimits.max)
+                ) {
                   // ตรวจสอบว่า normal limits มีอยู่จริง
-                  const normalMin = measurementLimits_T[key].normal?.min;
-                  const normalMax = measurementLimits_T[key].normal?.max;
-                  
+                  const normalMin = measurementLimits_T[key].normal?.min
+                  const normalMax = measurementLimits_T[key].normal?.max
+
                   result.push({
                     title: this.measurementTitles[key] || key,
                     value,
-                    unit: this.measurementUnits[key] || '',
+                    unit: this.measurementUnits[key] || "",
                     normalLimits: {
-                      min: normalMin !== undefined ? normalMin : 'N/A',
-                      max: normalMax !== undefined ? normalMax : 'N/A'
-                    }
-                  });
+                      min: normalMin !== undefined ? normalMin : "N/A",
+                      max: normalMax !== undefined ? normalMax : "N/A",
+                    },
+                  })
                 }
               }
             }
           }
         }
       }
-      
-      return result;
+
+      return result
     },
 
     dangerCount() {
-      return this.dangerMeasurements.length;
+      return this.dangerMeasurements.length
     },
-    
+
     warningCount() {
-      return this.warningMeasurements.length;
-    }
+      return this.warningMeasurements.length
+    },
   },
 
   methods: {
     closeDangerMenu() {
-      this.showDangerMenu = false;
+      this.showDangerMenu = false
     },
-    
+
     closeWarningMenu() {
-      this.showWarningMenu = false;
-    }
-  }
+      this.showWarningMenu = false
+    },
+  },
 }
 </script>
 
@@ -246,7 +266,7 @@ export default {
     border: 2px solid var(--red);
     color: var(--white);
     font-weight: 700;
-    font-family: 'Inter', sans-serif;
+    font-family: "Inter", sans-serif;
   }
 }
 
@@ -259,7 +279,7 @@ export default {
     border: 2px solid var(--yellow);
     color: var(--black);
     font-weight: 700;
-    font-family: 'Inter', sans-serif;
+    font-family: "Inter", sans-serif;
   }
 }
 </style>

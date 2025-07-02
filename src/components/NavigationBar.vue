@@ -1,10 +1,17 @@
 <template>
   <nav>
-    <v-app-bar color="#080F25" :height="$vuetify.display.width > 2560 ? 120 : 64">
-      <v-app-bar-nav-icon class="nav-icon" variant="text" @click.stop="!isVisitor && (drawer = !drawer)"></v-app-bar-nav-icon>
+    <v-app-bar
+      color="#080F25"
+      :height="$vuetify.display.width > 2560 ? 120 : 64"
+    >
+      <v-app-bar-nav-icon
+        class="nav-icon"
+        variant="text"
+        @click.stop="!isVisitor && (drawer = !drawer)"
+      ></v-app-bar-nav-icon>
       <v-row class="logo-container">
         <v-col v-if="!isVisitor" cols="8" sm="6" lg="2">
-          <router-link :to="{ name: 'Homepage'}">
+          <router-link :to="{ name: 'Homepage' }">
             <v-img
               :src="require('@/assets/Images/logo_navbar.png')"
               class="navbar-logo"
@@ -61,12 +68,13 @@
       :width="$vuetify.display.width > 2560 ? 800 : 400"
     >
       <v-list v-model:opened="open">
-        <v-list-item v-if="hasPermission('0101010000')"
-          prepend-icon="mdi-home" 
-          title="Home" 
+        <v-list-item
+          v-if="hasPermission('0101010000')"
+          prepend-icon="mdi-home"
+          title="Home"
           :to="{ name: 'Homepage' }"
           class="nav-icon"
-          style="padding: 0vw 1vw;"
+          style="padding: 0vw 1vw"
         ></v-list-item>
         <v-list-group value="Barge" v-if="hasPermission('0101010300')">
           <template v-slot:activator="{ props }">
@@ -76,7 +84,7 @@
               title="Barge"
               title-class="custom-title"
               class="nav-icon"
-              style="padding: 0vw 1vw;"
+              style="padding: 0vw 1vw"
             ></v-list-item>
           </template>
           <v-list-item
@@ -84,7 +92,7 @@
             title="Overview"
             :to="{ name: 'Barge' }"
             class="nav-icon"
-            style="padding: 0vw 1vw;"
+            style="padding: 0vw 1vw"
           ></v-list-item>
           <v-list-group
             v-for="(deviceGroup, typeDeviceName) in filteredBargeDevices"
@@ -97,75 +105,101 @@
                 prepend-icon="mdi-ship-wheel"
                 :title="deletePrefix(typeDeviceName)"
                 class="nav-icon"
-                style="padding: 0vw 1vw;"
+                style="padding: 0vw 1vw"
               ></v-list-item>
             </template>
             <v-list-item
               :title="`${deletePrefix(typeDeviceName)} Detail`"
-              :to="{ name: 'BargeDetail', params: { typeDeviceName: typeDeviceName } }"
+              :to="{
+                name: 'BargeDetail',
+                params: { typeDeviceName: typeDeviceName },
+              }"
             ></v-list-item>
             <v-list-item
               v-for="device in deviceGroup"
               :key="device.DeviceId"
               :title="device.DeviceLabel"
-              :to="{ name: 'GeneratorDetails', params: { deviceId: device.DeviceId } }"
+              :to="{
+                name: 'GeneratorDetails',
+                params: { deviceId: device.DeviceId },
+              }"
             ></v-list-item>
           </v-list-group>
         </v-list-group>
         <v-list-group value="Tugboat">
           <template v-slot:activator="{ props }">
-            <v-list-item v-if="hasPermission('0101010600')"
+            <v-list-item
+              v-if="hasPermission('0101010600')"
               v-bind="props"
               prepend-icon="mdi-ferry"
               title="Tugboat"
               class="nav-icon"
-              style="padding: 0vw 1vw;"
+              style="padding: 0vw 1vw"
             ></v-list-item>
           </template>
-          <v-list-item v-if="hasPermission('0101010500')"
+          <v-list-item
+            v-if="hasPermission('0101010500')"
             prepend-icon="mdi-format-list-bulleted"
             title="Overview"
             :to="{ name: 'Tugboat' }"
             class="nav-icon"
-            style="padding: 0vw 1vw;"
+            style="padding: 0vw 1vw"
           ></v-list-item>
-          <v-list-group value="Tugboat river going" v-if="hasPermission('0101010600')">
+          <v-list-group
+            value="Tugboat river going"
+            v-if="hasPermission('0101010600')"
+          >
             <template v-slot:activator="{ props }">
               <v-list-item
                 v-bind="props"
                 prepend-icon="mdi-ferry"
                 title="Tugboat river going"
                 class="nav-icon"
-                style="padding: 0vw 1vw;"
+                style="padding: 0vw 1vw"
               ></v-list-item>
             </template>
             <v-list-item
               v-for="device in filteredTugboatRiverDevices"
               :key="device.DeviceId"
               :title="deletePrefix(device.DeviceName)"
-              :to="{ name: 'TugboatDetail', params: { deviceId: device.DeviceId } }"
+              :to="{
+                name: 'TugboatDetail',
+                params: { deviceId: device.DeviceId },
+              }"
             ></v-list-item>
           </v-list-group>
-          <v-list-group value="Tugboat sea going" v-if="hasPermission('0101010600')">
+          <v-list-group
+            value="Tugboat sea going"
+            v-if="hasPermission('0101010600')"
+          >
             <template v-slot:activator="{ props }">
               <v-list-item
                 v-bind="props"
                 prepend-icon="mdi-ferry"
                 title="Tugboat sea going"
                 class="nav-icon"
-                style="padding: 0vw 1vw;"
+                style="padding: 0vw 1vw"
               ></v-list-item>
             </template>
             <v-list-item
               v-for="device in filteredTugboatSeaDevices"
               :key="device.DeviceId"
               :title="deletePrefix(device.DeviceName)"
-              :to="{ name: 'TugboatDetail', params: { deviceId: device.DeviceId } }"
+              :to="{
+                name: 'TugboatDetail',
+                params: { deviceId: device.DeviceId },
+              }"
             ></v-list-item>
           </v-list-group>
         </v-list-group>
-        <!-- <v-list-item v-if="hasPermission('0101010700')" prepend-icon="mdi-calendar" title="Job Tracking" class="nav-icon" style="padding: 0vw 1vw;" :to="{ name: 'RouteTracking' }"></v-list-item> -->
-        <v-list-item v-if="hasPermission('0101010700')" prepend-icon="mdi-map-marker-radius" title="Route Tracking" class="nav-icon" style="padding: 0vw 1vw;" :to="{ name: 'RouteTracking' }"></v-list-item>
+        <v-list-item
+          v-if="hasPermission('0101010700')"
+          prepend-icon="mdi-map-marker-radius"
+          title="Route Tracking"
+          class="nav-icon"
+          style="padding: 0vw 1vw"
+          :to="{ name: 'RouteTracking' }"
+        ></v-list-item>
         <v-list-group>
           <template v-slot:activator="{ props }">
             <v-list-item
@@ -174,17 +208,49 @@
               prepend-icon="mdi-chart-timeline-variant-shimmer"
               title="Report"
               class="nav-icon"
-              style="padding: 0vw 1vw;"
+              style="padding: 0vw 1vw"
             ></v-list-item>
           </template>
-          <v-list-item v-if="hasPermission('0101020200')" title="Notification Report" :to="{ name: 'NotificationReport' }"></v-list-item>
-          <v-list-item v-if="hasPermission('0101020100')" title="ChartHistorical Report" :to="{ name: 'HistoricalChart' }"></v-list-item>
-          <v-list-item v-if="hasPermission('0101020300')" title="Report on RPM and Speed and %Throttle Affected by Wind Speed of Tugboat" :to="{ name: 'WindSpeedImpactReport' }"></v-list-item>
-          <v-list-item v-if="hasPermission('0101020400')" title="Report on Tugboats Encountering Storms" :to="{ name: 'EncounteringStormsReport' }"></v-list-item>
-          <v-list-item v-if="hasPermission('0101020500')" title="Report on Fuel Rate per RPM for Evaluating Engine Efficiency of Motor Barge" :to="{ name: 'FuelRatePerRPMReport' }"></v-list-item>
-          <v-list-item v-if="hasPermission('0101020600')" title="Report on %Throttle vs. RPM vs. Fuel Rate" :to="{ name: 'ThrottleRPMFuelRateReport' }"></v-list-item>
-          <v-list-item v-if="hasPermission('0101020700')" title="Report on Daily Fuel Consumption for the Barge" :to="{ name: 'DailyFuelConsumtionReport' }"></v-list-item>
-          <v-list-item v-if="hasPermission('0101020800')" title="Report on Barge Tilt" :to="{ name: 'BargeTiltReport' }"></v-list-item>
+          <v-list-item
+            v-if="hasPermission('0101020200')"
+            title="Notification Report"
+            :to="{ name: 'NotificationReport' }"
+          ></v-list-item>
+          <v-list-item
+            v-if="hasPermission('0101020100')"
+            title="ChartHistorical Report"
+            :to="{ name: 'HistoricalChart' }"
+          ></v-list-item>
+          <v-list-item
+            v-if="hasPermission('0101020300')"
+            title="Report on RPM and Speed and %Throttle Affected by Wind Speed of Tugboat"
+            :to="{ name: 'WindSpeedImpactReport' }"
+          ></v-list-item>
+          <v-list-item
+            v-if="hasPermission('0101020400')"
+            title="Report on Tugboats Encountering Storms"
+            :to="{ name: 'EncounteringStormsReport' }"
+          ></v-list-item>
+          <v-list-item
+            v-if="hasPermission('0101020500')"
+            title="Report on Fuel Rate per RPM for Evaluating Engine Efficiency of Motor Barge"
+            :to="{ name: 'FuelRatePerRPMReport' }"
+          ></v-list-item>
+          <v-list-item
+            v-if="hasPermission('0101020600')"
+            title="Report on %Throttle vs. RPM vs. Fuel Rate"
+            :to="{ name: 'ThrottleRPMFuelRateReport' }"
+          ></v-list-item>
+          <v-list-item
+            v-if="hasPermission('0101020700')"
+            title="Report on Daily Fuel Consumption for the Barge"
+            :to="{ name: 'DailyFuelConsumtionReport' }"
+          ></v-list-item>
+          <v-list-item
+            v-if="hasPermission('0101020800')"
+            title="Report on Barge Tilt"
+            :to="{ name: 'BargeTiltReport' }"
+          ></v-list-item>
         </v-list-group>
         <v-list-group>
           <template v-slot:activator="{ props }">
@@ -194,11 +260,19 @@
               prepend-icon="mdi-account-cog"
               title="Setting"
               class="nav-icon"
-              style="padding: 0vw 1vw;"
+              style="padding: 0vw 1vw"
             ></v-list-item>
           </template>
-          <v-list-item v-if="hasPermission('0101030400')" title="Device Management" :to="{ name: 'DeviceManagementList' }"></v-list-item>
-          <v-list-item v-if="hasPermission('0101030600')" title="Member Management" :to="{ name: 'MemberManagementList' }"></v-list-item>
+          <v-list-item
+            v-if="hasPermission('0101030400')"
+            title="Device Management"
+            :to="{ name: 'DeviceManagementList' }"
+          ></v-list-item>
+          <v-list-item
+            v-if="hasPermission('0101030600')"
+            title="Member Management"
+            :to="{ name: 'MemberManagementList' }"
+          ></v-list-item>
         </v-list-group>
       </v-list>
     </v-navigation-drawer>
@@ -206,183 +280,191 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { computed, inject, onMounted, ref, watch } from "vue"
+import { useRouter } from "vue-router"
 
-const $api = inject('$api');
-const router = useRouter();
-const drawer = ref(false);
-const open = ref(['Barge', 'Tugboat']);
-const memberName = ref('Username');
-const devices = ref([]);
-const bargeDevices = ref({});
-const tugboatRiverDevices = ref([]);
-const tugboatSeaDevices = ref([]);
-const permissions = ref([]);
-const isPermissionLoaded = ref(false);
+const $api = inject("$api")
+const router = useRouter()
+const drawer = ref(false)
+const open = ref(["Barge", "Tugboat"])
+const memberName = ref("Username")
+const devices = ref([])
+const bargeDevices = ref({})
+const tugboatRiverDevices = ref([])
+const tugboatSeaDevices = ref([])
+const permissions = ref([])
+const isPermissionLoaded = ref(false)
 
 const deletePrefix = (name) => {
-  return name.replace(/Barge|Tugboat/gi, '').trim();
-};
+  return name.replace(/Barge|Tugboat/gi, "").trim()
+}
 
 const loadPermissions = async () => {
-  const menuPermission = localStorage.getItem('menuPermission');
+  const menuPermission = localStorage.getItem("menuPermission")
   if (menuPermission) {
-    permissions.value = JSON.parse(menuPermission);
-    isPermissionLoaded.value = true;
+    permissions.value = JSON.parse(menuPermission)
+    isPermissionLoaded.value = true
   }
-};
+}
 
 const hasPermission = (menuId) => {
-  if (!isPermissionLoaded.value) return false;
-  const found = permissions.value.find(p => p.MenuId === menuId);
+  if (!isPermissionLoaded.value) return false
+  const found = permissions.value.find((p) => p.MenuId === menuId)
   // console.log(found, found?.IsActive);
-  return found?.IsActive;
-};
+  return found?.IsActive
+}
 
 const userPosition = computed(() => {
-  const memberData = localStorage.getItem('member');
-  return memberData ? JSON.parse(memberData).Position : null;
-});
+  const memberData = localStorage.getItem("member")
+  return memberData ? JSON.parse(memberData).Position : null
+})
 
 const isVisitor = computed(() => {
-  const position = userPosition.value;
-  return position === 'Visitor';
-});
+  const position = userPosition.value
+  return position === "Visitor"
+})
 
 const isAdmin = computed(() => {
-  const position = userPosition.value;
-  // return position === 'Admin' || position === 'User' || position === 'Integration' || false;
-  return position === 'Admin' || position === 'User' || position === 'Integration' || false;
-});
+  const position = userPosition.value
+  return (
+    position === "Admin" ||
+    position === "User" ||
+    position === "Integration" ||
+    false
+  )
+})
 
 const filteredBargeDevices = computed(() => {
-  if (userPosition.value === 'Barge Supervisor') {
+  if (userPosition.value === "Barge Supervisor") {
     return bargeDevices.value
   }
-  if (!userPosition.value && !isAdmin.value) return {};
+  if (!userPosition.value && !isAdmin.value) return {}
 
   return Object.fromEntries(
-    Object.entries(bargeDevices.value).filter(([typeDeviceName]) => 
-      isAdmin.value || userPosition.value.includes(typeDeviceName)
-    )
-  )  
-});
+    Object.entries(bargeDevices.value).filter(
+      ([typeDeviceName]) =>
+        isAdmin.value || userPosition.value.includes(typeDeviceName),
+    ),
+  )
+})
 
 const filteredTugboatRiverDevices = computed(() => {
-  if (userPosition.value === 'Tugboat Supervisor') {
+  if (userPosition.value === "Tugboat Supervisor") {
     return tugboatRiverDevices.value
   }
-  if (!userPosition.value && !isAdmin.value) return [];
+  if (!userPosition.value && !isAdmin.value) return []
 
-  return tugboatRiverDevices.value.filter(device => 
-    userPosition.value?.includes(device.DeviceLabel) || isAdmin.value
-  );
-});
+  return tugboatRiverDevices.value.filter(
+    (device) =>
+      userPosition.value?.includes(device.DeviceLabel) || isAdmin.value,
+  )
+})
 
 const filteredTugboatSeaDevices = computed(() => {
-  if (userPosition.value === 'Tugboat Supervisor') {
+  if (userPosition.value === "Tugboat Supervisor") {
     return tugboatSeaDevices.value
   }
 
-  if (!userPosition.value && !isAdmin.value) return [];
+  if (!userPosition.value && !isAdmin.value) return []
 
-  return tugboatSeaDevices.value.filter(device => 
-    userPosition.value?.includes(device.DeviceLabel) || isAdmin.value
-  );
-});
+  return tugboatSeaDevices.value.filter(
+    (device) =>
+      userPosition.value?.includes(device.DeviceLabel) || isAdmin.value,
+  )
+})
 
 const fetchDeviceList = async () => {
   try {
-    const response = await $api.put('/device/GetDeviceListProfile', {
-      DeviceId: ''
-    });
-    devices.value = response.data;
-    groupDevicesByType();
+    const response = await $api.put("/device/GetDeviceListProfile", {
+      DeviceId: "",
+    })
+    devices.value = response.data
+    groupDevicesByType()
   } catch (error) {
-    console.error('Failed to fetch device list:', error);
+    console.error("Failed to fetch device list:", error)
   }
-};
+}
 
 const excludedDeviceNames = [
-  'Barge CRANE 1',
-  'Barge CRANE 2',
-  'Barge CRANE 3',
-  'Barge Master'
-];
+  "Barge CRANE 1",
+  "Barge CRANE 2",
+  "Barge CRANE 3",
+  "Barge Master",
+]
 
 const groupDevicesByType = () => {
-  const bargeGrouped = {};
-  const tugboatRiver = [];
-  const tugboatSea = [];
+  const bargeGrouped = {}
+  const tugboatRiver = []
+  const tugboatSea = []
 
-  devices.value.forEach(device => {
+  devices.value.forEach((device) => {
     if (!excludedDeviceNames.includes(device.DeviceName)) {
-      if (device.TypeVehicle === 'Barge') {
-        const typeDeviceName = device.TypeDevicename || 'Unknown';
+      if (device.TypeVehicle === "Barge") {
+        const typeDeviceName = device.TypeDevicename || "Unknown"
         if (!bargeGrouped[typeDeviceName]) {
-          bargeGrouped[typeDeviceName] = [];
+          bargeGrouped[typeDeviceName] = []
         }
-        bargeGrouped[typeDeviceName].push(device);
-      } else if (device.TypeVehicle === 'Tugboat river going') {
-        tugboatRiver.push(device);
-      } else if (device.TypeVehicle === 'Tugboat sea going') {
-        tugboatSea.push(device);
+        bargeGrouped[typeDeviceName].push(device)
+      } else if (device.TypeVehicle === "Tugboat river going") {
+        tugboatRiver.push(device)
+      } else if (device.TypeVehicle === "Tugboat sea going") {
+        tugboatSea.push(device)
       }
     }
-  });
+  })
 
-  bargeDevices.value = bargeGrouped;
-  tugboatRiverDevices.value = tugboatRiver;
-  tugboatSeaDevices.value = tugboatSea;
-};
+  bargeDevices.value = bargeGrouped
+  tugboatRiverDevices.value = tugboatRiver
+  tugboatSeaDevices.value = tugboatSea
+}
 
 const accountName = async () => {
-  const memberData = localStorage.getItem('member');
+  const memberData = localStorage.getItem("member")
   if (memberData) {
-    const member = JSON.parse(memberData);
-    memberName.value = `${member.MemberFirstnameEng} ${member.MemberLastnameEng}`;
+    const member = JSON.parse(memberData)
+    memberName.value = `${member.MemberFirstnameEng} ${member.MemberLastnameEng}`
   }
-};
+}
 
 const logout = () => {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('member');
-  localStorage.removeItem('menuPermission');
-  router.push('/login')
+  localStorage.removeItem("accessToken")
+  localStorage.removeItem("member")
+  localStorage.removeItem("menuPermission")
+  router
+    .push("/login")
     .then(() => {
-      console.log('Logged out successfully');
+      console.log("Logged out successfully")
     })
-    .catch(err => {
-      console.error('Logout redirect error:', err);
-    });
-};
+    .catch((err) => {
+      console.error("Logout redirect error:", err)
+    })
+}
 
 watch(devices, () => {
-  drawer.value = false;
-});
+  drawer.value = false
+})
 
-onMounted(async() => {
-  await accountName();
-  await fetchDeviceList();
-  await loadPermissions();
-});
+onMounted(async () => {
+  await accountName()
+  await fetchDeviceList()
+  await loadPermissions()
+})
 </script>
 
 <style lang="scss" scoped>
 .material-symbols-rounded {
   font-variation-settings:
-  'FILL' 1,
-  'wght' 400,
-  'GRAD' 0,
-  'opsz' 24
+    "FILL" 1,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
 }
 
 .icon {
   font-size: 3vh;
-  color: #FFFFFF;
+  color: #ffffff;
 
-  @media(min-width: 2560px) {
+  @media (min-width: 2560px) {
     margin-right: 1vw;
   }
 }
@@ -412,14 +494,14 @@ p {
 }
 
 :deep(.v-list-item-title) {
-  @media(min-width: 2560px) {
+  @media (min-width: 2560px) {
     font-size: 1.5vh !important;
     padding: 1vh;
   }
 }
 
 .nav-icon {
-  @media(min-width: 2560px) {
+  @media (min-width: 2560px) {
     font-size: 1.5vh;
     padding: 0vw 1.5vw;
   }

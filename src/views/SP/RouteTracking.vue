@@ -1,18 +1,21 @@
 <template>
-  <v-app style="background-color: #F7F9FC;">
+  <v-app style="background-color: #f7f9fc">
     <NavigationBar />
     <div class="top-space"></div>
     <div class="page-container">
       <div class="filter-container">
-        <TugboatFilter 
-          @boat-selected="updateSelectedBoats" 
+        <TugboatFilter
+          @boat-selected="updateSelectedBoats"
           @tugboat-data-loaded="handleTugboatDataLoaded"
           ref="tugboatFilter"
         />
       </div>
       <div class="map-container">
         <div id="map" class="map">
-          <v-img :src="require('@/assets/Icons/compass_map.svg')" class="compass"></v-img>
+          <v-img
+            :src="require('@/assets/Icons/compass_map.svg')"
+            class="compass"
+          ></v-img>
         </div>
       </div>
     </div>
@@ -20,148 +23,160 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, inject, nextTick } from 'vue';
-import NavigationBar from "@/components/NavigationBar.vue";
-import TugboatFilter from "@/components/TugboatDetails/TugboatFilter.vue";
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import { useRouter } from 'vue-router';
+import { ref, onMounted, onUnmounted, inject, nextTick } from "vue"
+import NavigationBar from "@/components/NavigationBar.vue"
+import TugboatFilter from "@/components/TugboatDetails/TugboatFilter.vue"
+import L from "leaflet"
+import "leaflet/dist/leaflet.css"
+import { useRouter } from "vue-router"
 
-const $api = inject('$api');
-const $api_vessel = inject('$api_vessel');
-const map = ref(null);
-const router = useRouter();
-const boatMarkers = ref([]);
-const selectedBoats = ref([]);
-const tugboatData = ref({});
-const locationUpdateInterval = ref(null);
-// let intervalId = null; 
+const $api = inject("$api")
+const $api_vessel = inject("$api_vessel")
+const map = ref(null)
+const router = useRouter()
+const boatMarkers = ref([])
+const selectedBoats = ref([])
+const tugboatData = ref({})
+const locationUpdateInterval = ref(null)
 
 const initialize = async () => {
-  const menuPermission = localStorage.getItem('menuPermission');
+  const menuPermission = localStorage.getItem("menuPermission")
   if (!menuPermission) {
-    return router.push('/login');
+    return router.push("/login")
   }
 
-  const permissionList = JSON.parse(menuPermission);
-  const permission = permissionList.find(item => item.MenuId === '0101010700');
+  const permissionList = JSON.parse(menuPermission)
+  const permission = permissionList.find((item) => item.MenuId === "0101010700")
 
   if (!permission || !permission.IsActive) {
-    return router.push('/login');
+    return router.push("/login")
   }
-};
+}
 
 const initMap = () => {
-  map.value = L.map('map').setView([13.7563, 100.5018], 8);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  map.value = L.map("map").setView([13.7563, 100.5018], 8)
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 14,
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map.value);
-};
+    attribution: "© OpenStreetMap contributors",
+  }).addTo(map.value)
+}
 
 const handleTugboatDataLoaded = (data) => {
   tugboatData.value = data.reduce((acc, boat) => {
-    acc[boat.DeviceId] = boat;
-    return acc;
-  }, {});
-};
+    acc[boat.DeviceId] = boat
+    return acc
+  }, {})
+}
 
-const fetchBoatLocations = async (deviceNames) => {
+const fetchBoatLocations = async (deviceLabels) => {
   try {
+    // console.log('deviceNames', deviceNames);
+
     const response = await $api.post(
-      '/MachineStatus/getLocationFormGPSTugboat',
-      { devicename: deviceNames }
-    );
-    return response.data;
+      "/MachineStatus/getLocationFormGPSTugboat",
+      { devicename: deviceLabels },
+    )
+
+    console.log("Boat locations fetched:", response.data)
+    return response.data
   } catch (error) {
-    console.error('Error fetching boat locations:', error);
-    return [];
+    console.error("Error fetching boat locations:", error)
+    return []
   }
-};
+}
 
 const fetchDeviceDetails = async (deviceId) => {
   try {
-    const response = await $api.get(`/MachineStatus/GetDeviceByDeviceId?deviceid=${deviceId}`);
-    const measurements = response.data[0]?.Mesurement || [];
-    const desiredMeasurements = ['Speed', 'RPM', 'Wind-Speed', '%Throttle'];
-    
+    const response = await $api.get(
+      `/MachineStatus/GetDeviceByDeviceId?deviceid=${deviceId}`,
+    )
+    const measurements = response.data[0]?.Mesurement || []
+    const desiredMeasurements = ["Speed", "RPM", "Wind-Speed", "%Throttle"]
+
     const measurementData = measurements.reduce((acc, item) => {
       if (desiredMeasurements.includes(item.measurementname)) {
         acc[item.measurementname] = {
-          lastValue: item.lastValue || 'N/A',
-          unit: item.measurementunit || ''
-        };
+          lastValue: item.lastValue || "N/A",
+          unit: item.measurementunit || "",
+        }
       }
-      return acc;
-    }, {});
+      return acc
+    }, {})
 
     return {
       ...response.data[0],
-      measurements: measurementData
-    };
+      measurements: measurementData,
+    }
   } catch (error) {
-    console.error('Error fetching device details:', error);
-    return {};
+    console.error("Error fetching device details:", error)
+    return {}
   }
-};
+}
 
 const fetchTransportShip = async (shipName) => {
   try {
     const response = await $api_vessel.get(
-      `/ship-transport-ships-product?ship_name=${shipName}`
-    );
-    const transportShipName = response.data?.data?.data?.[0]?.job_transport_ships?.transport_ship?.name || null;
-    console.log(transportShipName);
-    return transportShipName;
-    
+      `/ship-transport-ships-product?ship_name=${shipName}`,
+    )
+    const transportShipName =
+      response.data?.data?.data?.[0]?.job_transport_ships?.transport_ship
+        ?.name || null
+    console.log(transportShipName)
+    return transportShipName
   } catch (error) {
-    console.error('Error fetching transport ship:', error);
-    return null;
+    console.error("Error fetching transport ship:", error)
+    return null
   }
-};
+}
 
 const fetchTransportShip_NoProduct = async (shipName) => {
   try {
     const response = await $api_vessel.get(
-      `/ship-transport-ships-no-product??ship_name=${shipName}`
-    );
-    const transportShipName_NoProduct = response.data?.data?.data?.[0]?.job_transport_ships?.transport_ship?.name || null;
-    console.log(transportShipName_NoProduct);
-    return transportShipName_NoProduct;
-    
+      `/ship-transport-ships-no-product??ship_name=${shipName}`,
+    )
+    const transportShipName_NoProduct =
+      response.data?.data?.data?.[0]?.job_transport_ships?.transport_ship
+        ?.name || null
+    // console.log(transportShipName_NoProduct);
+    return transportShipName_NoProduct
   } catch (error) {
-    console.error('Error fetching transport ship:', error);
-    return null;
+    console.error("Error fetching transport ship:", error)
+    return null
   }
-};
+}
 
-const DEFAULT_POSITION = [13.166172, 100.814708];
+const DEFAULT_POSITION = [13.166172, 100.814708]
 
 const createBoatMarker = (boatInfo) => {
-  const latObj = boatInfo.value?.find(v => v.Name === 'Latitude');
-  const lngObj = boatInfo.value?.find(v => v.Name === 'Longitude');
-  
-  const lat = latObj ? parseFloat(latObj.Value) : DEFAULT_POSITION[0];
-  const lng = lngObj ? parseFloat(lngObj.Value) : DEFAULT_POSITION[1];
-  
-  const status = boatInfo.status || 'Unknown';
-  const deviceId = boatInfo.DeviceId;
+  const latObj = boatInfo.value?.find((v) => v.Name === "Latitude")
+  const lngObj = boatInfo.value?.find((v) => v.Name === "Longitude")
+
+  const lat = latObj ? parseFloat(latObj.Value) : DEFAULT_POSITION[0]
+  const lng = lngObj ? parseFloat(lngObj.Value) : DEFAULT_POSITION[1]
+
+  const status = boatInfo.status || "Unknown"
+  const deviceId = boatInfo.DeviceId
 
   const boatIcon = L.divIcon({
-    className: 'custom-boat-icon',
-    html: `<div style="color: ${getStatusColor(status)}; ">
+    className: "custom-boat-icon",
+    html: `<div style="color: ${getStatusColor(status)}; 
+              text-shadow: 
+                -1px -1px 0 #fff,  
+                1px -1px 0 #fff,
+                -1px 1px 0 #fff,
+                1px 1px 0 #fff;">
              <i class="mdi mdi-ferry" style="font-size: 3vh;"></i>
            </div>`,
-  });
+  })
 
-  const marker = L.marker([lat, lng], { icon: boatIcon })
-    .bindPopup(`
+  const marker = L.marker([lat, lng], { icon: boatIcon }).bindPopup(
+    `
       <div style="width: 50vh; padding: 1vh; font-family: 'Inter', sans-serif">
-        <h3 style="font-size: 2vh; margin-bottom: 10px; border-bottom: 1px solid #9F9F9F; padding-bottom: 1vh;">
-          ${deletePrefix(boatInfo.DeviceName)}
+        <h3 style="font-size: 2vh; font-family: 'Sarabun', sans-serif; margin-bottom: 10px; border-bottom: 1px solid #9F9F9F; padding-bottom: 1vh;">
+          ${deletePrefix(boatInfo.DeviceLabel)}
         </h3>
         
-        ${(!latObj || !lngObj) ? '<p style="color: red; margin: 5px 0;"><i class="mdi mdi-alert" style="margin-right: 5px;"></i>ตำแหน่งไม่พร้อมใช้งาน</p>' : ''}
+        ${!latObj || !lngObj ? '<p style="color: red; margin: 5px 0;"><i style="margin-right: 5px;">Position is not valid</i></p>' : ""}
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 16px">
           <div id="boat-measurements-left-${deviceId}" style="opacity: 0.5;">
@@ -205,177 +220,193 @@ const createBoatMarker = (boatInfo) => {
           </p>
         </div>
       </div>
-    `, {
-      maxWidth: 1200
-    });
+    `,
+    {
+      maxWidth: 1200,
+    },
+  )
 
-    marker.on('click', async () => {
-      const shipName = tugboatData.value[deviceId]?.Note || tugboatData.value[deviceId]?.DeviceName;
+  marker.on("click", async () => {
+    const shipName =
+      tugboatData.value[deviceId]?.Note ||
+      tugboatData.value[deviceId]?.DeviceName
 
-      const [transportShip, transportShipNoProduct, deviceDetails] = await Promise.all([
+    const [transportShip, transportShipNoProduct, deviceDetails] =
+      await Promise.all([
         fetchTransportShip(shipName),
         fetchTransportShip_NoProduct(shipName),
-        fetchDeviceDetails(deviceId)
-      ]);
+        fetchDeviceDetails(deviceId),
+      ])
 
-      if (marker.isPopupOpen()) {
-        // อัปเดตข้อมูลเรือขนส่งที่มีสินค้า
-        const transportShipNameDiv = document.getElementById(`transport-ship-name-${deviceId}`);
-        if (transportShipNameDiv) {
-          transportShipNameDiv.textContent = transportShip || 'N/A';
-        }
+    if (marker.isPopupOpen()) {
+      const transportShipNameDiv = document.getElementById(
+        `transport-ship-name-${deviceId}`,
+      )
+      if (transportShipNameDiv) {
+        transportShipNameDiv.textContent = transportShip || "N/A"
+      }
 
-        const transportShipNoProductDiv = document.getElementById(`transport-ship-no-product-name-${deviceId}`);
-        if (transportShipNoProductDiv) {
-          transportShipNoProductDiv.textContent = transportShipNoProduct || 'N/A';
-        }
+      const transportShipNoProductDiv = document.getElementById(
+        `transport-ship-no-product-name-${deviceId}`,
+      )
+      if (transportShipNoProductDiv) {
+        transportShipNoProductDiv.textContent = transportShipNoProduct || "N/A"
+      }
 
-        const leftDiv = document.getElementById(`boat-measurements-left-${deviceId}`);
-        const rightDiv = document.getElementById(`boat-measurements-right-${deviceId}`);
-      
+      const leftDiv = document.getElementById(
+        `boat-measurements-left-${deviceId}`,
+      )
+      const rightDiv = document.getElementById(
+        `boat-measurements-right-${deviceId}`,
+      )
+
       if (leftDiv && rightDiv) {
-        leftDiv.style.opacity = '1';
-        rightDiv.style.opacity = '1';
-        
+        leftDiv.style.opacity = "1"
+        rightDiv.style.opacity = "1"
+
         leftDiv.innerHTML = `
           <p style="margin: 5px 0; font-family: 'Inter', sans-serif; font-size: 1.5vh;">
             <i class="mdi mdi-speedometer" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh"></i>
             <strong style="color: #9F9F9F;">Speed:</strong> ${
               deviceDetails.measurements?.Speed?.lastValue
-                ? (parseFloat(deviceDetails.measurements?.Speed.lastValue) / 10).toFixed(2)
-                : 'N/A'
-            } ${deviceDetails.measurements?.Speed?.unit || ''}
+                ? (
+                    parseFloat(deviceDetails.measurements?.Speed.lastValue) / 10
+                  ).toFixed(2)
+                : "N/A"
+            } ${deviceDetails.measurements?.Speed?.unit || ""}
           </p>
           <p style="margin: 5px 0; font-family: 'Inter', sans-serif; font-size: 1.5vh;">
             <i class="mdi mdi-weather-windy" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh"></i>
             <strong style="color: #9F9F9F;">Wind Speed:</strong> ${
-              deviceDetails.measurements?.['Wind-Speed']?.lastValue
-                ? parseFloat(deviceDetails.measurements['Wind-Speed']?.lastValue).toFixed(2)
-                : 'N/A'
-              } ${deviceDetails.measurements?.['Wind-Speed']?.unit || ''}
+              deviceDetails.measurements?.["Wind-Speed"]?.lastValue
+                ? parseFloat(
+                    deviceDetails.measurements["Wind-Speed"]?.lastValue,
+                  ).toFixed(2)
+                : "N/A"
+            } ${deviceDetails.measurements?.["Wind-Speed"]?.unit || ""}
           </p>
-        `;
-        
+        `
+
         rightDiv.innerHTML = `
           <p style="margin: 5px 0; font-family: 'Inter', sans-serif; font-size: 1.5vh;">
             <i class="mdi mdi-gauge" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh"></i>
             <strong style="color: #9F9F9F;">RPM:</strong> ${
               deviceDetails.measurements?.RPM?.lastValue
-                ? parseFloat(deviceDetails.measurements?.RPM.lastValue).toFixed(2)
-                : 'N/A'
-              } ${deviceDetails.measurements?.RPM?.unit || ''}
+                ? parseFloat(deviceDetails.measurements?.RPM.lastValue).toFixed(
+                    2,
+                  )
+                : "N/A"
+            } ${deviceDetails.measurements?.RPM?.unit || ""}
           </p>
           <p style="margin: 5px 0; font-family: 'Inter', sans-serif; font-size: 1.5vh;">
             <i class="mdi mdi-speedometer-medium" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh"></i>
             <strong style="color: #9F9F9F;">%Throttle:</strong> ${
-              deviceDetails.measurements?.['%Throttle']?.lastValue 
-                ? parseFloat(deviceDetails.measurements['%Throttle']?.lastValue).toFixed(2)
-                : 'N/A'
-              } ${deviceDetails.measurements?.['%Throttle']?.unit || ''}
+              deviceDetails.measurements?.["%Throttle"]?.lastValue
+                ? parseFloat(deviceDetails.measurements["%Throttle"]?.lastValue)
+                : "N/A"
+            } ${deviceDetails.measurements?.["%Throttle"]?.unit || ""}
           </p>
-        `;
+        `
       }
     }
-  });
-  return marker;
-};
+  })
+  return marker
+}
 
 const updateMapMarkers = async () => {
   if (!map.value || !map.value._container) {
-    console.warn('Map not initialized or container missing');
-    return;
+    console.warn("Map not initialized or container missing")
+    return
   }
-  boatMarkers.value.forEach(marker => map.value.removeLayer(marker));
-  boatMarkers.value = [];
+  boatMarkers.value.forEach((marker) => map.value.removeLayer(marker))
+  boatMarkers.value = []
 
-  if (selectedBoats.value.length === 0) return;
+  if (selectedBoats.value.length === 0) return
 
   const selectedBoatNames = selectedBoats.value
-    .map(id => tugboatData.value[id]?.DeviceName)
-    .filter(Boolean);
+    .map((id) => tugboatData.value[id]?.DeviceLabel)
+    .filter(Boolean)
 
-  if (selectedBoatNames.length === 0) return;
+  if (selectedBoatNames.length === 0) return
 
-  const locations = await fetchBoatLocations(selectedBoatNames);
+  const locations = await fetchBoatLocations(selectedBoatNames)
+  console.log("Fetched locations:", locations)
 
-  selectedBoats.value.forEach(boatId => {
-    const boatInfo = tugboatData.value[boatId];
+  selectedBoats.value.forEach((boatId) => {
+    const boatInfo = tugboatData.value[boatId]
     if (boatInfo) {
-      const locationData = locations.find(loc => loc.DeviceName === boatInfo.DeviceName);
+      const locationData = locations.find(
+        (loc) => loc.DeviceLabel === boatInfo.DeviceLabel,
+      )
+      console.log("Location data for boat:", boatInfo.DeviceLabel, locationData)
+
       const marker = createBoatMarker({
         ...boatInfo,
         value: locationData?.value || [],
-        status: locationData?.status || 'Unknown'
-      });
+        status: locationData?.status || "Unknown",
+      })
       if (marker) {
-        marker.addTo(map.value);
-        boatMarkers.value.push(marker);
+        marker.addTo(map.value)
+        boatMarkers.value.push(marker)
       }
     }
-  });
+  })
 
   if (boatMarkers.value.length > 0) {
-    const group = L.featureGroup(boatMarkers.value);
-    map.value.fitBounds(group.getBounds(), { padding: [50, 50] });
+    const group = L.featureGroup(boatMarkers.value)
+    map.value.fitBounds(group.getBounds(), { padding: [50, 50] })
   }
-};
+}
 
 const deletePrefix = (name) => {
-  return name.replace(/Barge|Tugboat/gi, '').trim();
-};
+  return name.replace(/Barge|Tugboat/gi, "").trim()
+}
 
 const getStatusColor = (status) => {
   switch (status) {
-    case 'Running': return '#009688';
-    case 'Maintenance': return '#DC2B2B';
-    case 'Pending': return '#FAC12A';
-    default: return '#9E9E9E';
+    case "Running":
+      return "#009688"
+    case "Maintenance":
+      return "#DC2B2B"
+    case "Pending":
+      return "#FAC12A"
+    default:
+      return "#9E9E9E"
   }
-};
+}
 
 const updateSelectedBoats = (boats) => {
-  selectedBoats.value = boats;
-  updateMapMarkers();
-};
+  selectedBoats.value = boats
+  updateMapMarkers()
+}
 
-// const fetchDataWithInterval = async () => {
-//   await fetchTugboatRiver();
-//   await fetchTugboatSea();
-// };
+onMounted(async () => {
+  await initialize()
+  await nextTick()
+  initMap()
 
-// const startDataInterval = () => {intervalId = setInterval(fetchDataWithInterval, 2 * 60 * 1000);};
-
-// const stopDataInterval = () => {
-//   if (intervalId) {
-//     clearInterval(intervalId);
-//     intervalId = null;
-//   }
-// };
-
-onMounted(async() => {
-  await initialize();
-  await nextTick();
-  initMap();
-  
-  locationUpdateInterval.value = setInterval(() => {
-    if (selectedBoats.value.length > 0) {
-      updateMapMarkers();
-    }
-  }, 2 * 60 * 1000);
-});
+  locationUpdateInterval.value = setInterval(
+    () => {
+      if (selectedBoats.value.length > 0) {
+        updateMapMarkers()
+      }
+    },
+    2 * 60 * 1000,
+  )
+})
 
 onUnmounted(() => {
   if (locationUpdateInterval.value) {
-    clearInterval(locationUpdateInterval.value);
+    clearInterval(locationUpdateInterval.value)
   }
   if (window.showFullDetails) {
-    delete window.showFullDetails;
+    delete window.showFullDetails
   }
   if (map.value) {
-    map.value.remove();
-    map.value = null;
+    map.value.remove()
+    map.value = null
   }
-});
+})
 </script>
 
 <style scoped>
@@ -412,8 +443,8 @@ onUnmounted(() => {
 
 .compass {
   position: absolute;
-  z-index: 500; 
-  width: 15vh; 
+  z-index: 500;
+  width: 15vh;
   top: 32px;
   right: 32px;
 }

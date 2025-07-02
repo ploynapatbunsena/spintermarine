@@ -9,8 +9,12 @@
         </v-row>
         <v-row>
           <v-col cols="6" class="d-flex align-center">
-            <p class="value">{{ measurements?.['Total Fuel ALL']?.value || '0' }}</p>
-            <p class="unit">{{ measurements?.['Total Fuel ALL']?.unit || 'L' }}</p>
+            <p class="value">
+              {{ measurements?.["Total Fuel ALL"]?.value || "0" }}
+            </p>
+            <p class="unit">
+              {{ measurements?.["Total Fuel ALL"]?.unit || "L" }}
+            </p>
           </v-col>
         </v-row>
         <v-row>
@@ -20,8 +24,10 @@
         </v-row>
         <v-row>
           <v-col cols="6" class="d-flex align-center">
-            <p class="value">{{ measurements?.['Fuel Rate']?.value || '0' }}</p>
-            <p class="unit">{{ measurements?.['Fuel Rate']?.unit || 'L/hr' }}</p>
+            <p class="value">{{ measurements?.["Fuel Rate"]?.value || "0" }}</p>
+            <p class="unit">
+              {{ measurements?.["Fuel Rate"]?.unit || "L/hr" }}
+            </p>
           </v-col>
         </v-row>
       </v-col>
@@ -37,13 +43,12 @@
 </template>
 
 <script setup>
-
 defineProps({
   measurements: {
     type: Object,
     required: true,
   },
-});
+})
 </script>
 
 <style lang="scss" scoped>
@@ -70,7 +75,7 @@ defineProps({
 }
 
 .value {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 6vh;
   font-weight: 600;
   margin-right: 2vw;

@@ -13,13 +13,15 @@
               <p class="wind-title">Wind Speed</p>
             </v-col>
             <v-col cols="6">
-              <v-img 
+              <v-img
                 :src="require('@/assets/Icons/wind_speed.svg')"
                 class="wind-speed-icon"
               ></v-img>
             </v-col>
             <v-col cols="6">
-              <p class="detail">{{ windSpeed.toFixed(2) }} {{ measurementUnit }}</p>
+              <p class="detail">
+                {{ windSpeed.toFixed(2) }} {{ measurementUnit }}
+              </p>
             </v-col>
           </v-row>
         </v-card>
@@ -29,20 +31,24 @@
               <p class="wind-title">Wind Direction</p>
             </v-col>
             <v-col cols="6" class="compass-container">
-              <v-img 
-                :src="require('@/assets/Icons/compass_scale02.svg')" 
+              <v-img
+                :src="require('@/assets/Icons/compass_scale02.svg')"
                 class="compass-scale"
               ></v-img>
               <v-img
                 :src="require('@/assets/Icons/compass_black.svg')"
                 class="compass-icon"
-                :style="{ transform: `translate(-50%, -50%) rotate(${currentBearing}deg)` }"
-                style="transition: transform 1s ease-out;"
+                :style="{
+                  transform: `translate(-50%, -50%) rotate(${currentBearing}deg)`,
+                }"
+                style="transition: transform 1s ease-out"
               ></v-img>
             </v-col>
             <v-col cols="6">
-              <p class="detail">{{ currentDirection }}{{ Math.round(currentBearing) }}°</p>
-            </v-col>  
+              <p class="detail">
+                {{ currentDirection }}{{ Math.round(currentBearing) }}°
+              </p>
+            </v-col>
           </v-row>
         </v-card>
       </v-col>
@@ -51,114 +57,126 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, onBeforeUnmount, nextTick } from 'vue';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import 'leaflet-compass';
-import markerIconUrl from '@/assets/Images/barge_location.png';
+import { ref, computed, onMounted, watch, onBeforeUnmount, nextTick } from "vue"
+import L from "leaflet"
+import "leaflet/dist/leaflet.css"
+import "leaflet-compass"
+import markerIconUrl from "@/assets/Images/barge_location.png"
 
 const props = defineProps({
   position: {
     type: Object,
-    default: () => ({ lat: 13.166172, lng: 100.814708 })
+    default: () => ({ lat: 13.166172, lng: 100.814708 }),
   },
   windSpeed: {
     type: Number,
-    default: 0
+    default: 0,
   },
   windDirection: {
     type: Number,
-    default: 0
+    default: 0,
   },
   measurementUnit: {
     type: String,
-    default: 'm/s'
-  }
-});
+    default: "m/s",
+  },
+})
 
-const currentBearing = ref(props.windDirection);
-const map = ref(null);
-const marker = ref(null);
-const compassControl = ref(null);
+const currentBearing = ref(props.windDirection)
+const map = ref(null)
+const marker = ref(null)
+const compassControl = ref(null)
 
 const currentDirection = computed(() => {
-  const angle = currentBearing.value;
-  if (angle >= 337.5 || angle < 22.5) return 'N';
-  if (angle >= 22.5 && angle < 67.5) return 'NE';
-  if (angle >= 67.5 && angle < 112.5) return 'E';
-  if (angle >= 112.5 && angle < 157.5) return 'SE';
-  if (angle >= 157.5 && angle < 202.5) return 'S';
-  if (angle >= 202.5 && angle < 247.5) return 'SW';
-  if (angle >= 247.5 && angle < 292.5) return 'W';
-  if (angle >= 292.5 && angle < 337.5) return 'NW';
-  return 'N/A';
-});
+  const angle = currentBearing.value
+  if (angle >= 337.5 || angle < 22.5) return "N"
+  if (angle >= 22.5 && angle < 67.5) return "NE"
+  if (angle >= 67.5 && angle < 112.5) return "E"
+  if (angle >= 112.5 && angle < 157.5) return "SE"
+  if (angle >= 157.5 && angle < 202.5) return "S"
+  if (angle >= 202.5 && angle < 247.5) return "SW"
+  if (angle >= 247.5 && angle < 292.5) return "W"
+  if (angle >= 292.5 && angle < 337.5) return "NW"
+  return "N/A"
+})
 
-onMounted(async() => {
-  await nextTick();
-  map.value = L.map('map').setView([props.position.lat, props.position.lng], 13);
-  
-  L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+onMounted(async () => {
+  await nextTick()
+  map.value = L.map("map").setView([props.position.lat, props.position.lng], 13)
+
+  L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png", {
     maxZoom: 20,
-    attribution: '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a>'
-  }).addTo(map.value);
+    attribution:
+      '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a>',
+  }).addTo(map.value)
 
   const customIcon = L.icon({
     iconUrl: markerIconUrl,
     iconSize: [52, 52],
-  });
+  })
 
-  marker.value = L.marker([props.position.lat, props.position.lng], { icon: customIcon })
+  marker.value = L.marker([props.position.lat, props.position.lng], {
+    icon: customIcon,
+  })
     .addTo(map.value)
-    .bindPopup('Barge Position');
+    .bindPopup("Barge Position")
 
   // ตั้งค่า compass
-  compassControl.value = L.control.compass({
-    autoActive: true,
-    showDigit: true,
-    position: 'topright',
-    textErr: "ไม่สามารถตรวจจับทิศทางได้",
-    onChange: (angle) => {
-      updateCompassDirection(angle);
-    }
-  }).addTo(map.value);
-});
+  compassControl.value = L.control
+    .compass({
+      autoActive: true,
+      showDigit: true,
+      position: "topright",
+      textErr: "ไม่สามารถตรวจจับทิศทางได้",
+      onChange: (angle) => {
+        updateCompassDirection(angle)
+      },
+    })
+    .addTo(map.value)
+})
 
 const updateCompassDirection = (angle) => {
-  currentBearing.value = angle;
+  currentBearing.value = angle
 
-  const compassElem = document.querySelector('.leaflet-compass .compass-icon');
+  const compassElem = document.querySelector(".leaflet-compass .compass-icon")
   if (compassElem) {
-    compassElem.style.transform = `rotate(${angle}deg)`;
+    compassElem.style.transform = `rotate(${angle}deg)`
   }
 
-  const digitElem = document.querySelector('.leaflet-compass .compass-digit');
+  const digitElem = document.querySelector(".leaflet-compass .compass-digit")
   if (digitElem) {
-    digitElem.textContent = `${currentDirection.value} ${Math.round(angle)}°`;
+    digitElem.textContent = `${currentDirection.value} ${Math.round(angle)}°`
   }
-};
+}
 
-watch(() => props.position, (newVal) => {
-  if (map.value && marker.value) {
-    map.value.setView([newVal.lat, newVal.lng]);
-    marker.value.setLatLng([newVal.lat, newVal.lng]);
-  }
-}, { deep: true });
+watch(
+  () => props.position,
+  (newVal) => {
+    if (map.value && marker.value) {
+      map.value.setView([newVal.lat, newVal.lng])
+      marker.value.setLatLng([newVal.lat, newVal.lng])
+    }
+  },
+  { deep: true },
+)
 
-watch(() => props.windDirection, (newVal) => {
-  updateCompassDirection(newVal);
-});
+watch(
+  () => props.windDirection,
+  (newVal) => {
+    updateCompassDirection(newVal)
+  },
+)
 
 onBeforeUnmount(() => {
   if (map.value) {
-    map.value.remove();
+    map.value.remove()
   }
-});
+})
 
 defineExpose({
   currentDirection,
-  currentBearing
-});
+  currentBearing,
+})
 </script>
 
 <style scoped>
@@ -177,18 +195,18 @@ defineExpose({
 }
 
 .wind-speed-card {
-  background-color: #EAF4FF;
+  background-color: #eaf4ff;
   padding: 1vh;
 }
 
 .wind-direction-card {
-  background-color: #F4F4F4;
+  background-color: #f4f4f4;
   padding: 1vh;
 }
 
 .wind-title {
   font-size: 1.5vh;
-  color: #4B4B4B;
+  color: #4b4b4b;
   font-weight: 400;
   text-align: center;
   margin-bottom: 1vh;
@@ -222,9 +240,9 @@ defineExpose({
   transition: transform 1s ease-out;
   background-image: url(/src/assets/Icons/compass_on_map.svg);
   background-size: cover;
-  width: 100px; 
+  width: 100px;
   height: 100px;
-  
+
   @media screen and (max-width: 1920px) {
     width: 50px; /* Adjust size for smaller screens */
     height: 50px;
@@ -266,11 +284,11 @@ defineExpose({
   font-weight: bold;
   font-size: 1.5vh;
   color: var(--light-blue);
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 :deep(.leaflet-compass .compass-alert) {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   text-align: center;
   position: absolute;
   left: 50%;

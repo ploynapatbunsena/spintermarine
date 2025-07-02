@@ -1,5 +1,5 @@
 <template>
-  <v-app style="background-color: #F7F9FC;">
+  <v-app style="background-color: #f7f9fc">
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
@@ -13,22 +13,24 @@
             </div>
           </v-img>
           <v-row class="my-16">
-            <v-col 
-              v-for="tugboat in tugboatRiverDevices" 
-              :key="tugboat.TypeDevicename" 
-              cols="12" sm="6" lg="4"
+            <v-col
+              v-for="tugboat in tugboatRiverDevices"
+              :key="tugboat.TypeDevicename"
+              cols="12"
+              sm="6"
+              lg="4"
             >
-              <v-card 
+              <v-card
                 class="h-100"
-                @click="goToTugboatDetails(tugboat.Devices[0].DeviceId)" 
+                @click="goToTugboatDetails(tugboat.Devices[0].DeviceId)"
                 hover
               >
                 <v-row no-gutters>
-                  <v-col cols="12" md="12" lg="4" style="padding: 1vh;">
+                  <v-col cols="12" md="12" lg="4" style="padding: 1vh">
                     <v-img
                       :src="tugboat.previewImage"
                       height="300"
-                      cover 
+                      cover
                       class="rounded-lg image-cover h-100"
                     ></v-img>
                   </v-col>
@@ -38,39 +40,72 @@
                         <v-col cols="8" lg="8">
                           <v-row>
                             <v-col cols="12" class="pb-0">
-                              <v-card-title class="header px-0">{{ deletePrefix(tugboat.TypeDevicename) }}</v-card-title>
+                              <v-card-title class="header px-0">{{
+                                deletePrefix(tugboat.TypeDevicename)
+                              }}</v-card-title>
                             </v-col>
                           </v-row>
                           <v-row>
                             <v-col cols="12" class="pt-0">
-                              <v-card-subtitle class="header-thai">เรือ{{ tugboat.Devices[0]?.Note ?? 'N/A' }}</v-card-subtitle>
+                              <v-card-subtitle class="header-thai"
+                                >เรือ{{
+                                  tugboat.Devices[0]?.Note ?? "N/A"
+                                }}</v-card-subtitle
+                              >
                             </v-col>
                           </v-row>
                         </v-col>
                         <v-col cols="4">
                           <AlertBadges
-                            :warningCount="getAlertCount(tugboat.Devices[0], 'warning')"
-                            :dangerCount="getAlertCount(tugboat.Devices[0], 'danger')"
+                            :warningCount="
+                              getAlertCount(tugboat.Devices[0], 'warning')
+                            "
+                            :dangerCount="
+                              getAlertCount(tugboat.Devices[0], 'danger')
+                            "
                           />
                         </v-col>
                       </v-row>
                       <v-row class="mt-2 mt-sm-4">
                         <v-col cols="12">
-                          <div class="status-panel d-flex align-items-center" :class="getStatusClass(tugboat.status)">
-                            <span class="material-symbols-rounded status-icon" :class="getStatusClass(tugboat.status)">
+                          <div
+                            class="status-panel d-flex align-items-center"
+                            :class="getStatusClass(tugboat.status)"
+                          >
+                            <span
+                              class="material-symbols-rounded status-icon"
+                              :class="getStatusClass(tugboat.status)"
+                            >
                               {{ getStatusIcon(tugboat.status) }}
                             </span>
-                            <div class="text-status ml-2" :class="getStatusClass(tugboat.status)">
-                              {{ tugboat.status || 'Unknown' }}
+                            <div
+                              class="text-status ml-2"
+                              :class="getStatusClass(tugboat.status)"
+                            >
+                              {{ tugboat.status || "Unknown" }}
                             </div>
                           </div>
                         </v-col>
                         <v-col cols="12" class="pt-0">
-                          <div class="due-date d-flex justify-space-between" :class="getBottomLineClass(tugboat.status)">
-                            <span class="thai-letters" v-if="tugboat.status === 'Maintenance'">กำหนดเสร็จ</span>
-                            <span class="thai-letters" v-else-if="tugboat.status === 'Pending'">เข้าซ่อม</span>
-                            <span class="thai-letters" v-else-if="tugboat.status === 'Running'"><br></span>
-                            {{ tugboat.date || 'N/A' }}
+                          <div
+                            class="due-date d-flex justify-space-between"
+                            :class="getBottomLineClass(tugboat.status)"
+                          >
+                            <span
+                              class="thai-letters"
+                              v-if="tugboat.status === 'Maintenance'"
+                              >กำหนดเสร็จ</span
+                            >
+                            <span
+                              class="thai-letters"
+                              v-else-if="tugboat.status === 'Pending'"
+                              >เข้าซ่อม</span
+                            >
+                            <span
+                              v-if="tugboat.date"
+                              :title="tugboat.rawMessage"
+                              >{{ tugboat.date }}</span
+                            >
                           </div>
                         </v-col>
                       </v-row>
@@ -81,7 +116,7 @@
             </v-col>
           </v-row>
         </v-row>
-  
+
         <!-- Sea Going Section -->
         <v-row class="cover mt-3 pa-3">
           <v-img :src="require('@/assets/Images/sea_going_cover.png')">
@@ -91,22 +126,24 @@
             </div>
           </v-img>
           <v-row class="my-16">
-            <v-col 
-              v-for="tugboat in tugboatSeaDevices" 
-              :key="tugboat.TypeDevicename" 
-              cols="12" sm="6" lg="4"
+            <v-col
+              v-for="tugboat in tugboatSeaDevices"
+              :key="tugboat.TypeDevicename"
+              cols="12"
+              sm="6"
+              lg="4"
             >
-              <v-card 
-                class="h-100" 
-                @click="goToTugboatDetails(tugboat.Devices[0].DeviceId)" 
+              <v-card
+                class="h-100"
+                @click="goToTugboatDetails(tugboat.Devices[0].DeviceId)"
                 hover
               >
                 <v-row no-gutters>
-                  <v-col cols="12" md="12" lg="4" style="padding: 1vh;">
-                    <v-img 
+                  <v-col cols="12" md="12" lg="4" style="padding: 1vh">
+                    <v-img
                       :src="tugboat.previewImage"
                       height="300"
-                      cover 
+                      cover
                       class="rounded-lg image-cover h-100"
                     ></v-img>
                   </v-col>
@@ -116,39 +153,72 @@
                         <v-col cols="8" lg="8">
                           <v-row>
                             <v-col cols="12" class="pb-0">
-                              <v-card-title class="header px-0">{{ deletePrefix(tugboat.TypeDevicename) }}</v-card-title>
+                              <v-card-title class="header px-0">{{
+                                deletePrefix(tugboat.TypeDevicename)
+                              }}</v-card-title>
                             </v-col>
                           </v-row>
                           <v-row>
                             <v-col cols="12" class="pt-0">
-                              <v-card-subtitle class="header-thai">เรือ{{ tugboat.Devices[0]?.Note ?? 'N/A' }}</v-card-subtitle>
+                              <v-card-subtitle class="header-thai"
+                                >เรือ{{
+                                  tugboat.Devices[0]?.Note ?? "N/A"
+                                }}</v-card-subtitle
+                              >
                             </v-col>
                           </v-row>
                         </v-col>
                         <v-col cols="4">
                           <AlertBadges
-                            :warningCount="getAlertCount(tugboat.Devices[0], 'warning')"
-                            :dangerCount="getAlertCount(tugboat.Devices[0], 'danger')"
+                            :warningCount="
+                              getAlertCount(tugboat.Devices[0], 'warning')
+                            "
+                            :dangerCount="
+                              getAlertCount(tugboat.Devices[0], 'danger')
+                            "
                           />
                         </v-col>
                       </v-row>
                       <v-row>
                         <v-col cols="12">
-                          <div class="status-panel d-flex align-items-center" :class="getStatusClass(tugboat.status)">
-                            <span class="material-symbols-rounded status-icon" :class="getStatusClass(tugboat.status)">
+                          <div
+                            class="status-panel d-flex align-items-center"
+                            :class="getStatusClass(tugboat.status)"
+                          >
+                            <span
+                              class="material-symbols-rounded status-icon"
+                              :class="getStatusClass(tugboat.status)"
+                            >
                               {{ getStatusIcon(tugboat.status) }}
                             </span>
-                            <div class="text-status ml-2" :class="getStatusClass(tugboat.status)">
-                              {{ tugboat.status || 'Unknown' }}
+                            <div
+                              class="text-status ml-2"
+                              :class="getStatusClass(tugboat.status)"
+                            >
+                              {{ tugboat.status || "Unknown" }}
                             </div>
                           </div>
                         </v-col>
                         <v-col cols="12" class="pt-0">
-                          <div class="due-date d-flex justify-space-between" :class="getBottomLineClass(tugboat.status)">
-                            <span class="thai-letters" v-if="tugboat.status === 'Maintenance'">กำหนดเสร็จ</span>
-                            <span class="thai-letters" v-else-if="tugboat.status === 'Pending'">เข้าซ่อม</span>
-                            <span class="thai-letters" v-else-if="tugboat.status === 'Running'"><br></span>
-                            {{ tugboat.date || 'N/A' }}
+                          <div
+                            class="due-date d-flex justify-space-between"
+                            :class="getBottomLineClass(tugboat.status)"
+                          >
+                            <span
+                              class="thai-letters"
+                              v-if="tugboat.status === 'Maintenance'"
+                              >กำหนดเสร็จ</span
+                            >
+                            <span
+                              class="thai-letters"
+                              v-else-if="tugboat.status === 'Pending'"
+                              >เข้าซ่อม</span
+                            >
+                            <span
+                              v-if="tugboat.date"
+                              :title="tugboat.rawMessage"
+                              >{{ tugboat.date }}</span
+                            >
                           </div>
                         </v-col>
                       </v-row>
@@ -166,8 +236,17 @@
         persistent
       >
         <div class="pa-6 d-flex flex-column align-center">
-          <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
-          <div class="mt-4 text-h6" style="font-family: 'Inter', sans-serif;">Loading data...</div>
+          <v-progress-circular
+            indeterminate
+            color="primary"
+            size="64"
+          ></v-progress-circular>
+          <div
+            class="mt-4 text-h6"
+            style="font-family: 'Inter', sans-serif"
+          >
+            Loading data...
+          </div>
         </div>
       </v-overlay>
     </v-container>
@@ -175,204 +254,337 @@
 </template>
 
 <script setup>
-import NavigationBar from "@/components/NavigationBar.vue";
-import SpaceBar from '@/components/SpaceBar.vue';
-import AlertBadges from "@/components/BargeDetails/AlertBadges.vue";
-import { inject, onMounted, onUnmounted, ref } from "vue";
-import { useRouter } from "vue-router";
+import NavigationBar from "@/components/NavigationBar.vue"
+import SpaceBar from "@/components/SpaceBar.vue"
+import AlertBadges from "@/components/BargeDetails/AlertBadges.vue"
+import { inject, onMounted, onUnmounted, ref } from "vue"
+import { useRouter } from "vue-router"
 
-const $api = inject('$api');
-const $api_cmms = inject('$api_cmms');
-const open_api_company = inject('open_api_company');
-const router = useRouter();
-const tugboatRiverDevices = ref([]);
-const tugboatSeaDevices = ref([]);
-const isLoading = ref(true);
-let intervalId = null;
+const $api = inject("$api")
+const $api_fac = inject("$api_fac")
+const router = useRouter()
+const tugboatRiverDevices = ref([])
+const tugboatSeaDevices = ref([])
+const isLoading = ref(true)
+let intervalId = null
 
 const initialize = async () => {
-  const menuPermission = localStorage.getItem('menuPermission');
+  const menuPermission = localStorage.getItem("menuPermission")
   if (!menuPermission) {
-    return router.push('/login');
+    return router.push("/login")
   }
 
-  const permissionList = JSON.parse(menuPermission);
-  const permission = permissionList.find(item => item.MenuId === '0101010500');
+  const permissionList = JSON.parse(menuPermission)
+  const permission = permissionList.find((item) => item.MenuId === "0101010500")
 
   if (!permission || !permission.IsActive) {
-    return router.push('/login');
+    return router.push("/login")
   }
-};
+}
 
 const fetchTugboatRiver = async () => {
   try {
-    isLoading.value = true;
+    isLoading.value = true
 
-    const response = await $api.get('/MachineStatus/GetTugboatRiver');
-    const cmmsData = await fetchCMMSStatus(response.data);
-    const enrichedData = await enrichTugboatWithImage(processTugboatData(response.data, cmmsData));
-    tugboatRiverDevices.value = enrichedData;
+    const response = await $api.get("/MachineStatus/GetTugboatRiver")
+    const factoriumStatus = await fetchFactoriumStatus(response.data)
+    const enrichedData = await enrichTugboatWithImage(
+      processTugboatData(response.data, factoriumStatus),
+    )
+    tugboatRiverDevices.value = enrichedData
   } catch (error) {
-    console.error('Failed to fetch tugboat river:', error);
+    console.error("Failed to fetch tugboat river:", error)
   } finally {
-    isLoading.value = false;
+    isLoading.value = false
   }
-};
+}
 
 const fetchTugboatSea = async () => {
   try {
-    isLoading.value = true;
+    isLoading.value = true
 
-    const response = await $api.get('/MachineStatus/GetTugboatSea');
-    const cmmsData = await fetchCMMSStatus(response.data);
-    const enrichedData = await enrichTugboatWithImage(processTugboatData(response.data, cmmsData));
-    tugboatSeaDevices.value = enrichedData;
+    const response = await $api.get("/MachineStatus/GetTugboatSea")
+    const factoriumStatus = await fetchFactoriumStatus(response.data)
+    const enrichedData = await enrichTugboatWithImage(
+      processTugboatData(response.data, factoriumStatus),
+    )
+    tugboatSeaDevices.value = enrichedData
   } catch (error) {
-    console.error('Failed to fetch tugboat sea:', error);
+    console.error("Failed to fetch tugboat sea:", error)
   } finally {
-    isLoading.value = false;
+    isLoading.value = false
   }
-};
+}
 
-// 👇 ส่วนที่ใช้ดึงภาพจริงจาก API
 const enrichTugboatWithImage = async (tugboatData) => {
   const promises = tugboatData.map(async (tugboat) => {
-    const imageId = tugboat.Devices?.[0]?.DeviceImage;
-        const imageResponse = await $api.get(`/Device/Image/${imageId}`);
-        tugboat.previewImage = imageResponse.data?.src;
-    return tugboat;
-  });
+    const imageId = tugboat.Devices?.[0]?.DeviceImage
+    const imageResponse = await $api.get(`/Device/Image/${imageId}`)
+    tugboat.previewImage = imageResponse.data?.src
+    return tugboat
+  })
 
-  return await Promise.all(promises);
-};
+  return await Promise.all(promises)
+}
 
-const fetchCMMSStatus = async (tugboats) => {
+// const fetchFactoriumStatus = async (tugboats) => {
+//   try {
+//     isLoading.value = true;
+
+//     // สร้าง array ของ promise สำหรับแต่ละเรือ
+//     const statusPromises = tugboats.map(async (tugboat) => {
+//       const deviceNote = tugboat.Devices?.[0]?.Note?.trim();
+//       if (!deviceNote) return null;
+
+//       try {
+//         const response = await $api_fac.get('/ship-status', {
+//           params: { name: deviceNote }
+//         });
+//         console.log(`Fetched status for ${deviceNote}:`, response.data);
+
+//         return response.data;
+//       } catch (error) {
+//         console.error('Full error details:', {
+//           url: error.config?.url,
+//           requestData: error.config?.data,
+//           responseData: error.response?.data, // ข้อมูล error จากเซิร์ฟเวอร์
+//           status: error.response?.status
+//         });
+//         // console.error(`Error fetching status for ${deviceNote}:`, error);
+//         return null;
+//       }
+//     });
+
+//     // รอผลลัพธ์ทั้งหมด
+//     const statusResults = await Promise.all(statusPromises);
+//     return statusResults.filter(result => result !== null);
+
+//   } catch (error) {
+//     console.error('❌ Factorium [Vessel] Test Failed:', error.response?.data || error.message);
+//     return [];
+//   } finally {
+//     isLoading.value = false;
+//   }
+// };
+
+const fetchFactoriumStatus = async (tugboats) => {
   try {
-    isLoading.value = true;
-    const toolList = tugboats.map(tugboat => ({
-      toolName: tugboat.Devices[0]?.Note || ''
-    }));
-    const response = await $api_cmms.post(`/v1/companies/${open_api_company}/tools/last-status`, { toolList });
+    isLoading.value = true
 
-    return response.data;
-  } catch (error) {
-    console.error('Failed to fetch CMMS status:', error);
-    return [];
-  } finally {
-    isLoading.value = false;
-  }
-};
+    const statusPromises = tugboats.map(async (tugboat) => {
+      const deviceNote = tugboat.Devices?.[0]?.Note?.trim()
+      if (!deviceNote) return null
 
-const processTugboatData = ( tugboats, cmmsData ) => {
-  return tugboats.map(tugboat => {
-    const deviceNote = tugboat.Devices[0]?.Note || '';
-    const cmmsStatus = cmmsData.find(item => item.toolName === deviceNote);
+      try {
+        const response = await $api_fac.get("/ship-status", {
+          params: { name: deviceNote },
+        })
 
-    let status = 'Unknown';
-    let date = 'N/A';
+        if (!response.data || typeof response.data !== "object") {
+          console.error(`Invalid response structure for ${deviceNote}`)
+          return null
+        }
 
-    if (cmmsStatus) {
-      status = mapCMMSStatus(cmmsStatus.status);
+        const statusData = response.data.data
+        if (!statusData) {
+          console.error(`No status data for ${deviceNote}`)
+          return null
+        }
 
-      if (status === 'Pending' || status === 'Maintenance') {
-        date = cmmsStatus.nextPMPlan === '-' ? 'N/A' : cmmsStatus.nextPMPlan
+        const mappedStatus = mapFctoriumStatus(statusData)
+        const rawMessage =
+          mappedStatus === "Running" ? "" : response.data.message || ""
+
+        return {
+          name: deviceNote,
+          status: mappedStatus,
+          message: rawMessage,
+          rawMessage: rawMessage,
+        }
+      } catch (error) {
+        console.error(`Error fetching status for ${deviceNote}:`, error)
+        return null
       }
+    })
+
+    const statusResults = await Promise.all(statusPromises)
+    return statusResults.filter((result) => result !== null)
+  } catch (error) {
+    console.error("❌ Factorium [Vessel] Test Failed:", error)
+    return []
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// const processTugboatData = (tugboats, factoriumStatus) => {
+//   return tugboats.map(tugboat => {
+//     const deviceNote = tugboat.Devices[0]?.Note?.trim() || '';
+
+//     const facStatus = factoriumStatus.find(item => item.name === deviceNote);
+
+//     let status = 'Unknown';
+//     let date = '';
+
+//     if (facStatus) {
+//       status = mapFctoriumStatus(facStatus.data);
+
+//       if (status === 'Pending' || status === 'Maintenance') {
+//         date = facStatus.message === '-' ? '' : facStatus.message;
+//       }
+//     }
+
+//     return {
+//       ...tugboat,
+//       status,
+//       date
+//     }
+//   })
+// };
+
+const processTugboatData = (tugboats, factoriumStatus) => {
+  return tugboats.map((tugboat) => {
+    const deviceNote = tugboat.Devices[0]?.Note?.trim() || ""
+
+    const facStatus = factoriumStatus.find((item) => item.name === deviceNote)
+
+    let status = "Unknown"
+    let date = ""
+    let rawMessage = ""
+
+    if (facStatus) {
+      status = facStatus.status
+      rawMessage = facStatus.message
+      date =
+        status === "Running"
+          ? ""
+          : facStatus.message === "-"
+            ? ""
+            : facStatus.message
     }
 
     return {
       ...tugboat,
       status,
-      date
+      date,
+      rawMessage,
     }
   })
-};
+}
+
+// const truncateMessage = (message, maxLength = 20) => {
+//   if (!message) return '';
+//   return message.length > maxLength
+//     ? `${message.substring(0, maxLength)}...`
+//     : message;
+// };
 
 const deletePrefix = (name) => {
-  return name.replace(/Barge|Tugboat/gi, '').trim();
-};
+  return name.replace(/Barge|Tugboat/gi, "").trim()
+}
 
 const getAlertCount = (device, type) => {
-  if (!device || !device.MeasurementsAlertCount) return 0;
-  const alert = device.MeasurementsAlertCount.find(
-    (item) => type === 'warning' ? 'AlertWarningTotal' in item : 'AlertDangerTotal' in item
-  );
-  return alert ? (type === 'warning' ? alert.AlertWarningTotal : alert.AlertDangerTotal) : 0;
-};
+  if (!device || !device.MeasurementsAlertCount) return 0
+  const alert = device.MeasurementsAlertCount.find((item) =>
+    type === "warning"
+      ? "AlertWarningTotal" in item
+      : "AlertDangerTotal" in item,
+  )
+  return alert
+    ? type === "warning"
+      ? alert.AlertWarningTotal
+      : alert.AlertDangerTotal
+    : 0
+}
 
-const mapCMMSStatus = (cmmsStatus) => {
-  switch (cmmsStatus) {
-    case "ถูกใช้งานอยู่" :
-    case "พร้อมใช้งาน" :
-      return "Running";
-    case "อยู่ระหว่างการสอบเทียบ" :
-      return "Pending";
-    case "อยู่ระหว่างการซ่อม" :
-      return "Maintenance";
-    case "ยกเลิกใช้งาน" :
-      return "Down";
+const mapFctoriumStatus = (factoriumStatus) => {
+  switch (factoriumStatus) {
+    case "ใช้งานได้":
+    case "ใช้งานอยู่":
+      return "Running"
+    case "รอเข้าซ่อมวิ่งได้":
+    case "รอเข้าซ่อมวิ่งไม่ได้":
+    case "จอง":
+      return "Pending"
+    case "ซ่อม":
+    case "ใช้งานไม่ได้":
+    case "เติมน้ำมัน":
+    case "หมดอายุ":
+    case "หมดอายุแล้ว":
+      return "Maintenance"
     default:
-      return 'Unknown';
+      return "Unknown"
   }
 }
 
 const getStatusIcon = (status) => {
   switch (status) {
-    case "Running": return "signal_cellular_alt";
-    case "Maintenance": return "construction";
-    case "Pending": return "update";
-    case "Down": return "block";
-    default: return "help";
+    case "Running":
+      return "signal_cellular_alt"
+    case "Maintenance":
+      return "construction"
+    case "Pending":
+      return "update"
+    default:
+      return "help"
   }
-};
+}
 
 const getStatusClass = (status) => {
   switch (status) {
-    case "Running": return "status-running";
-    case "Maintenance": return "status-maintenance";
-    case "Pending": return "status-pending";
-    case "Down": return "status-down";
-    default: return "status-unknown";
+    case "Running":
+      return "status-running"
+    case "Maintenance":
+      return "status-maintenance"
+    case "Pending":
+      return "status-pending"
+    default:
+      return "status-unknown"
   }
-};
+}
 
 const getBottomLineClass = (status) => {
   switch (status) {
-    case "Running": return "bottom-line-running";
-    case "Maintenance": return "bottom-line-maintenance";
-    case "Pending": return "bottom-line-pending";
-    case "Down": return "bottom-line-down";
-    default: return "bottom-line-unknown";
+    case "Running":
+      return "bottom-line-running"
+    case "Maintenance":
+      return "bottom-line-maintenance"
+    case "Pending":
+      return "bottom-line-pending"
+    default:
+      return "bottom-line-unknown"
   }
-};
+}
 
 const goToTugboatDetails = (deviceId) => {
-  router.push({ name: 'TugboatDetail', params: { deviceId: deviceId } });
-};
+  router.push({ name: "TugboatDetail", params: { deviceId: deviceId } })
+}
 
 const fetchDataWithInterval = async () => {
-  await fetchTugboatRiver();
-  await fetchTugboatSea();
-};
+  await fetchTugboatRiver()
+  await fetchTugboatSea()
+}
 
-const startDataInterval = () => {intervalId = setInterval(fetchDataWithInterval, 2 * 60 * 1000);};
+const startDataInterval = () => {
+  intervalId = setInterval(fetchDataWithInterval, 2 * 60 * 1000)
+}
 
 const stopDataInterval = () => {
   if (intervalId) {
-    clearInterval(intervalId);
-    intervalId = null;
+    clearInterval(intervalId)
+    intervalId = null
   }
-};
+}
 
-onMounted(async() => {
-  console.log('Component mounted');
-  await initialize();
-  await fetchDataWithInterval();
-  startDataInterval();
-});
+onMounted(async () => {
+  await initialize()
+  await fetchDataWithInterval()
+  startDataInterval()
+})
 
 onUnmounted(() => {
-  stopDataInterval();
-});
+  stopDataInterval()
+})
 </script>
 
 <style lang="scss" scoped>
@@ -396,10 +608,10 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  color: #FFFFFF;
+  color: #ffffff;
 
   & .name-thai {
-    font-family: 'Sarabun', serif;
+    font-family: "Sarabun", serif;
     font-size: 3vh;
     text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.4);
   }
@@ -429,22 +641,22 @@ onUnmounted(() => {
   font-size: 2vh;
 
   font-variation-settings:
-  'FILL' 1,
-  'wght' 400,
-  'GRAD' 0,
-  'opsz' 24
+    "FILL" 1,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
 }
 
 .status-maintenance {
-  color: #DC2B2B;
+  color: #dc2b2b;
 }
 
 .status-pending {
-  color: #FAC12A;
+  color: #fac12a;
 }
 
 .status-running {
-  color: #1CC042;
+  color: #1cc042;
 }
 
 .status-down {
@@ -452,7 +664,7 @@ onUnmounted(() => {
 }
 
 .status-unknown {
-  color: #C0C0C0;
+  color: #c0c0c0;
 }
 
 .due-date {
@@ -476,15 +688,15 @@ onUnmounted(() => {
 }
 
 .bottom-line-running::after {
-  background-color: #1CC042;
+  background-color: #1cc042;
 }
 
 .bottom-line-maintenance::after {
-  background-color: #DC2B2B;
+  background-color: #dc2b2b;
 }
 
 .bottom-line-pending::after {
-  background-color: #FAC12A;
+  background-color: #fac12a;
 }
 
 .bottom-line-down::after {
@@ -492,14 +704,14 @@ onUnmounted(() => {
 }
 
 .bottom-line-unknown::after {
-  background-color: #C0C0C0;
+  background-color: #c0c0c0;
 }
 
 .header-thai {
-  font-family: 'Sarabun', serif;
+  font-family: "Sarabun", serif;
   font-size: 1.5vh;
   font-weight: 400;
-  color: #A0A0A0;
+  color: #a0a0a0;
 }
 
 .text-status {

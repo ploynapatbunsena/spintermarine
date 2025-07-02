@@ -5,7 +5,7 @@
     overlap
     class="alert-badge"
   >
-    <v-icon style="font-size: 3vh;">mdi-bell-ring</v-icon>
+    <v-icon style="font-size: 3vh">mdi-bell-ring</v-icon>
   </v-badge>
   <v-badge
     :content="warningCount"
@@ -13,7 +13,7 @@
     overlap
     class="warning-badge"
   >
-    <v-icon style="font-size: 3vh;">mdi-alert</v-icon>
+    <v-icon style="font-size: 3vh">mdi-alert</v-icon>
   </v-badge>
 </template>
 
@@ -28,19 +28,19 @@ defineProps({
   dangerCount: {
     type: Number,
     required: true,
-  }
-});
+  },
+})
 </script>
 
 <style lang="scss" scoped>
 .alert-badge {
-  color: #DC2B2B;
+  color: #dc2b2b;
   margin-right: 2vh;
   cursor: pointer;
 }
 
 .warning-badge {
-  color: #FAC12A;
+  color: #fac12a;
   cursor: pointer;
 }
 
@@ -53,8 +53,8 @@ defineProps({
 }
 
 :deep(.v-badge__badge) {
-  border: 2px solid #FFFFFF;
+  border: 2px solid #ffffff;
   font-weight: bold !important;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 </style>

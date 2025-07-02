@@ -9,7 +9,7 @@
           items-per-page="4"
           hide-default-footer
           class="elevation-0 striped-table custom-table custom-scroll"
-          style="font-size: 1.5vh;"
+          style="font-size: 1.5vh"
         >
           <template v-slot:item="{ item }">
             <tr class="custom-row">
@@ -18,14 +18,23 @@
               <td>{{ item.measuremnet }}</td>
               <td>
                 <v-chip
-                  :color="item.details.isDanger ? 'red' : item.details.isWarning ? 'amber' : 'grey'"
+                  :color="
+                    item.details.isDanger
+                      ? 'red'
+                      : item.details.isWarning
+                        ? 'amber'
+                        : 'grey'
+                  "
                   dark
                 >
                   {{ item.details.text }}
                 </v-chip>
               </td>
               <td>
-                <v-chip :class="getStatusColor(item.status)" class="notice-status">
+                <v-chip
+                  :class="getStatusColor(item.status)"
+                  class="notice-status"
+                >
                   {{ item.status }}
                 </v-chip>
               </td>
@@ -41,73 +50,62 @@
 defineProps({
   notices: {
     type: Array,
-    default: () => []
-  }
-});
+    default: () => [],
+  },
+})
 
 const headers = [
-  { title: 'Date', key: 'date' },
-  { title: 'Device Name', key: 'name' },
-  { title: 'Measurement', key: 'measuremnet' },
-  { title: 'Details', key: 'details' },
-  { title: 'Status', key: 'status' },
-];
+  { title: "Date", key: "date" },
+  { title: "Device Name", key: "name" },
+  { title: "Measurement", key: "measuremnet" },
+  { title: "Details", key: "details" },
+  { title: "Status", key: "status" },
+]
 
 const formatTimeShow = (datetime) => {
-  if (datetime==null) {
+  if (datetime == null) {
     return null
   } else {
-    var dateTime = new Date(datetime);
-    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
-    var day = ("0" + dateTime.getDate()).slice(-2);
-    var year = dateTime.getFullYear();
-    var hour = ("0" + dateTime.getHours()).slice(-2);
-    var minute = ("0" + dateTime.getMinutes()).slice(-2);
-    return year + "-" + month + "-" + day + " " + hour + ":" + minute;
+    var dateTime = new Date(datetime)
+    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2)
+    var day = ("0" + dateTime.getDate()).slice(-2)
+    var year = dateTime.getFullYear()
+    var hour = ("0" + dateTime.getHours()).slice(-2)
+    var minute = ("0" + dateTime.getMinutes()).slice(-2)
+    return year + "-" + month + "-" + day + " " + hour + ":" + minute
   }
-};
+}
 
 const deletePrefix = (name) => {
-  return name.replace(/Barge|Tugboat/gi, '').trim();
-};
-
-const getDetailColor = (details) => {
-  switch (details) {
-    case 'Danger':
-      return 'red';
-    case 'Warning':
-      return 'amber';
-    default:
-      return 'grey';
-  }
-};
+  return name.replace(/Barge|Tugboat/gi, "").trim()
+}
 
 const getStatusColor = (status) => {
   switch (status) {
-    case 'รอแจ้งซ่อม':
-      return 'status-pending';
-    case 'ดำเนินการเสร็จสิ้น':
-      return 'status-finish';
+    case "รอแจ้งซ่อม":
+      return "status-pending"
+    case "ดำเนินการเสร็จสิ้น":
+      return "status-finish"
     default:
-      return '';
+      return ""
   }
-};
+}
 </script>
 
 <style scoped>
 .status-pending {
-  font-family: 'Sarabun', serif;
-  color: #FFFFFF;
+  font-family: "Sarabun", serif;
+  color: #ffffff;
   background-color: #e73232;
 }
 
 .status-finish {
-  font-family: 'Sarabun', serif;
-  color: #FFFFFF;
+  font-family: "Sarabun", serif;
+  color: #ffffff;
   background-color: #52be80;
 }
 
-.custom-row :deep(tbody tr){
+.custom-row :deep(tbody tr) {
   height: 10px !important;
 }
 
@@ -146,7 +144,7 @@ const getStatusColor = (status) => {
   height: 36px;
   border-radius: 24px;
   font-size: 32px;
-  color: #1570EF;
-  background-color: #E3F2FD;
+  color: #1570ef;
+  background-color: #e3f2fd;
 }
 </style>

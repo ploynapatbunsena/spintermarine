@@ -9,23 +9,32 @@
     elevation="0"
   >
     <template v-if="!previewUrl">
-      <div style="display: flex; flex-direction: column; align-items: center;">
+      <div style="display: flex; flex-direction: column; align-items: center">
         <label for="dropzoneFile">
-          <span class="material-symbols-rounded" style="font-size: 5vh; color: #CBD0DC;">backup</span>
+          <span
+            class="material-symbols-rounded"
+            style="font-size: 5vh; color: #cbd0dc"
+            >backup</span
+          >
         </label>
         <p class="text-grey"><span>Click to upload</span> or drag and drop</p>
       </div>
     </template>
     <div v-else class="preview-container">
       <img :src="previewUrl" alt="Preview" class="thumbnail" />
-      <v-btn class="delete-btn" icon="mdi-trash-can-outline" variant="text" @click="removeFile"></v-btn>
+      <v-btn
+        class="delete-btn"
+        icon="mdi-trash-can-outline"
+        variant="text"
+        @click="removeFile"
+      ></v-btn>
     </div>
 
-    <span class="file-info">{{ selectedFile?.name || '' }}</span>
-    <input 
-      type="file" 
-      id="dropzoneFile" 
-      class="dropzoneFile" 
+    <span class="file-info">{{ selectedFile?.name || "" }}</span>
+    <input
+      type="file"
+      id="dropzoneFile"
+      class="dropzoneFile"
       @change="handleFileInput"
       accept="image/*"
       ref="fileInput"
@@ -34,55 +43,55 @@
 </template>
 
 <script setup>
-import { ref, onUnmounted, defineEmits } from "vue";
+import { ref, onUnmounted, defineEmits } from "vue"
 
-const emit = defineEmits(['file-selected']);
-const active = ref(false);
-const previewUrl = ref(null);
-const selectedFile = ref(null);
-const fileInput = ref(null);
+const emit = defineEmits(["file-selected"])
+const active = ref(false)
+const previewUrl = ref(null)
+const selectedFile = ref(null)
+const fileInput = ref(null)
 
 const toggleActive = () => {
-  active.value = !active.value;
-};
+  active.value = !active.value
+}
 
 const handleDrop = (e) => {
-  toggleActive();
-  const file = e.dataTransfer.files[0];
-  processFile(file);
-};
+  toggleActive()
+  const file = e.dataTransfer.files[0]
+  processFile(file)
+}
 
 const handleFileInput = (e) => {
-  const file = e.target.files[0];
-  processFile(file);
-};
+  const file = e.target.files[0]
+  processFile(file)
+}
 
 const processFile = (file) => {
-  if (file && file.type.startsWith('image/')) {
-    const url = URL.createObjectURL(file);
-    previewUrl.value = url;
-    selectedFile.value = file;
-    emit('file-selected', file);
+  if (file && file.type.startsWith("image/")) {
+    const url = URL.createObjectURL(file)
+    previewUrl.value = url
+    selectedFile.value = file
+    emit("file-selected", file)
   }
-};
+}
 
 const removeFile = () => {
   if (previewUrl.value) {
-    URL.revokeObjectURL(previewUrl.value);
-    previewUrl.value = null;
-    selectedFile.value = null;
+    URL.revokeObjectURL(previewUrl.value)
+    previewUrl.value = null
+    selectedFile.value = null
     if (fileInput.value) {
-      fileInput.value.value = '';
+      fileInput.value.value = ""
     }
-    emit('file-selected', null);
+    emit("file-selected", null)
   }
-};
+}
 
 onUnmounted(() => {
   if (previewUrl.value) {
-    URL.revokeObjectURL(previewUrl.value);
+    URL.revokeObjectURL(previewUrl.value)
   }
-});
+})
 </script>
 
 <style scoped lang="scss">
@@ -90,7 +99,7 @@ onUnmounted(() => {
   max-width: 100vw;
   max-height: 300px;
   height: 100vh;
-  border: 2px dashed #CBD0DC;
+  border: 2px dashed #cbd0dc;
   border-radius: 32px;
   background-color: #ffffff;
   display: flex;
@@ -121,15 +130,15 @@ onUnmounted(() => {
   top: 10px;
   right: 10px;
   color: #000000;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   width: 32px;
   height: 32px;
   min-width: 32px;
 }
 
 .delete-btn:hover {
-  background-color: #DC2B2B;
-  color: #FFFFFF;
+  background-color: #dc2b2b;
+  color: #ffffff;
 }
 
 .file-info {
@@ -150,7 +159,7 @@ label {
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 1px solid #CBD0DC;
+  border: 1px solid #cbd0dc;
   transition: 0.3s ease all;
   border-radius: 100%;
   cursor: pointer;
@@ -162,7 +171,7 @@ input {
 
 .text-grey {
   color: #707070;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   text-align: center;
   margin-top: 2vh;
 }

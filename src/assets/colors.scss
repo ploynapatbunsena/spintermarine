@@ -1,79 +1,77 @@
 :root {
-  --primary: #007BFF; /* Login & Save button , Standby/Maintenance */
-  --dark-blue: #080F25; /* bg side & nav bar */
+  --primary: #007bff; /* Login & Save button , Standby/Maintenance */
+  --dark-blue: #080f25; /* bg side & nav bar */
   --light-blue: #223368; /* search button */
-  --blue: #20263A;
-  --white: #FFFFFF;
-  --background: #F7F9FC;
-  --dark-red: #E62020; /* clear & cancel button */
-  --light-red: #FFDADA; /* bg_danger */
-  --red: #DC2B2B; /* danger */
-  --yellow: #FAC12A; /* warning */
-  --light-green: #8DEB51; /* Running/Maintenance */
-  --dark-green: #28A745; /* Running */
-  --gray: #9F9F9F; /* Offline */
-  --dark-gray: #4B4B4B;
-  --grey-02: #70707B;
+  --blue: #20263a;
+  --white: #ffffff;
+  --background: #f7f9fc;
+  --dark-red: #e62020; /* clear & cancel button */
+  --light-red: #ffdada; /* bg_danger */
+  --red: #dc2b2b; /* danger */
+  --yellow: #fac12a; /* warning */
+  --light-green: #8deb51; /* Running/Maintenance */
+  --dark-green: #28a745; /* Running */
+  --gray: #9f9f9f; /* Offline */
+  --dark-gray: #4b4b4b;
+  --grey-02: #70707b;
 
-  --light-gray: #F4F4F4;
+  --light-gray: #f4f4f4;
   --black: #000000; /* Maintenance, Down */
-  --sky: #00B8F2; /* Standby */
-  --light-sky: #EAF4FF;
-  --dark-sky: #2297F2;
-  --soline-tank: linear-gradient(90deg, #FEE114 0%, #FFF6DE 100%);
-  --bg-soline: #F0F0F0;
-  --border-gen: #D6E6F2;
-  --neutral-300: #E9EAF3;
+  --sky: #00b8f2; /* Standby */
+  --light-sky: #eaf4ff;
+  --dark-sky: #2297f2;
+  --soline-tank: linear-gradient(90deg, #fee114 0%, #fff6de 100%);
+  --bg-soline: #f0f0f0;
+  --border-gen: #d6e6f2;
+  --neutral-300: #e9eaf3;
   --black: #000000;
-  --white: #FFFFFF;
+  --white: #ffffff;
 
   /* Generator */
-  --bg-green: #E5FFEA;
-  --symbol-green: #13A570;
-  --bg-blue: #E2F3FF;
-  --symbol-blue: #1570EF;
-  --bg-sky: #DBE7FF;
-  --symbol-sky: #2D94FB;
-  --bg-purple: #ECE9FF;
-  --symbol-purple: #AF52DE;
-  --bg-yellow: #FFF9CE;
-  --symbol-yellow: #FFBA03;
-  --bg-lightsky: #E8F9FF;
-  --symbol-lightsky: #01C2FF;
-  --bg-mint: #DFFFE7;
-  --symbol-mint: #00C7BE;
-  --bg-red: #FFD5D5;
-  --symbol-red: #DC2B2B;
-  --bg-wind: #96D2FF;
+  --bg-green: #e5ffea;
+  --symbol-green: #13a570;
+  --bg-blue: #e2f3ff;
+  --symbol-blue: #1570ef;
+  --bg-sky: #dbe7ff;
+  --symbol-sky: #2d94fb;
+  --bg-purple: #ece9ff;
+  --symbol-purple: #af52de;
+  --bg-yellow: #fff9ce;
+  --symbol-yellow: #ffba03;
+  --bg-lightsky: #e8f9ff;
+  --symbol-lightsky: #01c2ff;
+  --bg-mint: #dfffe7;
+  --symbol-mint: #00c7be;
+  --bg-red: #ffd5d5;
+  --symbol-red: #dc2b2b;
+  --bg-wind: #96d2ff;
 
   /* Gen Image */
-  --bg-gen: #073E28;
-  --text-gen: #64DD17;
+  --bg-gen: #073e28;
+  --text-gen: #64dd17;
 
   /* Status of Barge */
-  --bg-running: #CDF3E1;
-  --text-running: #14CA74;
-  --bg-warning: #FFF5AD;
-  --text-warning: #FFBF14;
-  --bg-danger: #FFCCCC;
-  --bg-standby: #BCEFFF;
-  --text-standby: #00A9DF;
-  --bg-s-m: #C6DEFF;
-  --text-s-m: #1570EF;
-  --bg-r-m: #DEFFC9
-
-  --bg-edit: #E3F2FD;
-  --text-edit: #1570EF;
+  --bg-running: #cdf3e1;
+  --text-running: #14ca74;
+  --bg-warning: #fff5ad;
+  --text-warning: #ffbf14;
+  --bg-danger: #ffcccc;
+  --bg-standby: #bcefff;
+  --text-standby: #00a9df;
+  --bg-s-m: #c6deff;
+  --text-s-m: #1570ef;
+  --bg-r-m: #deffc9 --bg-edit: #e3f2fd;
+  --text-edit: #1570ef;
 
   /* Row color */
-  --bg-row: #F9F9FA;
-  --stroke: #F4F4F5;
+  --bg-row: #f9f9fa;
+  --stroke: #f4f4f5;
   --shadow-color: rgba(104, 141, 196, 0.07); /* 0px 2px 10px 0px */
 
   /* Tugboat */
   --normal-tugboat: #009688;
-  --bg-light-tugboat: #E7F1FF;
-  --text-light-tugboat: #2563EB;
-  --bg-heavy-tugboat: #FFFAE6;
-  --text-heavy-tugboat: #FAAA2A;
+  --bg-light-tugboat: #e7f1ff;
+  --text-light-tugboat: #2563eb;
+  --bg-heavy-tugboat: #fffae6;
+  --text-heavy-tugboat: #faaa2a;
 }

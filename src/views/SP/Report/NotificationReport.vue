@@ -1,5 +1,5 @@
 <template>
-  <v-app style="background-color: #F7F9FC;">
+  <v-app style="background-color: #f7f9fc">
     <NavigationBar />
     <SpaceBar />
     <v-container fluid class="px-10">
@@ -37,11 +37,14 @@
                   :error="!!deviceError"
                 ></v-select>
               </v-col>
-            
+
               <v-col cols="12" md="3">
                 <v-select
                   v-model="selectedMeasurement"
-                  :items="[{measurementId: 'all', measurementName: 'Select All'}, ...measurementList]"
+                  :items="[
+                    { measurementId: 'all', measurementName: 'Select All' },
+                    ...measurementList,
+                  ]"
                   item-title="measurementName"
                   item-value="measurementId"
                   label="Measurement"
@@ -52,7 +55,9 @@
                   single-select
                 >
                   <template v-slot:selection="{ item }">
-                    <span>{{ item.title === 'Select All' ? 'Select All' : item.title }}</span>
+                    <span>{{
+                      item.title === "Select All" ? "Select All" : item.title
+                    }}</span>
                   </template>
                 </v-select>
               </v-col>
@@ -69,10 +74,17 @@
                   clearable
                 >
                   <template v-slot:prepend-item>
-                    <v-list-item title="Select All" @click="toggleSelectAllStatus">
+                    <v-list-item
+                      title="Select All"
+                      @click="toggleSelectAllStatus"
+                    >
                       <template v-slot:prepend>
                         <v-checkbox-btn
-                          :color="isPartialStatusSelection ? 'indigo-darken-4' : undefined"
+                          :color="
+                            isPartialStatusSelection
+                              ? 'indigo-darken-4'
+                              : undefined
+                          "
                           :indeterminate="isPartialStatusSelection"
                           :model-value="isAllStatusSelected"
                         ></v-checkbox-btn>
@@ -80,7 +92,9 @@
                     </v-list-item>
                   </template>
                   <template v-slot:selection="{ index }">
-                    <span v-if="index === 0">{{ selectedStatuses.length }} selected</span>
+                    <span v-if="index === 0"
+                      >{{ selectedStatuses.length }} selected</span
+                    >
                   </template>
                 </v-select>
               </v-col>
@@ -133,7 +147,9 @@
                     <v-menu>
                       <template v-slot:activator="{ props }">
                         <v-btn
-                          :disabled="!permissionExport('0101020100') || !showResult"
+                          :disabled="
+                            !permissionExport('0101020200') || !showResult
+                          "
                           class="download-btn elevation-0 text-none"
                           v-bind="props"
                         >
@@ -156,16 +172,19 @@
               </v-col>
             </v-row>
           </v-card-text>
-  
+
           <v-card-text v-if="searchLoading" class="text-center">
-            <v-progress-circular indeterminate color="primary"></v-progress-circular>
+            <v-progress-circular
+              indeterminate
+              color="primary"
+            ></v-progress-circular>
             <div>Loading data...</div>
           </v-card-text>
-  
+
           <v-card-text v-if="error" class="text-center error--text">
             Error loading data: {{ error }}
           </v-card-text>
-  
+
           <v-card-text v-if="showResult && !searchLoading" class="mx-4">
             <v-data-table
               :mobile-breakpoint="0"
@@ -177,9 +196,18 @@
               <template v-slot:[`item.date`]="{ item }">
                 {{ formatTimeShow(item.date) }}
               </template>
+              <template v-slot:[`item.value`]="{ item }">
+                <strong>{{ item.value }}</strong>
+              </template>
               <template v-slot:[`item.details`]="{ item }">
                 <v-chip
-                  :color="item.details.isDanger ? 'red' : item.details.isWarning ? 'amber' : 'grey'"
+                  :color="
+                    item.details.isDanger
+                      ? 'red'
+                      : item.details.isWarning
+                        ? 'amber'
+                        : 'grey'
+                  "
                   dark
                 >
                   {{ item.details.text }}
@@ -214,7 +242,10 @@
                     <p class="title-field">Date</p>
                     <v-text-field
                       density="compact"
-                      style="font-size: 16px; font-family: 'Inter', sans-serif;"
+                      style="
+                        font-size: 16px;
+                        font-family: 'Inter', sans-serif;
+                      "
                       variant="outlined"
                       disabled
                       rounded="lg"
@@ -228,7 +259,10 @@
                     <p class="title-field">Device Name</p>
                     <v-text-field
                       density="compact"
-                      style="font-size: 16px; font-family: 'Inter', sans-serif;"
+                      style="
+                        font-size: 16px;
+                        font-family: 'Inter', sans-serif;
+                      "
                       variant="outlined"
                       disabled
                       rounded="lg"
@@ -242,7 +276,10 @@
                     <p class="title-field">Measuremnet</p>
                     <v-text-field
                       density="compact"
-                      style="font-size: 16px; font-family: 'Inter', sans-serif;"
+                      style="
+                        font-size: 16px;
+                        font-family: 'Inter', sans-serif;
+                      "
                       variant="outlined"
                       disabled
                       rounded="lg"
@@ -254,20 +291,26 @@
                 <v-col cols="12" md="6">
                   <div>
                     <p class="title-field-thai">เลขใบแจ้งซ่อม</p>
-                      <v-text-field
-                        v-model="editedItem.solution"
-                        variant="outlined"
-                        require
-                        rounded="lg"
-                        density="compact"
-                      ></v-text-field>
+                    <v-text-field
+                      v-model="editedItem.solution"
+                      variant="outlined"
+                      require
+                      rounded="lg"
+                      density="compact"
+                    ></v-text-field>
                   </div>
                 </v-col>
               </v-row>
             </v-card-text>
-            <v-card-actions class="d-flex align-center justify-center mb-8 ga-8">
-              <v-btn class="cancel-btn text-none" @click="closeEditDialog">Cancel</v-btn>
-              <v-btn class="save-btn text-none" @click="saveEditDialog">Save</v-btn>
+            <v-card-actions
+              class="d-flex align-center justify-center mb-8 ga-8"
+            >
+              <v-btn class="cancel-btn text-none" @click="closeEditDialog"
+                >Cancel</v-btn
+              >
+              <v-btn class="save-btn text-none" @click="saveEditDialog"
+                >Save</v-btn
+              >
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -278,8 +321,17 @@
         persistent
       >
         <div class="pa-6 d-flex flex-column align-center">
-          <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
-          <div class="mt-4 text-h6" style="font-family: 'Inter', sans-serif;">Loading data...</div>
+          <v-progress-circular
+            indeterminate
+            color="primary"
+            size="64"
+          ></v-progress-circular>
+          <div
+            class="mt-4 text-h6"
+            style="font-family: 'Inter', sans-serif"
+          >
+            Loading data...
+          </div>
         </div>
       </v-overlay>
     </v-container>
@@ -287,358 +339,378 @@
 </template>
 
 <script setup>
-import NavigationBar from '@/components/NavigationBar.vue';
-import SpaceBar from '@/components/SpaceBar.vue';
-import { ref, computed, inject, onMounted, watch, nextTick } from 'vue';
-import VueDatePicker from '@vuepic/vue-datepicker';
-import '@/assets/colors.scss'
-import '@vuepic/vue-datepicker/dist/main.css'
-import { useRoute, useRouter } from 'vue-router';
+import NavigationBar from "@/components/NavigationBar.vue"
+import SpaceBar from "@/components/SpaceBar.vue"
+import { ref, computed, inject, onMounted, watch, nextTick } from "vue"
+import VueDatePicker from "@vuepic/vue-datepicker"
+import "@/assets/colors.scss"
+import "@vuepic/vue-datepicker/dist/main.css"
+import { useRoute, useRouter } from "vue-router"
 
-const $api = inject('$api');
-const router = useRouter();
-const route = useRoute();
+const $api = inject("$api")
+const router = useRouter()
+const route = useRoute()
 
-const loading = ref(true);
-const memberData = ref(JSON.parse(localStorage.getItem('member'))) || {};
-const datePicker = VueDatePicker;
-const bargeGruop = ref([]);
-const tugboatRiverGroup = ref([]);
-const tugboatSeaGroup = ref([]);
-const selectedType = ref(null);
-const selectedDevices = ref(null);
-const measurementList = ref([]);
-const selectedMeasurement = ref([]);
-const selectedStatuses = ref([]);
-const searchLoading = ref(false);
-const tableData = ref([]);
-const showResult = ref(false);
-const dialog = ref(false);
-const vehicleError = ref('');
-const deviceError = ref('');
-const error = ref(null);
-const permission = ref(null);
-const endDate = ref(new Date());
-const startDate = ref(new Date(new Date().setDate(new Date().getDate() - 7)));
+const loading = ref(true)
+const memberData = ref(JSON.parse(localStorage.getItem("member"))) || {}
+const datePicker = VueDatePicker
+const bargeGruop = ref([])
+const tugboatRiverGroup = ref([])
+const tugboatSeaGroup = ref([])
+const selectedType = ref(null)
+const selectedDevices = ref(null)
+const measurementList = ref([])
+const selectedMeasurement = ref([])
+const selectedStatuses = ref([])
+const searchLoading = ref(false)
+const tableData = ref([])
+const showResult = ref(false)
+const dialog = ref(false)
+const vehicleError = ref("")
+const deviceError = ref("")
+const error = ref(null)
+const permission = ref(null)
+const endDate = ref(new Date())
+const startDate = ref(new Date(new Date().setDate(new Date().getDate() - 7)))
 
 const statusOptions = ref([
-  { text: 'รอแจ้งซ่อม', value: false },
-  { text: 'ดำเนินการเสร็จสิ้น', value: true }
-]);
+  { text: "รอแจ้งซ่อม", value: false },
+  { text: "ดำเนินการเสร็จสิ้น", value: true },
+])
 
 const editedItem = ref({
-  date: '',
-  deviceName: '',
-  measurement: '',
-  solution: '',
-  originalData: null
-});
+  date: "",
+  deviceName: "",
+  measurement: "",
+  solution: "",
+  originalData: null,
+})
 
 const initialize = async () => {
-  const menuPermission = localStorage.getItem('menuPermission');
+  const menuPermission = localStorage.getItem("menuPermission")
   if (!menuPermission) {
-    return router.push('/Homepage');
+    return router.push("/Homepage")
   }
 
-  const permissionList = JSON.parse(menuPermission);
-  const foundPermission = permissionList.find(item => item.MenuId === '0101020200');
-  permission.value = foundPermission;
-  
+  const permissionList = JSON.parse(menuPermission)
+  const foundPermission = permissionList.find(
+    (item) => item.MenuId === "0101020200",
+  )
+  permission.value = foundPermission
+
   if (!foundPermission || !foundPermission.IsActive) {
-    return router.push('/Homepage');
+    return router.push("/Homepage")
   }
-};
+}
 
 const permissionWrite = (menuId) => {
   if (!permission.value || permission.value.MenuId !== menuId) {
-    return false;
+    return false
   }
   // console.log(permission.value, permission.value?.IsWrite);
-  return permission.value?.IsWrite;
-};
+  return permission.value?.IsWrite
+}
 
 const permissionExport = (menuId) => {
   if (!permission.value || permission.value.MenuId !== menuId) {
-    return false;
+    return false
   }
   // console.log(permission.value, permission.value?.IsExport);
-  return permission.value?.IsExport;
-};
+  return permission.value?.IsExport
+}
 
 const fetchDeviceData = async () => {
   try {
-    loading.value = true;
+    loading.value = true
 
     const [bargeResponse, riverResponse, seaResponse] = await Promise.all([
-      $api.get('/MachineStatus/GetDeviceBargesGrouped'),
-      $api.get('/MachineStatus/GetTugboatRiver'),
-      $api.get('/MachineStatus/GetTugboatSea')
-    ]);
+      $api.get("/MachineStatus/GetDeviceBargesGrouped"),
+      $api.get("/MachineStatus/GetTugboatRiver"),
+      $api.get("/MachineStatus/GetTugboatSea"),
+    ])
 
-    bargeGruop.value = bargeResponse.data;
-    tugboatRiverGroup.value = riverResponse.data;
-    tugboatSeaGroup.value = seaResponse.data;
+    bargeGruop.value = bargeResponse.data
+    tugboatRiverGroup.value = riverResponse.data
+    tugboatSeaGroup.value = seaResponse.data
 
-    bargeGruop.value.forEach(group => group.typeVehicle = 'Barge');
-    tugboatRiverGroup.value.forEach(group => group.typeVehicle = 'Tugboat River Going');
-    tugboatSeaGroup.value.forEach(group => group.typeVehicle = 'Tugboat Sea Going');
-
+    bargeGruop.value.forEach((group) => (group.typeVehicle = "Barge"))
+    tugboatRiverGroup.value.forEach(
+      (group) => (group.typeVehicle = "Tugboat River Going"),
+    )
+    tugboatSeaGroup.value.forEach(
+      (group) => (group.typeVehicle = "Tugboat Sea Going"),
+    )
   } catch (error) {
-    console.error('Failed to fetch device data:', error);
-    error.value = 'Failed to load device list. Please try again.';
+    console.error("Failed to fetch device data:", error)
+    error.value = "Failed to load device list. Please try again."
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
- 
+}
+
 const formatTimeShow = (datetime) => {
-  if (datetime==null) {
+  if (datetime == null) {
     return null
   } else {
-    var dateTime = new Date(datetime);
-    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
-    var day = ("0" + dateTime.getDate()).slice(-2);
-    var year = dateTime.getFullYear();
-    var hour = ("0" + dateTime.getHours()).slice(-2);
-    var minute = ("0" + dateTime.getMinutes()).slice(-2);
-    return year + "-" + month + "-" + day + " " + hour + ":" + minute;
+    var dateTime = new Date(datetime)
+    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2)
+    var day = ("0" + dateTime.getDate()).slice(-2)
+    var year = dateTime.getFullYear()
+    var hour = ("0" + dateTime.getHours()).slice(-2)
+    var minute = ("0" + dateTime.getMinutes()).slice(-2)
+    return year + "-" + month + "-" + day + " " + hour + ":" + minute
   }
-};
+}
 
 const formatTimeShow_T = (datetime) => {
-  if (datetime==null) {
+  if (datetime == null) {
     return null
   } else {
-    var dateTime = new Date(datetime);
-    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
-    var day = ("0" + dateTime.getDate()).slice(-2);
-    var year = dateTime.getFullYear();
-    var hour = ("0" + dateTime.getHours()).slice(-2);
-    var minute = ("0" + dateTime.getMinutes()).slice(-2);
-    return year + "-" + month + "-" + day + "T" + hour + ":" + minute;
+    var dateTime = new Date(datetime)
+    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2)
+    var day = ("0" + dateTime.getDate()).slice(-2)
+    var year = dateTime.getFullYear()
+    var hour = ("0" + dateTime.getHours()).slice(-2)
+    var minute = ("0" + dateTime.getMinutes()).slice(-2)
+    return year + "-" + month + "-" + day + "T" + hour + ":" + minute
   }
-};
+}
 
 const formatDateForFilename = (date) => {
-  if (!date) return '';
-  const dateTime = new Date(date);
-  const year = dateTime.getFullYear();
-  const month = ("0" + (dateTime.getMonth() + 1)).slice(-2);
-  const day = ("0" + dateTime.getDate()).slice(-2);
-  const hour = ("0" + dateTime.getHours()).slice(-2);
-  const minute = ("0" + dateTime.getMinutes()).slice(-2);
-  const second = ("0" + dateTime.getSeconds()).slice(-2);
-  return `${year}${month}${day}_${hour}${minute}${second}`;
-};
+  if (!date) return ""
+  const dateTime = new Date(date)
+  const year = dateTime.getFullYear()
+  const month = ("0" + (dateTime.getMonth() + 1)).slice(-2)
+  const day = ("0" + dateTime.getDate()).slice(-2)
+  const hour = ("0" + dateTime.getHours()).slice(-2)
+  const minute = ("0" + dateTime.getMinutes()).slice(-2)
+  const second = ("0" + dateTime.getSeconds()).slice(-2)
+  return `${year}${month}${day}_${hour}${minute}${second}`
+}
 
 const fetchMeasurementList = async () => {
   try {
     // console.log('Fetching measurements for device:', selectedDevices.value);
     if (!selectedDevices.value) {
-      measurementList.value = [];
-      selectedMeasurement.value = null;
-      return;
+      measurementList.value = []
+      selectedMeasurement.value = null
+      return
     }
 
-    const response = await $api.put('/Device/GetDeviceMeasurementList', {
-      DeviceId: selectedDevices.value
-    });
+    const response = await $api.put("/Device/GetDeviceMeasurementList", {
+      DeviceId: selectedDevices.value,
+    })
 
     measurementList.value = response.data
-      .filter(item => item.MeasurementLabel !== "Status")
-      .map(item => ({
+      .filter((item) => item.MeasurementLabel !== "Status")
+      .map((item) => ({
         measurementId: item.MeasurementId.toString(),
         measurementName: item.MeasurementName,
-      }));
+      }))
 
-    if (route.query.measurements === 'all') {
-      selectedMeasurement.value = 'all';
+    if (route.query.measurements === "all") {
+      selectedMeasurement.value = "all"
     } else {
-      selectedMeasurement.value = null;
+      selectedMeasurement.value = null
     }
   } catch (error) {
-    console.error('Failed to fetch measurement list:', error);
-    measurementList.value = [];
-    selectedMeasurement.value = null;
+    console.error("Failed to fetch measurement list:", error)
+    measurementList.value = []
+    selectedMeasurement.value = null
   }
-};
+}
 
 const typeOptions = computed(() => {
-  const options = [];
-  
-  bargeGruop.value.forEach(item => {
+  const options = []
+
+  bargeGruop.value.forEach((item) => {
     options.push({
-      typeDeviceName: item.TypeDevicename, 
+      typeDeviceName: item.TypeDevicename,
       typeVehicle: item.TypeDevicename,
-      source: 'barge'
-    });
-  });
+      source: "barge",
+    })
+  })
 
   if (tugboatRiverGroup.value.length > 0) {
     options.push({
-      typeDeviceName: 'Tugboat River Going',
-      typeVehicle: 'Tugboat River Going',
-      source: 'river'
-    });
+      typeDeviceName: "Tugboat River Going",
+      typeVehicle: "Tugboat River Going",
+      source: "river",
+    })
   }
 
   if (tugboatSeaGroup.value.length > 0) {
     options.push({
-      typeDeviceName: 'Tugboat Sea Going',
-      typeVehicle: 'Tugboat Sea Going',
-      source: 'sea'
-    });
+      typeDeviceName: "Tugboat Sea Going",
+      typeVehicle: "Tugboat Sea Going",
+      source: "sea",
+    })
   }
-  
-  return options;
-});
+
+  return options
+})
 
 const deviceOptions = computed(() => {
-  if (!selectedType.value) return [];
+  if (!selectedType.value) return []
 
-  const selectedOption = typeOptions.value.find(option => option.typeDeviceName === selectedType.value);
-  if (!selectedOption) return [];
+  const selectedOption = typeOptions.value.find(
+    (option) => option.typeDeviceName === selectedType.value,
+  )
+  if (!selectedOption) return []
 
-  let devices = [];
-  
-  if (selectedOption.source === 'barge') {
-    const group = bargeGruop.value.find(item => item.TypeDevicename === selectedType.value);
-    if (group) devices = group.Devices;
-  } 
-  else if (selectedOption.source === 'river') {
-    tugboatRiverGroup.value.forEach(group => {
-      devices = devices.concat(group.Devices);
-    });
-  }
-  else if (selectedOption.source === 'sea') {
-    tugboatSeaGroup.value.forEach(group => {
-      devices = devices.concat(group.Devices);
-    });
+  let devices = []
+
+  if (selectedOption.source === "barge") {
+    const group = bargeGruop.value.find(
+      (item) => item.TypeDevicename === selectedType.value,
+    )
+    if (group) devices = group.Devices
+  } else if (selectedOption.source === "river") {
+    tugboatRiverGroup.value.forEach((group) => {
+      devices = devices.concat(group.Devices)
+    })
+  } else if (selectedOption.source === "sea") {
+    tugboatSeaGroup.value.forEach((group) => {
+      devices = devices.concat(group.Devices)
+    })
   }
   return devices
-  .filter(device => !device.DeviceLabel.toLowerCase().includes('crane'))
-  .map(device => ({
-    deviceId: device.DeviceId,
-    deviceName: device.DeviceLabel
-  }));
-});
+    .filter((device) => !device.DeviceLabel.toLowerCase().includes("crane"))
+    .map((device) => ({
+      deviceId: device.DeviceId,
+      deviceName: device.DeviceLabel,
+    }))
+})
 
 const isAllStatusSelected = computed(() => {
-  return selectedStatuses.value.length === statusOptions.value.length;
-});
+  return selectedStatuses.value.length === statusOptions.value.length
+})
 
 const isPartialStatusSelection = computed(() => {
-  return selectedStatuses.value.length > 0 && !isAllStatusSelected.value;
-});
+  return selectedStatuses.value.length > 0 && !isAllStatusSelected.value
+})
 
 const toggleSelectAllStatus = () => {
   if (isAllStatusSelected.value) {
-    selectedStatuses.value = [];
+    selectedStatuses.value = []
   } else {
-    selectedStatuses.value = statusOptions.value.map(option => option.value);
+    selectedStatuses.value = statusOptions.value.map((option) => option.value)
   }
-};
+}
 
 const handleTypeChange = () => {
-  selectedDevices.value = null;
-  measurementList.value = [];
-  selectedMeasurement.value = null;
-};
+  selectedDevices.value = null
+  measurementList.value = []
+  selectedMeasurement.value = null
+}
 
 const resetFilters = () => {
-  selectedType.value = null;
-  selectedDevices.value = null;
-  selectedMeasurement.value = [];
-  selectedStatuses.value = [];
-  startDate.value = null;
-  endDate.value = null;
-  showResult.value = false;
-  vehicleError.value = '';
-  deviceError.value = '';
-};
+  selectedType.value = null
+  selectedDevices.value = null
+  selectedMeasurement.value = []
+  selectedStatuses.value = []
+  startDate.value = null
+  endDate.value = null
+  showResult.value = false
+  vehicleError.value = ""
+  deviceError.value = ""
+}
 
 const searchRecords = async () => {
   try {
-    searchLoading.value = true;
-    showResult.value = false;
+    searchLoading.value = true
+    showResult.value = false
 
     const requestBody = {
       DeviceId: selectedDevices.value,
-      MeasurementId: selectedMeasurement.value === 'all' ? "" : selectedMeasurement.value,
-      IsAccept: selectedStatuses.value.length > 0 ? selectedStatuses.value.join(",") : ""
-    };
-
-    if (selectedStatuses.value?.length > 0) {
-      if (isAllStatusSelected.value || selectedStatuses.value.length === statusOptions.value.length) {
-        requestBody.IsAccept = "";
-      } else if (selectedStatuses.value.length === 1) {
-        requestBody.IsAccept = selectedStatuses.value[0];
-      } else {
-        requestBody.IsAccept = selectedStatuses.value.join(",");
-      }
-    } else {
-      requestBody.IsAccept = "";
+      MeasurementId:
+        selectedMeasurement.value === "all" ? "" : selectedMeasurement.value,
+      IsAccept:
+        selectedStatuses.value.length > 0
+          ? selectedStatuses.value.join(",")
+          : "",
     }
 
-    const params = {};
-    if (startDate.value) params.start = formatTimeShow_T(startDate.value);
-    if (endDate.value) params.end = formatTimeShow_T(endDate.value);
+    if (selectedStatuses.value?.length > 0) {
+      if (
+        isAllStatusSelected.value ||
+        selectedStatuses.value.length === statusOptions.value.length
+      ) {
+        requestBody.IsAccept = ""
+      } else if (selectedStatuses.value.length === 1) {
+        requestBody.IsAccept = selectedStatuses.value[0]
+      } else {
+        requestBody.IsAccept = selectedStatuses.value.join(",")
+      }
+    } else {
+      requestBody.IsAccept = ""
+    }
 
-    const config = Object.keys(params).length > 0 ? { params } : {};
+    const params = {}
+    if (startDate.value) params.start = formatTimeShow_T(startDate.value)
+    if (endDate.value) params.end = formatTimeShow_T(endDate.value)
 
-    const response = await $api.put('/device/notificationlistStatus', requestBody, config);
-    
-    tableData.value = response.data.map(item => ({
+    const config = Object.keys(params).length > 0 ? { params } : {}
+
+    const response = await $api.put(
+      "/device/notificationlistStatus",
+      requestBody,
+      config,
+    )
+
+    tableData.value = response.data.map((item) => ({
       date: item.AlertTime,
       deviceName: item.DeviceLabel,
       measurement: `${item.MeasurementLabel} (${item.MeasurementUnit})`,
       solution: item.Solution,
+      value: item.Value,
       // details: item.Description,
       details: {
         text: item.Description,
         isDanger: item.Description === "Danger",
-        isWarning: item.Description === "Warning"
+        isWarning: item.Description === "Warning",
       },
-      status: item.IsAccept ? 'ดำเนินการเสร็จสิ้น' : 'รอแจ้งซ่อม',
-      originalData: item
-    }));
+      status: item.IsAccept ? "ดำเนินการเสร็จสิ้น" : "รอแจ้งซ่อม",
+      originalData: item,
+    }))
 
-    showResult.value = true;
+    showResult.value = true
   } catch (error) {
-    console.error('Failed to fetch notification list:', error);
-    error.value = 'เกิดข้อผิดพลาดในการโหลดข้อมูล';
-    tableData.value = [];
+    console.error("Failed to fetch notification list:", error)
+    error.value = "เกิดข้อผิดพลาดในการโหลดข้อมูล"
+    tableData.value = []
   } finally {
-    searchLoading.value = false;
+    searchLoading.value = false
   }
-};
+}
 
 const headers = [
-  { title: "Date", key: "date"},
-  { title: "Device Name", key: "deviceName"},
+  { title: "Date", key: "date" },
+  { title: "Device Name", key: "deviceName" },
   { title: "Measurement", key: "measurement" },
+  { title: "Value", key: "value" },
   { title: "เลขใบแจ้งซ่อม", key: "solution" },
   { title: "Details", key: "details", sortable: false },
   { title: "Status", key: "status" },
   { title: "Action", key: "action", sortable: false },
-];
+]
 
 const getStatusColor = (status) => {
   switch (status) {
-    case 'รอแจ้งซ่อม':
-      return 'status-pending';
-    case 'ดำเนินการเสร็จสิ้น':
-      return 'status-finish';
+    case "รอแจ้งซ่อม":
+      return "status-pending"
+    case "ดำเนินการเสร็จสิ้น":
+      return "status-finish"
     default:
-      return '';
+      return ""
   }
-};
+}
 
 const saveEditDialog = async () => {
   try {
     if (!editedItem.value.solution) {
-      alert('กรุณากรอกเลขใบแจ้งซ่อม');
-      return;
+      alert("กรุณากรอกเลขใบแจ้งซ่อม")
+      return
     }
 
     const requestBody = {
@@ -647,96 +719,102 @@ const saveEditDialog = async () => {
       DeviceId: editedItem.value.originalData.DeviceId,
       MeasurementId: editedItem.value.originalData.MeasurementId,
       Solution: editedItem.value.solution,
-      ModifiedBy: memberData.value.MemberId
-    };
-    await $api.put('/device/notification/accept/single', requestBody);
+      ModifiedBy: memberData.value.MemberId,
+    }
+    await $api.put("/device/notification/accept/single", requestBody)
 
     const index = tableData.value.findIndex(
-      item => item.originalData.Id === editedItem.value.originalData.Id
-    );
-    
+      (item) => item.originalData.Id === editedItem.value.originalData.Id,
+    )
+
     if (index !== -1) {
-      tableData.value[index].originalData.Solution = editedItem.value.solution;
-      tableData.value[index].originalData.IsAccept = true;
-      tableData.value[index].status = 'ดำเนินการเสร็จสิ้น';
-      tableData.value[index].solution = editedItem.value.solution;
+      tableData.value[index].originalData.Solution = editedItem.value.solution
+      tableData.value[index].originalData.IsAccept = true
+      tableData.value[index].status = "ดำเนินการเสร็จสิ้น"
+      tableData.value[index].solution = editedItem.value.solution
     }
 
-    dialog.value = false;
+    dialog.value = false
   } catch (error) {
-    console.error('Failed to save ticket:', error);
+    console.error("Failed to save ticket:", error)
   }
-};
+}
 
 const downloadReport = async (format) => {
   if (!showResult.value || !tableData.value.length) {
-    error.value = 'ไม่มีข้อมูลสำหรับดาวน์โหลด';
-    alert('ไม่มีข้อมูลสำหรับดาวน์โหลด');
-    return;
+    error.value = "ไม่มีข้อมูลสำหรับดาวน์โหลด"
+    alert("ไม่มีข้อมูลสำหรับดาวน์โหลด")
+    return
   }
 
-  const start = startDate.value ? formatDateForFilename(startDate.value) : 'nodate';
-  const end = endDate.value ? formatDateForFilename(endDate.value) : 'nodate';
-  const filename = `Notification_Report_${start}_${end}`;
+  const start = startDate.value
+    ? formatDateForFilename(startDate.value)
+    : "nodate"
+  const end = endDate.value ? formatDateForFilename(endDate.value) : "nodate"
+  const filename = `Notification_Report_${start}_${end}`
 
-  if (format === 'CSV') {
-    const csvRows = [ 'Date,Device Name,Measurement,เลขใบแจ้งซ่อม,Details,Status',];
+  if (format === "CSV") {
+    const csvRows = [
+      "Date,Device Name,Measurement,เลขใบแจ้งซ่อม,Details,Status",
+    ]
 
-    tableData.value.forEach(item => {
+    tableData.value.forEach((item) => {
       const row = [
-        `"${formatTimeShow(item.date) || ''}"`,
-        `"${item.deviceName || ''}"`,
-        `"${item.measurement || ''}"`,
-        `"${item.solution || ''}"`,
-        `"${item.details || ''}"`,
-        `"${item.status || ''}"`,
-      ];
-      csvRows.push(row.join(','));
-    });
+        `"${formatTimeShow(item.date) || ""}"`,
+        `"${item.deviceName || ""}"`,
+        `"${item.measurement || ""}"`,
+        `"${item.solution || ""}"`,
+        `"${item.details.text || ""}"`,
+        `"${item.status || ""}"`,
+      ]
+      csvRows.push(row.join(","))
+    })
 
-    const csvContent = csvRows.join('\n');
-    const bom = '\uFEFF';
-    const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `${filename}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  } 
-};
+    const csvContent = csvRows.join("\n")
+    const bom = "\uFEFF"
+    const blob = new Blob([bom + csvContent], {
+      type: "text/csv;charset=utf-8;",
+    })
+    const link = document.createElement("a")
+    const url = URL.createObjectURL(blob)
+    link.setAttribute("href", url)
+    link.setAttribute("download", `${filename}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+}
 
 const editItem = (item) => {
   editedItem.value = {
     date: item.AlertTime,
     deviceName: item.DeviceLabel,
     measurement: `${item.MeasurementLabel} (${item.MeasurementUnit})`,
-    solution: item.Solution || '',
-    originalData: item
-  };
-  dialog.value = true;
-};
+    solution: item.Solution || "",
+    originalData: item,
+  }
+  dialog.value = true
+}
 
 const closeEditDialog = () => {
-  dialog.value = false;
-};
+  dialog.value = false
+}
 
 const validateAndSearch = (fromRoute = false) => {
-  let isValid = true;
-  
-  vehicleError.value = '';
-  deviceError.value = '';
-  
+  let isValid = true
+
+  vehicleError.value = ""
+  deviceError.value = ""
+
   if (!selectedType.value) {
-    vehicleError.value = 'Vehicle is required';
-    isValid = false;
+    vehicleError.value = "Vehicle is required"
+    isValid = false
   }
 
   if (!selectedDevices.value) {
-    deviceError.value = 'Device is required';
-    isValid = false;
+    deviceError.value = "Device is required"
+    isValid = false
   }
 
   if (isValid) {
@@ -744,79 +822,84 @@ const validateAndSearch = (fromRoute = false) => {
       const query = {
         vehicle: selectedType.value,
         device: selectedDevices.value,
-        measurements: selectedMeasurement.value.join(','),
-        statuses: selectedStatuses.value.join(','),
-      };
-      
-      if (startDate.value) query.startDate = startDate.value.formatTimeShow_T();
-      if (endDate.value) query.endDate = endDate.value.formatTimeShow_T();
-      
-      router.push({ query });
+        measurements: selectedMeasurement.value.join(","),
+        statuses: selectedStatuses.value.join(","),
+      }
+
+      if (startDate.value) query.startDate = startDate.value.formatTimeShow_T()
+      if (endDate.value) query.endDate = endDate.value.formatTimeShow_T()
+
+      router.push({ query })
     }
-    
-    searchRecords();
+
+    searchRecords()
   }
-  
-  return isValid;
-};
+
+  return isValid
+}
 
 const handleRouteParams = async () => {
-  if (!route.query.vehicle) return;
+  if (!route.query.vehicle) return
 
-  
-  const vehicleQuery = route.query.vehicle.toLowerCase().trim();
-  
-  const matchedOption = typeOptions.value.find(option => 
-  option.typeVehicle.toLowerCase().trim() === vehicleQuery ||
-    option.typeDeviceName?.toLowerCase().trim() === vehicleQuery
-  );
+  const vehicleQuery = route.query.vehicle.toLowerCase().trim()
+
+  const matchedOption = typeOptions.value.find(
+    (option) =>
+      option.typeVehicle.toLowerCase().trim() === vehicleQuery ||
+      option.typeDeviceName?.toLowerCase().trim() === vehicleQuery,
+  )
 
   if (!matchedOption) {
-    console.error('No matching vehicle type found for:', route.query.vehicle);
-    return;
+    console.error("No matching vehicle type found for:", route.query.vehicle)
+    return
   }
-  
-  selectedType.value = matchedOption.typeVehicle || matchedOption.typeDeviceName;
-  await nextTick();
-  
+
+  selectedType.value = matchedOption.typeVehicle || matchedOption.typeDeviceName
+  await nextTick()
+
   if (route.query.device) {
-    selectedDevices.value = route.query.device;
-    
-    await nextTick();
-    
-    if (route.query.measurements === 'all') {
-      selectedMeasurement.value = 'all';
+    selectedDevices.value = route.query.device
+
+    await nextTick()
+
+    if (route.query.measurements === "all") {
+      selectedMeasurement.value = "all"
     } else if (route.query.measurements) {
-      selectedMeasurement.value = route.query.measurements.split(',')[0];
+      selectedMeasurement.value = route.query.measurements.split(",")[0]
     }
 
     if (route.query.statuses) {
-      selectedStatuses.value = route.query.statuses.split(',').map(s => s === 'true');
+      selectedStatuses.value = route.query.statuses
+        .split(",")
+        .map((s) => s === "true")
     }
 
-    validateAndSearch(true);
+    validateAndSearch(true)
   }
-};
+}
 
-onMounted(async() => {
-  await initialize();
-  await fetchDeviceData();
-  await fetchMeasurementList();
-  handleRouteParams();
-});
+onMounted(async () => {
+  await initialize()
+  await fetchDeviceData()
+  await fetchMeasurementList()
+  handleRouteParams()
+})
 
 watch(selectedDevices, (newVal) => {
   if (newVal) {
-    fetchMeasurementList();
+    fetchMeasurementList()
   } else {
-    measurementList.value = [];
-    selectedMeasurement.value = null;
+    measurementList.value = []
+    selectedMeasurement.value = null
   }
-});
+})
 
-watch(() => route.query, () => {
-  handleRouteParams();
-});
+watch(
+  () => route.query,
+  () => {
+    handleRouteParams()
+  },
+)
 </script>
 
 <style scoped>
@@ -833,14 +916,14 @@ watch(() => route.query, () => {
 } */
 
 .status-pending {
-  font-family: 'Sarabun', serif;
-  color: #FFFFFF;
+  font-family: "Sarabun", serif;
+  color: #ffffff;
   background-color: #e73232;
 }
 
 .status-finish {
-  font-family: 'Sarabun', serif;
-  color: #FFFFFF;
+  font-family: "Sarabun", serif;
+  color: #ffffff;
   background-color: #52be80;
 }
 
@@ -877,8 +960,8 @@ watch(() => route.query, () => {
   height: 24px;
   border-radius: 24px;
   font-size: 20px;
-  color: #1570EF;
-  background-color: #E3F2FD;
+  color: #1570ef;
+  background-color: #e3f2fd;
 }
 
 .title {
@@ -889,12 +972,12 @@ watch(() => route.query, () => {
 .download-btn {
   background-color: var(--yellow);
   color: var(--white);
-  border-radius: 24px; 
+  border-radius: 24px;
   font-size: 1.3vh;
 }
 
 .card-dialog {
-  font-family: 'Sarabun', sans-serif;
+  font-family: "Sarabun", sans-serif;
   font-size: 20px;
 }
 
@@ -905,13 +988,13 @@ watch(() => route.query, () => {
 }
 
 .title-field-thai {
-  font-family: 'Sarabun', sans-serif;
+  font-family: "Sarabun", sans-serif;
   font-size: 16px;
   color: var(--gray);
   margin-bottom: 6px;
 }
 
-.default-field{
+.default-field {
   width: 362px;
   height: 50px;
   background-color: var(--bg-row);
@@ -920,13 +1003,13 @@ watch(() => route.query, () => {
 
   p {
     color: var(--grey-02);
-    font-family: 'Poppins', sans-serif;
+    font-family: "Poppins", sans-serif;
   }
 }
 
 .cancel-button {
   color: #000000;
-  border: 1px solid #E3E3E3;
+  border: 1px solid #e3e3e3;
   border-radius: 24px;
   font-size: 1.5vh;
 }
@@ -941,31 +1024,31 @@ watch(() => route.query, () => {
 .cancel-btn {
   color: #000000;
   border-radius: 24px;
-  border: 1px solid #E3E3E3;
-  font-family: 'Inter', sans-serif;
+  border: 1px solid #e3e3e3;
+  font-family: "Inter", sans-serif;
   width: 5vw;
 }
 
 .save-btn {
-  background-color: #1476FF;
+  background-color: #1476ff;
   color: #ffffff;
   border-radius: 24px;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   width: 5vw;
 }
 
 .error--text {
-  color: #DC2B2B;
+  color: #dc2b2b;
   font-weight: bold;
 }
 
 .error-border {
-  border: 1px solid #DC2B2B;
+  border: 1px solid #dc2b2b;
   border-radius: 4px;
 }
 
 .error-message {
-  color: #DC2B2B;
+  color: #dc2b2b;
   font-size: 12px;
   margin-top: 4px;
 }

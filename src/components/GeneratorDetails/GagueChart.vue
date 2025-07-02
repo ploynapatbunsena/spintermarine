@@ -14,12 +14,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-import VueGauge from 'vue-gauge';
+import { ref, computed, onMounted, onBeforeUnmount } from "vue"
+import VueGauge from "vue-gauge"
 defineProps({
   title: {
     type: String,
-    default: '',
+    default: "",
   },
   value: {
     type: Number,
@@ -43,23 +43,23 @@ defineProps({
   },
   rangeLabel: {
     type: Array,
-    default: () => ['0', '100'],
+    default: () => ["0", "100"],
   },
   centralLabel: {
     type: String,
-    default: '',
+    default: "",
   },
   needleColor: {
     type: String,
-    default: '#355F2E',
+    default: "#355F2E",
   },
-});
+})
 
-const chartWidthVw = ref(15);
+const chartWidthVw = ref(15)
 
 const gaugeOptions = computed(() => {
-  const needlePercentage = (value / maxValue) * 100;
-  const chartWidth = (chartWidthVw.value / 100) * window.innerWidth;
+  const needlePercentage = (value / maxValue) * 100
+  const chartWidth = (chartWidthVw.value / 100) * window.innerWidth
 
   return {
     needleValue: needlePercentage,
@@ -73,20 +73,20 @@ const gaugeOptions = computed(() => {
     chartWidth,
     rangeLabel,
     hasNeedle: true,
-  };
-});
+  }
+})
 
 const updateChartWidth = () => {
-  chartWidthVw.value = chartWidthVw.value; // บังคับให้ Vue อัปเดต
-};
+  chartWidthVw.value = chartWidthVw.value // บังคับให้ Vue อัปเดต
+}
 
 onMounted(() => {
-  window.addEventListener('resize', updateChartWidth);
-});
+  window.addEventListener("resize", updateChartWidth)
+})
 
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', updateChartWidth);
-});
+  window.removeEventListener("resize", updateChartWidth)
+})
 </script>
 
 <style scoped>
@@ -100,7 +100,7 @@ onBeforeUnmount(() => {
 .gauge-title {
   font-size: 1.5vh;
   font-weight: 500;
-  color: var(--dark-gray)
+  color: var(--dark-gray);
 }
 
 .gauge-wrapper {
@@ -108,7 +108,7 @@ onBeforeUnmount(() => {
 }
 
 .central-label {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   position: absolute;
   bottom: 5%;
   left: 50%;
@@ -121,4 +121,3 @@ onBeforeUnmount(() => {
   font-size: 1vh;
 }
 </style>
-

@@ -15,27 +15,27 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed } from "vue"
 import { defineProps } from "vue"
 
 const props = defineProps({
   remainingVolume: {
     type: Number,
-    required: true
+    required: true,
   },
   totalCapacity: {
     type: Number,
-    required: true
-  }
-});
+    required: true,
+  },
+})
 
 const oilPercentage = computed(() => {
-  if (props.totalCapacity <= 0) return 0;
-  const percentage = (props.remainingVolume / props.totalCapacity) * 100;
-  return Math.max(0, Math.min(100, percentage)).toFixed(2);
-});
+  if (props.totalCapacity <= 0) return 0
+  const percentage = (props.remainingVolume / props.totalCapacity) * 100
+  return Math.max(0, Math.min(100, percentage)).toFixed(2)
+})
 </script>
-  
+
 <style lang="scss" scoped>
 .gasolineTank {
   width: 100%;
@@ -69,20 +69,20 @@ const oilPercentage = computed(() => {
   overflow: hidden;
   display: flex;
   justify-content: center;
-  align-items: flex-end;   
+  align-items: flex-end;
 }
 
 .oil {
   position: absolute;
   bottom: 0;
   width: 100%;
-  background: linear-gradient(to bottom, #FFF6DE 0%, #FEE114 100%);
+  background: linear-gradient(to bottom, #fff6de 0%, #fee114 100%);
   transition: height 0.5s ease;
   z-index: 1;
 }
 
 .percentage {
-  font-family: 'Inter', serif;
+  font-family: "Inter", serif;
   position: absolute;
   z-index: 2;
   bottom: 50%;
@@ -91,7 +91,7 @@ const oilPercentage = computed(() => {
   transform: translate(-50%, 50%);
   font-size: 6vh;
   font-weight: bold;
-  color: #333;  
+  color: #333;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -105,12 +105,10 @@ const oilPercentage = computed(() => {
   gap: 2vh;
 
   p {
-    font-family: 'Sarabun', serif;
+    font-family: "Sarabun", serif;
     font-size: 1.5vh;
     font-weight: 600;
     margin: 8px 0;
   }
 }
-
 </style>
-

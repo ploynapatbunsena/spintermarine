@@ -2,7 +2,10 @@
   <v-container>
     <v-row class="gap-10">
       <v-col cols="12" sm="6" lg="6" class="d-flex align-center card">
-        <div class="icon engine-state" :style="{ backgroundColor: status.color }">
+        <div
+          class="icon engine-state"
+          :style="{ backgroundColor: status.color }"
+        >
           <span class="material-symbols-rounded">vital_signs</span>
         </div>
         <div class="text-side">
@@ -16,7 +19,10 @@
         </div>
         <div class="text-side">
           <p class="text-grey">Running Hour</p>
-          <p class="text-value">{{ measurements['Hour Meter'].value }} {{ measurements['Hour Meter'].unit }}</p>
+          <p class="text-value">
+            {{ measurements["Hour Meter"].value }}
+            {{ measurements["Hour Meter"].unit }}
+          </p>
         </div>
       </v-col>
     </v-row>
@@ -27,7 +33,10 @@
         </div>
         <div class="text-side">
           <p class="text-grey">Battery Volts</p>
-          <p class="text-value">{{ measurements['Battery Volts'].value }} {{ measurements['Battery Volts'].unit }}</p>
+          <p class="text-value">
+            {{ measurements["Battery Volts"].value }}
+            {{ measurements["Battery Volts"].unit }}
+          </p>
         </div>
       </v-col>
       <v-col cols="12" sm="6" lg="6" class="d-flex align-center card">
@@ -36,7 +45,10 @@
         </div>
         <div class="text-side">
           <p class="text-grey">Actual Power</p>
-          <p class="text-value">{{ measurements['Actual Power'].value }} {{ measurements['Actual Power'].unit }}</p>
+          <p class="text-value">
+            {{ measurements["Actual Power"].value }}
+            {{ measurements["Actual Power"].unit }}
+          </p>
         </div>
       </v-col>
     </v-row>
@@ -47,7 +59,10 @@
         </div>
         <div class="text-side">
           <p class="text-grey">Oil Pressure</p>
-          <p class="text-value">{{ measurements['Oil Pressure'].value }} {{ measurements['Oil Pressure'].unit }}</p>
+          <p class="text-value">
+            {{ measurements["Oil Pressure"].value }}
+            {{ measurements["Oil Pressure"].unit }}
+          </p>
         </div>
       </v-col>
       <v-col cols="12" sm="6" lg="6" class="d-flex align-center card">
@@ -56,7 +71,10 @@
         </div>
         <div class="text-side">
           <p class="text-grey">Water Temperature</p>
-          <p class="text-value">{{ measurements['Water Temp'].value }} {{ measurements['Water Temp'].unit }}</p>
+          <p class="text-value">
+            {{ measurements["Water Temp"].value }}
+            {{ measurements["Water Temp"].unit }}
+          </p>
         </div>
       </v-col>
     </v-row>
@@ -67,7 +85,10 @@
         </div>
         <div class="text-side">
           <p class="text-grey">Total Fuel Consumptions</p>
-          <p class="text-value">{{ measurements['Total Fuel Consumption'].value }} {{ measurements['Total Fuel Consumption'].unit }}</p>
+          <p class="text-value">
+            {{ measurements["Total Fuel Consumption"].value }}
+            {{ measurements["Total Fuel Consumption"].unit }}
+          </p>
         </div>
       </v-col>
       <v-col cols="12" sm="6" lg="6" class="d-flex align-center card">
@@ -76,7 +97,9 @@
         </div>
         <div class="text-side">
           <p class="text-grey">RPM</p>
-          <p class="text-value">{{ measurements['RPM'].value }} {{ measurements['RPM'].unit }}</p>
+          <p class="text-value">
+            {{ measurements["RPM"].value }} {{ measurements["RPM"].unit }}
+          </p>
         </div>
       </v-col>
     </v-row>
@@ -84,26 +107,26 @@
 </template>
 
 <script setup>
-import '@/assets/colors.scss'
+import "@/assets/colors.scss"
 
 defineProps({
   measurements: {
     type: Object,
     default: () => ({
-      'Hour Meter': { value: '0', unit: 'Hr' },
-      'Battery Volts': { value: '0', unit: 'V' },
-      'Actual Power': { value: '0', unit: 'kW' },
-      'Oil Pressure': { value: '0', unit: 'bar' },
-      'Water Temp': { value: '0', unit: '°C' },
-      'Total Fuel Consumption': { value: '0', unit: 'L' },
-      'RPM': { value: '0', unit: 'RPM' }
-    })
+      "Hour Meter": { value: "0", unit: "Hr" },
+      "Battery Volts": { value: "0", unit: "V" },
+      "Actual Power": { value: "0", unit: "kW" },
+      "Oil Pressure": { value: "0", unit: "bar" },
+      "Water Temp": { value: "0", unit: "°C" },
+      "Total Fuel Consumption": { value: "0", unit: "L" },
+      RPM: { value: "0", unit: "RPM" },
+    }),
   },
   status: {
     type: Object,
-    default: () => ({ text: 'N/A'})
-  }
-});
+    default: () => ({ text: "N/A" }),
+  },
+})
 </script>
 
 <style lang="scss" scoped>

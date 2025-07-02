@@ -13,8 +13,8 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue';
-import VueGauge from 'vue-gauge';
+import { computed, onMounted, onBeforeUnmount, ref, watch } from "vue"
+import VueGauge from "vue-gauge"
 
 const props = defineProps({
   label: {
@@ -45,41 +45,45 @@ const props = defineProps({
     type: Number,
     default: 5,
   },
-});
+})
 
-const unit = "°";
-const chartWidth = ref(300);
-const componentKey = ref(0);
+const unit = "°"
+const chartWidth = ref(300)
+const componentKey = ref(0)
 
 const formattedValue = computed(() => {
-  return props.value.toFixed(1); // แสดงทศนิยม 1 ตำแหน่ง
-});
+  return props.value.toFixed(1) // แสดงทศนิยม 1 ตำแหน่ง
+})
 
 const gaugeOptions = computed(() => {
-  const rangeMax = props.maxValue;
-  const totalRange = rangeMax * 2;
-  const needlePercentage = ((props.value + rangeMax) / totalRange) * 100;
-  
-  const negativeWarningStartPos = ((-props.maxWarningThreshold + rangeMax) / totalRange) * 100; // -3 => 20%
-  const negativeWarningEndPos = ((-props.minWarningThreshold + rangeMax) / totalRange) * 100; // -1 => 40%
-  const positiveWarningStartPos = ((props.minWarningThreshold + rangeMax) / totalRange) * 100; // +1 => 60%
-  const positiveWarningEndPos = ((props.maxWarningThreshold + rangeMax) / totalRange) * 100; // +3 => 80%
+  const rangeMax = props.maxValue
+  const totalRange = rangeMax * 2
+  const needlePercentage = ((props.value + rangeMax) / totalRange) * 100
+
+  const negativeWarningStartPos =
+    ((-props.maxWarningThreshold + rangeMax) / totalRange) * 100 // -3 => 20%
+  const negativeWarningEndPos =
+    ((-props.minWarningThreshold + rangeMax) / totalRange) * 100 // -1 => 40%
+  const positiveWarningStartPos =
+    ((props.minWarningThreshold + rangeMax) / totalRange) * 100 // +1 => 60%
+  const positiveWarningEndPos =
+    ((props.maxWarningThreshold + rangeMax) / totalRange) * 100 // +3 => 80%
 
   return {
     needleValue: needlePercentage,
-    needleColor: '#2c3e50',
+    needleColor: "#2c3e50",
     arcDelimiters: [
       negativeWarningStartPos, // -3 (20%)
-      negativeWarningEndPos,   // -1 (40%)
+      negativeWarningEndPos, // -1 (40%)
       positiveWarningStartPos, // +1 (60%)
-      positiveWarningEndPos    // +3 (80%)
+      positiveWarningEndPos, // +3 (80%)
     ],
     arcColors: [
-      '#F44336', // -5 ถึง -3 (แดง)
-      '#FFD54F', // -3 ถึง -1 (เหลือง)
-      '#3DCC5B', // -1 ถึง +1 (เขียว)
-      '#FFD54F', // +1 ถึง +3 (เหลือง)
-      '#F44336'  // +3 ถึง +5 (แดง)
+      "#F44336", // -5 ถึง -3 (แดง)
+      "#FFD54F", // -3 ถึง -1 (เหลือง)
+      "#3DCC5B", // -1 ถึง +1 (เขียว)
+      "#FFD54F", // +1 ถึง +3 (เหลือง)
+      "#F44336", // +3 ถึง +5 (แดง)
     ],
     arcLabels: [
       `-${props.maxWarningThreshold}`, // -3
@@ -93,44 +97,46 @@ const gaugeOptions = computed(() => {
     arcOverEffect: true,
     chartWidth: chartWidth.value,
     hasNeedle: true,
-  };
-});
+  }
+})
 
 const updateChartSize = () => {
-  const width = window.innerWidth;
+  const width = window.innerWidth
   if (width < 600) {
-    chartWidth.value = width * 0.35;
+    chartWidth.value = width * 0.35
   } else if (width < 960) {
-    chartWidth.value = width * 0.25;
+    chartWidth.value = width * 0.25
   } else if (width < 1264) {
-    chartWidth.value = width * 0.2;
+    chartWidth.value = width * 0.2
   } else {
-    chartWidth.value = width * 0.09;
+    chartWidth.value = width * 0.09
   }
-  componentKey.value++;
-};
+  componentKey.value++
+}
 
-watch(() => [
-  props.value, 
-  props.maxValue, 
-  props.minWarningThreshold,
-  props.maxWarningThreshold,
-  props.minDangerThreshold,
-  props.maxDangerThreshold
-], () => {
-  componentKey.value++;
-});
+watch(
+  () => [
+    props.value,
+    props.maxValue,
+    props.minWarningThreshold,
+    props.maxWarningThreshold,
+    props.minDangerThreshold,
+    props.maxDangerThreshold,
+  ],
+  () => {
+    componentKey.value++
+  },
+)
 
 onMounted(() => {
-  updateChartSize();
-  window.addEventListener("resize", updateChartSize);
-});
+  updateChartSize()
+  window.addEventListener("resize", updateChartSize)
+})
 
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", updateChartSize);
-});
+  window.removeEventListener("resize", updateChartSize)
+})
 </script>
-
 
 <style lang="scss" scoped>
 .gauge-container {
@@ -143,7 +149,7 @@ onBeforeUnmount(() => {
 .central-label {
   position: absolute;
   top: 9vh;
-  left: 50%;    
+  left: 50%;
   transform: translateX(-50%);
   font-size: 2vh;
   font-weight: bold;

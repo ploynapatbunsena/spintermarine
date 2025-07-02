@@ -7,7 +7,10 @@
     color="white"
     variant="elevated"
   ></v-btn>
-  <div class="filter-container" :class="{ 'hidden': $vuetify.display.smAndDown && !open }">
+  <div
+    class="filter-container"
+    :class="{ hidden: $vuetify.display.smAndDown && !open }"
+  >
     <v-navigation-drawer
       v-model="open"
       :temporary="$vuetify.display.smAndDown"
@@ -40,211 +43,237 @@
           ></v-select>
         </v-col>
       </v-row>
-  
+
       <v-list>
         <v-list-item class="d-flex align-center py-3 ml-6">
           <template v-slot:prepend>
-            <v-checkbox 
+            <v-checkbox
               v-model="selectAll"
               :indeterminate="selectSome && !selectAll"
-              density="compact" 
+              density="compact"
               hide-details
               @click="toggleSelectAll"
             ></v-checkbox>
           </template>
           <div class="ml-2">Select All</div>
         </v-list-item>
-  
+
         <v-divider></v-divider>
-  
+
         <v-list-item
           v-for="tugboat in filteredTugboats"
           :key="tugboat.DeviceId"
           class="d-flex align-center py-3 ml-6"
         >
           <template v-slot:prepend>
-            <v-checkbox 
-              v-model="selectedBoats" 
-              :value="tugboat.DeviceId" 
-              density="compact" 
+            <v-checkbox
+              v-model="selectedBoats"
+              :value="tugboat.DeviceId"
+              density="compact"
               hide-details
               @change="emitSelectedBoats"
             ></v-checkbox>
           </template>
           <div class="d-flex align-center">
-            <v-icon class="mx-3 icon" :class="getStatusClass(tugboat)">mdi-ferry</v-icon>
-            <span>{{ deletePrefix(tugboat.DeviceName) }}</span>
+            <v-icon class="mx-3 icon" :class="getStatusClass(tugboat)"
+              >mdi-ferry</v-icon
+            >
+            <span style="font-family: 'Sarabun', sans-serif">{{
+              deletePrefix(tugboat.DeviceLabel)
+            }}</span>
           </div>
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
-
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, inject } from 'vue';
+import { ref, computed, onMounted, inject } from "vue"
 
-const emit = defineEmits(['boat-selected', 'tugboat-data-loaded']);
-const $api = inject('$api');
-const $api_cmms = inject('$api_cmms');
-const open_api_company = inject('open_api_company');
-const open = ref(['']);
-const selectedBoats = ref([]);
-const selectedCategory = ref(null);
-const selectedStatus = ref(null);
-const tugboats = ref([]);
-const isLoading = ref(false);
+const emit = defineEmits(["boat-selected", "tugboat-data-loaded"])
+const $api = inject("$api")
+const $api_fac = inject("$api_fac")
+// const $api_cmms = inject('$api_cmms');
+// const open_api_company = inject('open_api_company');
+const open = ref([""])
+const selectedBoats = ref([])
+const selectedCategory = ref(null)
+const selectedStatus = ref(null)
+const tugboats = ref([])
+const isLoading = ref(false)
 
-const categories = ['River Going', 'Sea Going'];
-const statuses = ['Running', 'Maintenance', 'Pending', 'Down'];
+const categories = ["River Going", "Sea Going"]
+const statuses = ["Running", "Maintenance", "Pending"]
 
 const deletePrefix = (name) => {
-  return name.replace(/Barge|Tugboat/gi, '').trim();
-};
+  return name.replace(/Barge|Tugboat/gi, "").trim()
+}
 
 const fetchTugboats = async () => {
   try {
-    isLoading.value = true;
-    
-    const [riverResponse, seaResponse] = await Promise.all([
-      $api.get('/MachineStatus/GetTugboatRiver'),
-      $api.get('/MachineStatus/GetTugboatSea')
-    ]);
-    
-    const allTugboats = [
-      ...riverResponse.data.flatMap(group => group.Devices),
-      ...seaResponse.data.flatMap(group => group.Devices)
-    ];
+    isLoading.value = true
 
-    const cmmsData = await fetchCMMSStatus(allTugboats);
-    const processedData = processTugboatData(allTugboats, cmmsData);
-    
-    tugboats.value = processedData;
-    emit('tugboat-data-loaded', processedData);
-    
+    const [riverResponse, seaResponse] = await Promise.all([
+      $api.get("/MachineStatus/GetTugboatRiver"),
+      $api.get("/MachineStatus/GetTugboatSea"),
+    ])
+
+    const allTugboats = [
+      ...riverResponse.data.flatMap((group) => group.Devices),
+      ...seaResponse.data.flatMap((group) => group.Devices),
+    ]
+    const cmmsData = await fetchCMMSStatus(allTugboats)
+    const processedData = processTugboatData(allTugboats, cmmsData)
+    // console.log('Processed Tugboats:', processedData);
+
+    tugboats.value = processedData
+    emit("tugboat-data-loaded", processedData)
   } catch (error) {
-    console.error('Error fetching tugboats:', error);
+    console.error("Error fetching tugboats:", error)
   } finally {
-    isLoading.value = false;
+    isLoading.value = false
   }
-};
+}
 
 const fetchCMMSStatus = async (tugboats) => {
   try {
-    const toolList = tugboats.map(tugboat => ({
-      toolName: tugboat.Note
-    }));
-    
-    const response = await $api_cmms.post(
-      `/v1/companies/${open_api_company}/tools/last-status`, 
-      { toolList }
-    );
-    
-    return response.data;
-  } catch (error) {
-    console.error('Failed to fetch CMMS status:', error);
-    return [];
-  }
-};
+    const statusPromises = tugboats.map(async (tugboat) => {
+      const deviceNote = tugboat?.Note
+      if (!deviceNote) return null
 
-const processTugboatData = (tugboats, cmmsData) => {
-  return tugboats.map(tugboat => {
-    const cmmsStatus = cmmsData.find(item => 
-      item.toolName === tugboat.Note
-    );
-    let status = 'Unknown';
-    if (cmmsStatus) {
-      status = mapCMMSStatus(cmmsStatus.status);
+      try {
+        const response = await $api_fac.get("/ship-status", {
+          params: { name: deviceNote },
+        })
+        const statusData = response.data.data
+        const mappedStatus = mapFctoriumStatus(statusData)
+        // console.log(`Fetched status for ${deviceNote}:`, mappedStatus);
+
+        return {
+          name: deviceNote,
+          status: mappedStatus,
+        }
+      } catch (error) {
+        console.error(`Error fetching status for ${deviceNote}:`, error)
+        return null
+      }
+    })
+
+    const statusResults = await Promise.all(statusPromises)
+    return statusResults.filter((result) => result !== null)
+  } catch (error) {
+    console.error("❌ Factorium [Vessel] Test Failed:", error)
+    return []
+  }
+}
+
+const processTugboatData = (tugboats, factoriumStatus) => {
+  return tugboats.map((tugboat) => {
+    const deviceNote = tugboat?.Note
+
+    const facStatus = factoriumStatus.find((item) => item.name === deviceNote)
+
+    let status = "Unknown"
+
+    if (facStatus) {
+      status = facStatus.status
     }
 
     return {
       ...tugboat,
-      status
-    };
-  });
-};
-
+      status,
+    }
+  })
+}
 
 const normalizeCategory = (typeVehicle) => {
-  if (typeVehicle.includes('river')) return 'River Going';
-  if (typeVehicle.includes('sea')) return 'Sea Going';
-  return typeVehicle;
-};
+  if (typeVehicle.includes("river")) return "River Going"
+  if (typeVehicle.includes("sea")) return "Sea Going"
+  return typeVehicle
+}
 
 const filteredTugboats = computed(() => {
-  return tugboats.value.filter(tugboat => {
-    const categoryMatch = !selectedCategory.value || normalizeCategory(tugboat.TypeVehicle) === selectedCategory.value;
-    const statusMatch = !selectedStatus.value || getStatusFromDevice(tugboat) === selectedStatus.value;
-    return categoryMatch && statusMatch;
-  });
-});
+  return tugboats.value.filter((tugboat) => {
+    const categoryMatch =
+      !selectedCategory.value ||
+      normalizeCategory(tugboat.TypeVehicle) === selectedCategory.value
+    const statusMatch =
+      !selectedStatus.value || tugboat.status === selectedStatus.value
+    // console.log('Filtering tugboat:', {
+    //   DeviceId: tugboat.DeviceId,
+    //   Category: normalizeCategory(tugboat.TypeVehicle),
+    //   Status: tugboat.status,
+    //   CategoryMatch: categoryMatch,
+    //   StatusMatch: statusMatch
+    // });
+
+    return categoryMatch && statusMatch
+  })
+})
 
 const selectAll = computed({
   get: () => selectedBoats.value.length === filteredTugboats.value.length,
   set: (value) => {
-    selectedBoats.value = value 
-      ? filteredTugboats.value.map(tugboat => tugboat.DeviceId) 
-      : [];
-    emitSelectedBoats();
-  }
-});
+    selectedBoats.value = value
+      ? filteredTugboats.value.map((tugboat) => tugboat.DeviceId)
+      : []
+    emitSelectedBoats()
+  },
+})
 
 const selectSome = computed(() => {
-  return selectedBoats.value.length > 0 && selectedBoats.value.length < filteredTugboats.value.length;
-});
+  return (
+    selectedBoats.value.length > 0 &&
+    selectedBoats.value.length < filteredTugboats.value.length
+  )
+})
 
-const getStatusFromDevice = (device) => {
-  const statusValue = device.Mesurement?.[0]?.Status || device.value?.find(v => v.Name === 'DeviceStatus')?.Value;
-  return getStatusFromValue(statusValue);
-};
-
-const mapCMMSStatus = (cmmsStatus) => {
-  switch (cmmsStatus) {
-    case "ถูกใช้งานอยู่":
-    case "พร้อมใช้งาน":
-      return "Running";
-    case "อยู่ระหว่างการสอบเทียบ":
-      return "Pending";
-    case "อยู่ระหว่างการซ่อม":
-      return "Maintenance";
-    case "ยกเลิกใช้งาน":
-      return "Down";
+const mapFctoriumStatus = (factoriumStatus) => {
+  switch (factoriumStatus) {
+    case "ใช้งานได้":
+    case "ใช้งานอยู่":
+      return "Running"
+    case "รอเข้าซ่อมวิ่งได้":
+    case "รอเข้าซ่อมวิ่งไม่ได้":
+    case "จอง":
+      return "Pending"
+    case "ซ่อม":
+    case "ใช้งานไม่ได้":
+    case "เติมน้ำมัน":
+    case "หมดอายุ":
+    case "หมดอายุแล้ว":
+      return "Maintenance"
     default:
-      return 'Unknown';
+      return "Unknown"
   }
-};
-
-const getStatusFromValue = (value) => {
-  switch(value?.toString()) {
-    case '1': return 'Running';
-    case '5': return 'Maintenance';
-    case '0': return 'Unknown';
-    default: return 'Unknown';
-  }
-};
+}
 
 const getStatusClass = (status) => {
   switch (status) {
-    case 'Running': return 'status-running';
-    case 'Maintenance': return 'status-maintenance';
-    case 'Pending': return 'status-pending';
-    case 'Down': return 'status-down';
-    default: return 'status-unknown';
+    case "Running":
+      return "status-running"
+    case "Maintenance":
+      return "status-maintenance"
+    case "Pending":
+      return "status-pending"
+    // case 'Down': return 'status-down';
+    default:
+      return "status-unknown"
   }
-};
+}
 
 function toggleSelectAll() {
-  selectAll.value = !selectAll.value;
+  selectAll.value = !selectAll.value
 }
 
 function emitSelectedBoats() {
-  emit('boat-selected', selectedBoats.value);
+  emit("boat-selected", selectedBoats.value)
 }
 
 onMounted(() => {
-  fetchTugboats();
-});
+  fetchTugboats()
+})
 </script>
 
 <style lang="scss" scoped>
@@ -266,10 +295,10 @@ onMounted(() => {
 }
 
 .status-maintenance {
-  color: #DC2B2B;
+  color: #dc2b2b;
 }
 .status-pending {
-  color: #FAC12A;
+  color: #fac12a;
 }
 .status-running {
   color: #009688;
@@ -280,11 +309,11 @@ onMounted(() => {
 }
 
 .status-unknown {
-  color: #C0C0C0;
+  color: #c0c0c0;
 }
 
 .dropdown-list {
-  background-color: #FFC107;
+  background-color: #ffc107;
   padding: 1vh;
 }
 
@@ -296,7 +325,7 @@ onMounted(() => {
   border: #000000;
 }
 
-@media(min-width: 2560px) {
+@media (min-width: 2560px) {
   :deep(.v-list-item) {
     font-size: 1.5vh !important;
     padding: 1vh;
@@ -309,7 +338,7 @@ onMounted(() => {
 }
 
 .menu-button {
-  position: fixed; 
+  position: fixed;
   top: 72px;
   left: 16px;
   z-index: 600;
