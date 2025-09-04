@@ -506,7 +506,7 @@ const fetchMeasurementList = async () => {
       .map((item) => ({
         measurementId: item.MeasurementId.toString(),
         measurementName: item.MeasurementName,
-      }))
+      }))      
 
     if (route.query.measurements === "all") {
       selectedMeasurement.value = "all"
@@ -657,7 +657,7 @@ const searchRecords = async () => {
       requestBody,
       config,
     )
-
+    
     tableData.value = response.data.map((item) => ({
       date: item.AlertTime,
       deviceName: item.DeviceLabel,

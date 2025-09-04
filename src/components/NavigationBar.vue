@@ -273,6 +273,11 @@
             title="Member Management"
             :to="{ name: 'MemberManagementList' }"
           ></v-list-item>
+          <v-list-item
+            v-if="hasPermission('0101030600')"
+            title="Change Password"
+            :to="{ name: 'ForgotPassword' }"
+          ></v-list-item>
         </v-list-group>
       </v-list>
     </v-navigation-drawer>

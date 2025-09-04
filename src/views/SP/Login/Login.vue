@@ -39,7 +39,6 @@
                       errors.email
                     }}</span>
 
-                    <!-- ส่วนแสดงคำแนะนำอีเมล -->
                     <div
                       class="suggestions-container"
                       v-if="showSuggestions && emailSuggestions.length"
@@ -82,6 +81,18 @@
                       errors.password
                     }}</span>
                   </div>
+                  <!-- <v-row>
+                    <v-col cols="12" class="d-flex justify-end align-end">
+                      <v-btn
+                        :to="{ name: 'ForgotPassword' }"
+                        variant="text"
+                        color="#1677FF"
+                        class="text-none"
+                      >
+                        Forgot Password?
+                      </v-btn>
+                    </v-col>
+                  </v-row> -->
                   <div class="login">
                     <button type="submit" :disabled="isLoading">
                       <v-progress-circular
@@ -162,7 +173,7 @@ const removeEmail = (emailToRemove) => {
   filterEmails(email.value) // อัพเดตคำแนะนำหลังจากลบ
 }
 
-// ฟังก์ชันเดิม
+// ฟังก์ชันตรวจสอบความถูกต้องของฟอร์ม
 const validateForm = () => {
   let isValid = true
   errors.email = ""
@@ -197,18 +208,21 @@ const handleBlur = () => {
 }
 
 const fetchMemberData = async () => {
-  if (!validateForm()) return
+  // ตรวจสอบความถูกต้องก่อนส่งข้อมูล
+  if (!validateForm()) {
+    return false // หยุดการทำงานหากฟอร์มไม่ถูกต้อง
+  }
 
   // เพิ่มอีเมลลงในรายการที่เก็บไว้ (ถ้ายังไม่มี)
   if (email.value && !savedEmails.value.includes(email.value)) {
-    // จำกัดจำนวนอีเมลที่เก็บไว้ไม่เกิน 10 อัน
     if (savedEmails.value.length >= 10) {
-      savedEmails.value.shift() // ลบอีเมลที่เก่าที่สุด
+      savedEmails.value.shift()
     }
     savedEmails.value.push(email.value)
     localStorage.setItem("savedEmails", JSON.stringify(savedEmails.value))
   }
 
+  // ล้างข้อมูลเก่าก่อนเข้าสู่ระบบใหม่
   localStorage.removeItem("accessToken")
   localStorage.removeItem("member")
   localStorage.removeItem("menuPermission")
@@ -248,29 +262,41 @@ const fetchMemberData = async () => {
     } catch (permissionError) {
       console.warn("การดึงข้อมูลสิทธิ์ล้มเหลว:", permissionError)
     }
+    
+    // Redirect ไปยังหน้า Homepage
     router.push("/Homepage")
   } catch (error) {
     console.error("เกิดข้อผิดพลาดในการเข้าสู่ระบบ:", error)
-
     localStorage.removeItem("accessToken")
 
-    if (error.response) {
-      if (error.response.status === 401) {
-        errors.password = "อีเมลหรือรหัสผ่านไม่ถูกต้อง"
-      } else if (error.response.status === 500) {
-        errors.password = "เซิร์ฟเวอร์มีปัญหา กรุณาลองใหม่ภายหลัง"
-      } else {
-        errors.password =
-          "เกิดข้อผิดพลาดในการเข้าสู่ระบบ (รหัส: " + error.response.status + ")"
+    if (error.response && error.response.status === 405) {
+      errors.password = "วิธีการร้องขอไม่ถูกต้อง กรุณาติดต่อผู้ดูแลระบบ"
+    } 
+    else if (error.response) {
+      // จัดการ error อื่นๆ
+      switch (error.response.status) {
+        case 401:
+          errors.password = "อีเมลหรือรหัสผ่านไม่ถูกต้อง"
+          break
+        case 500:
+          errors.password = "เซิร์ฟเวอร์มีปัญหา กรุณาลองใหม่ภายหลัง"
+          break
+        default:
+          errors.password = `เกิดข้อผิดพลาด (รหัส: ${error.response.status})`
       }
     } else if (error.message.includes("Network Error")) {
       errors.password = "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้"
     } else {
       errors.password = "เกิดข้อผิดพลาดที่ไม่คาดคิด"
     }
+    
+    // ไม่ต้องทำการ refresh หน้าเว็บ
+    return false
   } finally {
     isLoading.value = false
   }
+  
+  return true
 }
 </script>
 

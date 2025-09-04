@@ -429,7 +429,7 @@ const fetchCMMSStatus = async (tugboats) => {
           params: { name: deviceNote },
         })
         const statusData = response.data.data
-        const mappedStatus = mapFctoriumStatus(statusData)
+        const mappedStatus = mapFctoriumStatus(statusData.status)
 
         return {
           name: deviceNote,
@@ -518,7 +518,7 @@ const updateMapMarkers = (options = {}) => {
 
       const shipIcon = L.divIcon({
         className: "custom-ship-icon",
-        html: `<div style="color: ${getStatusColor(status)};
+        html: `<div style="color: ${getStatusColor(status.status)};
                 text-shadow: 
                   -1px -1px 0 #fff,  
                   1px -1px 0 #fff,
@@ -690,25 +690,6 @@ const stopDataInterval = () => {
     intervalId = null
   }
 }
-
-// const handleError = (err) => {
-//   console.error(err);
-//   error.value = err;
-//   errorMessage.value = err.message || 'An error occurred';
-//   showError.value = true;
-
-//   setTimeout(() => {
-//     showError.value = false;
-//   }, 5000);
-// };
-
-// onMounted(async () => {
-//   console.log('Component mounted');
-//   await initialize();
-//   initMap();
-//   await fetchDataWithInterval();
-//   startDataInterval();
-// });
 
 onMounted(async () => {
   // console.log('Component mounted');

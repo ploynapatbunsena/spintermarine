@@ -102,6 +102,7 @@
                               >เข้าซ่อม</span
                             >
                             <span
+                              class="thai-letters"
                               v-if="tugboat.date"
                               :title="tugboat.rawMessage"
                               >{{ tugboat.date }}</span
@@ -215,6 +216,7 @@
                               >เข้าซ่อม</span
                             >
                             <span
+                              class="thai-letters"
                               v-if="tugboat.date"
                               :title="tugboat.rawMessage"
                               >{{ tugboat.date }}</span
@@ -327,157 +329,70 @@ const enrichTugboatWithImage = async (tugboatData) => {
   return await Promise.all(promises)
 }
 
-// const fetchFactoriumStatus = async (tugboats) => {
-//   try {
-//     isLoading.value = true;
-
-//     // สร้าง array ของ promise สำหรับแต่ละเรือ
-//     const statusPromises = tugboats.map(async (tugboat) => {
-//       const deviceNote = tugboat.Devices?.[0]?.Note?.trim();
-//       if (!deviceNote) return null;
-
-//       try {
-//         const response = await $api_fac.get('/ship-status', {
-//           params: { name: deviceNote }
-//         });
-//         console.log(`Fetched status for ${deviceNote}:`, response.data);
-
-//         return response.data;
-//       } catch (error) {
-//         console.error('Full error details:', {
-//           url: error.config?.url,
-//           requestData: error.config?.data,
-//           responseData: error.response?.data, // ข้อมูล error จากเซิร์ฟเวอร์
-//           status: error.response?.status
-//         });
-//         // console.error(`Error fetching status for ${deviceNote}:`, error);
-//         return null;
-//       }
-//     });
-
-//     // รอผลลัพธ์ทั้งหมด
-//     const statusResults = await Promise.all(statusPromises);
-//     return statusResults.filter(result => result !== null);
-
-//   } catch (error) {
-//     console.error('❌ Factorium [Vessel] Test Failed:', error.response?.data || error.message);
-//     return [];
-//   } finally {
-//     isLoading.value = false;
-//   }
-// };
-
 const fetchFactoriumStatus = async (tugboats) => {
   try {
-    isLoading.value = true
+    isLoading.value = true;
 
     const statusPromises = tugboats.map(async (tugboat) => {
-      const deviceNote = tugboat.Devices?.[0]?.Note?.trim()
-      if (!deviceNote) return null
+      const deviceNote = tugboat.Devices?.[0]?.Note?.trim();
+      if (!deviceNote) return null;
 
       try {
         const response = await $api_fac.get("/ship-status", {
           params: { name: deviceNote },
-        })
+        });
 
-        if (!response.data || typeof response.data !== "object") {
-          console.error(`Invalid response structure for ${deviceNote}`)
-          return null
+        // if (!response.data || typeof response.data !== "object") {
+        //   console.error(`Invalid response structure for ${deviceNote}`);
+        //   return null;
+        // }
+
+        const statusData = response.data.data;
+        if (!statusData || !statusData.status) {
+          console.error(`No status data for ${deviceNote}`);
+          return null;
         }
 
-        const statusData = response.data.data
-        if (!statusData) {
-          console.error(`No status data for ${deviceNote}`)
-          return null
-        }
-
-        const mappedStatus = mapFctoriumStatus(statusData)
-        const rawMessage =
-          mappedStatus === "Running" ? "" : response.data.message || ""
+        const mappedStatus = mapFctoriumStatus(statusData.status);
+        const date = statusData.date || "";
 
         return {
           name: deviceNote,
           status: mappedStatus,
-          message: rawMessage,
-          rawMessage: rawMessage,
-        }
+          date: date,
+        };
       } catch (error) {
-        console.error(`Error fetching status for ${deviceNote}:`, error)
-        return null
+        console.error(`Error fetching status for ${deviceNote}:`, error);
+        return null;
       }
-    })
+    });
 
-    const statusResults = await Promise.all(statusPromises)
-    return statusResults.filter((result) => result !== null)
+    const statusResults = await Promise.all(statusPromises);
+    return statusResults.filter((result) => result !== null);
   } catch (error) {
-    console.error("❌ Factorium [Vessel] Test Failed:", error)
-    return []
+    console.error("❌ Factorium [Vessel] Test Failed:", error);
+    return [];
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
-
-// const processTugboatData = (tugboats, factoriumStatus) => {
-//   return tugboats.map(tugboat => {
-//     const deviceNote = tugboat.Devices[0]?.Note?.trim() || '';
-
-//     const facStatus = factoriumStatus.find(item => item.name === deviceNote);
-
-//     let status = 'Unknown';
-//     let date = '';
-
-//     if (facStatus) {
-//       status = mapFctoriumStatus(facStatus.data);
-
-//       if (status === 'Pending' || status === 'Maintenance') {
-//         date = facStatus.message === '-' ? '' : facStatus.message;
-//       }
-//     }
-
-//     return {
-//       ...tugboat,
-//       status,
-//       date
-//     }
-//   })
-// };
+};
 
 const processTugboatData = (tugboats, factoriumStatus) => {
   return tugboats.map((tugboat) => {
-    const deviceNote = tugboat.Devices[0]?.Note?.trim() || ""
+    const deviceNote = tugboat.Devices[0]?.Note?.trim() || "";
+    const facStatus = factoriumStatus.find((item) => item.name === deviceNote);
 
-    const facStatus = factoriumStatus.find((item) => item.name === deviceNote)
-
-    let status = "Unknown"
-    let date = ""
-    let rawMessage = ""
+    let status = "Unknown";
+    let date = "";
 
     if (facStatus) {
-      status = facStatus.status
-      rawMessage = facStatus.message
-      date =
-        status === "Running"
-          ? ""
-          : facStatus.message === "-"
-            ? ""
-            : facStatus.message
+      status = facStatus.status;
+      date = facStatus.date || "";
     }
 
-    return {
-      ...tugboat,
-      status,
-      date,
-      rawMessage,
-    }
-  })
-}
-
-// const truncateMessage = (message, maxLength = 20) => {
-//   if (!message) return '';
-//   return message.length > maxLength
-//     ? `${message.substring(0, maxLength)}...`
-//     : message;
-// };
+    return { ...tugboat, status, date };
+  });
+};
 
 const deletePrefix = (name) => {
   return name.replace(/Barge|Tugboat/gi, "").trim()
@@ -728,5 +643,10 @@ onUnmounted(() => {
   .image-cover {
     max-height: 180px;
   }
+}
+
+.thai-letters {
+  font-family: 'Sarabun', sans-serif;
+  font-size: 1.5vh;
 }
 </style>

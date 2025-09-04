@@ -113,7 +113,7 @@ $api.interceptors.response.use(
 
 // Vessel
 const $api_vessel = axios.create({
-  baseURL: "http://dev.spintermarine.co.th:2053/services/api-miiot/auth-miiot",
+  baseURL: "https://vim.spintermarine.co.th/services/api-miiot/auth-miiot",
   headers: {
     "Content-Type": "application/json",
   },
@@ -194,8 +194,8 @@ async function authenticate_Vessel() {
   try {
     isRefreshing = true
     const response = await $api_vessel.post("/authenticate", {
-      username: "rtm-01",
-      password: "1234",
+      username: "vim@spintermarine",
+      password: "system@vim",
     })
     authToken = response.data.token
   } catch (error) {
@@ -215,7 +215,7 @@ authenticate_Vessel().catch((err) => {
 const $api_fac = axios.create({
   // baseURL: 'http://dev.spintermarine.co.th:2053/services/api-factorium/auth-factorium',
   baseURL:
-    "http://dev.spintermarine.co.th:2053/services/api-factorium/auth-factorium",
+    "https://vim.spintermarine.co.th/services/api-factorium/auth-factorium",
   headers: {
     "Content-Type": "application/json",
   },
@@ -297,8 +297,8 @@ async function authenticate_Fac() {
   try {
     isRefreshing_fac = true
     const response = await $api_fac.post("/authenticate", {
-      username: "rtm-01",
-      password: "1234",
+      username: "vim@spintermarine",
+      password: "system@vim",
     })
     // console.log('Factorium Vessel authentication response:', response.data);
 

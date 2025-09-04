@@ -5,9 +5,17 @@
     <v-container fluid class="px-10">
       <div v-if="!loading">
         <v-row v-for="device in devices" :key="device.DeviceId">
-          <v-col cols="12" class="position-relative d-flex align-center">
-            <div style="width: 10vh"></div>
-            <div class="title flex-grow-1 text-center">
+          <v-col v-if="$vuetify.display.mdAndUp" cols="12" class="position-relative d-flex align-center">
+            <div style="min-width: 10vh;" class="d-flex flex-column">
+              <div class="text-subtitle-2 font-inter font-weight-light">
+                Last Sync
+                <v-icon icon="mdi-timer-sand"></v-icon>
+              </div>
+              <div class="d-flex text-h6 font-inter">
+                {{ lastDate || 'N/A' }} {{ lastTime || 'N/A' }}
+              </div>
+            </div>
+            <div class="font-inter flex-grow-1 text-center text-h6 text-md-h4 font-weight-bold">
               {{ device.DeviceLabel }}
             </div>
             <div style="width: 10vh">
@@ -15,6 +23,28 @@
                 :warningCount="getWarningCount(device)"
                 :dangerCount="getDangerCount(device)"
               />
+            </div>
+          </v-col>
+          <v-col v-else cols="12" class="d-flex flex-column">
+            <div class="d-flex justify-end">
+              <AlertBadges
+                :warningCount="getWarningCount(device)"
+                :dangerCount="getDangerCount(device)"
+              />
+            </div>
+            <div class="d-flex flex-column align-center mt-6">
+              <div class="font-inter text-center text-h5 font-weight-bold">
+                {{ device.DeviceLabel }}
+              </div>
+              <div class="d-flex justify-center align-center mt-6">
+                <div class="text-subtitle-2 font-weight-light font-inter">
+                  Last Sync
+                  <v-icon icon="mdi-timer-sand"></v-icon>
+                </div>
+                <div class="d-flex text-subtitle-2 font-inter">
+                  {{ lastDate || 'N/A' }} {{ lastTime || 'N/A' }}
+                </div>
+              </div>
             </div>
           </v-col>
         </v-row>
@@ -142,6 +172,9 @@ const audioPlayed = ref(false)
 const prevDangerCount = ref(0)
 const alertSound = ref(null)
 
+const lastTime = ref("");
+const lastDate = ref("");
+
 const gauges = ref([
   { type: "Actual Power", title: "Actual Power", unit: "kW" },
   { type: "Oil Pressure", title: "Oil Pressure", unit: "bar" },
@@ -180,6 +213,12 @@ const fetchDeviceData = async () => {
       params: { deviceId: deviceId.value },
     })
     devices.value = response.data
+    
+    if (devices.value.length > 0 && devices.value[0].Mesurement?.length > 0 ) {
+      const syncTime = devices.value[0].Mesurement[0].lastTimestamp;
+      lastTimeStamp(syncTime);
+    }
+
   } catch (err) {
     console.error("Error fetching device data:", err)
     error.value = err
@@ -478,6 +517,28 @@ const filteredMeasurements = computed(() => {
   }
 })
 
+const lastTimeStamp = (timeStamp) => {
+  if (!timeStamp) {
+    lastDate.value = null
+    lastTime.value = null
+    return
+  }
+
+  const date = new Date(timeStamp);
+
+  const month = ("0" + (date.getMonth() + 1)).slice(-2);
+  const day = ("0" + date.getDate()).slice(-2);
+  const year = date.getFullYear();
+  lastDate.value = `${day}/${month}/${year}`
+
+  // Time HH:MM:ss
+  const hour = String(date.getHours()).padStart(2, "0");
+  const minute = String(date.getMinutes()).padStart(2, "0");
+  const second = String(date.getSeconds()).padStart(2, "0");
+
+  lastTime.value = `${hour}:${minute}:${second}`;
+};
+
 const deviceStatus = computed(() => {
   if (!devices.value.length) return "N/A"
   const statusValue = devices.value[0].Mesurement.find(
@@ -537,6 +598,10 @@ onBeforeUnmount(() => {
   text-align: center;
 }
 
+.font-inter {
+  font-family: 'Inter', sans-serif;
+}
+
 .gauge-card {
   border-radius: 24px;
 }
@@ -582,5 +647,9 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.font-inter {
+  font-family: 'Inter', sans-serif;
 }
 </style>

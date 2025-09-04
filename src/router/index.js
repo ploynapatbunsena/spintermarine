@@ -8,6 +8,11 @@ const routes = [
     component: () => import("../views/SP/Login/Login.vue"),
   },
   {
+    path: "/ForgotPassword",
+    name: "ForgotPassword",
+    component: () => import("../views/SP/Login/ForgotPassword.vue")
+  },
+  {
     path: "/",
     redirect: "/Homepage",
   },

@@ -4,18 +4,48 @@
     <SpaceBar />
     <v-container fluid class="d-flex align-center justify-center fill-height">
       <v-row v-if="!isLoading">
-        <v-col cols="12" class="position-relative d-flex align-center">
-          <div style="width: 10vh"></div>
-          <div class="title flex-grow-1 text-center">
-            {{ deletePrefix(typeDeviceName) }}
-          </div>
-          <div style="width: 10vh">
-            <AlertBadges
-              :warningCount="totalAlerts.warning"
-              :dangerCount="totalAlerts.danger"
-            />
-          </div>
-        </v-col>
+        <v-col v-if="$vuetify.display.smAndUp" cols="12" class="position-relative d-flex align-center">
+            <div style="min-width: 10vh;" class="d-flex flex-column">
+              <div class="text-subtitle-2 font-inter">
+                Last Sync
+                <v-icon icon="mdi-timer-sand"></v-icon>
+              </div>
+              <div class="d-flex text-h6 font-inter">
+                {{ lastDate || 'N/A' }} {{ lastTime || 'N/A' }}
+              </div>
+            </div>
+            <div class="font-inter flex-grow-1 text-center text-h4 font-weight-bold">
+              {{ deletePrefix(typeDeviceName) }}
+            </div>
+            <div style="width: 10vh">
+              <AlertBadges
+                :warningCount="totalAlerts.warning"
+                :dangerCount="totalAlerts.danger"
+              />
+            </div>
+          </v-col>
+          <v-col v-else cols="12" class="d-flex flex-column">
+            <div class="d-flex justify-end">
+              <AlertBadges
+                :warningCount="totalAlerts.warning"
+                :dangerCount="totalAlerts.danger"
+              />
+            </div>
+            <div class="d-flex flex-column align-center mt-6">
+              <div class="font-inter flex-grow-1 text-center text-h4 font-weight-bold">
+                {{ deletePrefix(typeDeviceName) }}
+              </div>
+              <div class="d-flex justify-center align-center mt-6">
+                <div class="text-subtitle-2 font-weight-light font-inter">
+                  Last Sync
+                  <v-icon icon="mdi-timer-sand"></v-icon>
+                </div>
+                <div class="d-flex text-subtitle-2 font-inter">
+                  {{ lastDate || 'N/A' }} {{ lastTime || 'N/A' }}
+                </div>
+              </div>
+            </div>
+          </v-col>
         <v-col cols="12">
           <v-card elevation="0" class="pa-4">
             <v-row>
@@ -976,6 +1006,9 @@ const audioPlayed = ref(false)
 const prevDangerCount = ref(0)
 const alertSound = ref(null)
 
+const lastTime = ref("");
+const lastDate = ref("");
+
 const initialize = async () => {
   const menuPermission = localStorage.getItem("menuPermission")
   if (!menuPermission) {
@@ -1021,12 +1054,23 @@ const fetchDeviceBargesGrouped = async () => {
     })
     devices.value = processedDevices
 
+    const barge01 = devices.value.find(
+      (f) => f.DeviceName === "Barge GEN01",
+    )
+    
+    if (barge01.Mesurement?.length > 0) {
+      const syncTime = barge01.Mesurement[0].lastTimestamp;
+      lastTimeStamp(syncTime);
+      // console.log("syncTime:", syncTime, "lastDate:", lastDate.value, "lastTime:", lastTime.value);
+    }
+
     const bargeMaster = devices.value.find(
       (d) => d.DeviceName === "Barge Master",
     )
     if (bargeMaster) {
       await fetchTiltThresholds(bargeMaster.DeviceId)
     }
+
   } catch (error) {
     console.error("Fetch error:", error)
     devices.value = []
@@ -1297,6 +1341,28 @@ const deviceMeasurements = (device) => {
   }))
 }
 
+const lastTimeStamp = (timeStamp) => {
+  if (!timeStamp) {
+    lastDate.value = null
+    lastTime.value = null
+    return
+  }
+
+  const date = new Date(timeStamp);
+
+  const month = ("0" + (date.getMonth() + 1)).slice(-2);
+  const day = ("0" + date.getDate()).slice(-2);
+  const year = date.getFullYear();
+  lastDate.value = `${day}/${month}/${year}`
+
+  // Time HH:MM:ss
+  const hour = String(date.getHours()).padStart(2, "0");
+  const minute = String(date.getMinutes()).padStart(2, "0");
+  const second = String(date.getSeconds()).padStart(2, "0");
+
+  lastTime.value = `${hour}:${minute}:${second}`;
+};
+
 const getStatusClass = (device) => {
   const statusMeasurement = device.Mesurement.find(
     (m) => m.measurementname === "Status",
@@ -1413,6 +1479,10 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.font-inter {
+  font-family: 'Inter', sans-serif;
+}
+
 .status-icon {
   margin-right: 1vh;
   color: #ffffff;

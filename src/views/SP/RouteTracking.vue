@@ -77,7 +77,7 @@ const fetchBoatLocations = async (deviceLabels) => {
       { devicename: deviceLabels },
     )
 
-    console.log("Boat locations fetched:", response.data)
+    // console.log("Boat locations fetched:", response.data)
     return response.data
   } catch (error) {
     console.error("Error fetching boat locations:", error)
@@ -98,8 +98,10 @@ const fetchDeviceDetails = async (deviceId) => {
         acc[item.measurementname] = {
           lastValue: item.lastValue || "N/A",
           unit: item.measurementunit || "",
+          lastTimestamp: lastTimeStamp(item.lastTimestamp)
         }
       }
+
       return acc
     }, {})
 
@@ -107,6 +109,7 @@ const fetchDeviceDetails = async (deviceId) => {
       ...response.data[0],
       measurements: measurementData,
     }
+    
   } catch (error) {
     console.error("Error fetching device details:", error)
     return {}
@@ -121,7 +124,7 @@ const fetchTransportShip = async (shipName) => {
     const transportShipName =
       response.data?.data?.data?.[0]?.job_transport_ships?.transport_ship
         ?.name || null
-    console.log(transportShipName)
+    // console.log(transportShipName)
     return transportShipName
   } catch (error) {
     console.error("Error fetching transport ship:", error)
@@ -142,6 +145,21 @@ const fetchTransportShip_NoProduct = async (shipName) => {
   } catch (error) {
     console.error("Error fetching transport ship:", error)
     return null
+  }
+}
+
+const lastTimeStamp = (datetime) => {
+  if (datetime == null) {
+    return null
+  } else {
+    var dateTime = new Date(datetime)
+    var month = ("0" + (dateTime.getMonth() + 1)).slice(-2)
+    var day = ("0" + dateTime.getDate()).slice(-2)
+    var year = dateTime.getFullYear()
+    var hour = ("0" + dateTime.getHours()).slice(-2)
+    var minute = ("0" + dateTime.getMinutes()).slice(-2)
+    var second = ("0" + dateTime.getMinutes()).slice(-2)
+    return day + "/" + month + "/" + year + " " + hour + ":" + minute + ":" + second
   }
 }
 
@@ -171,7 +189,7 @@ const createBoatMarker = (boatInfo) => {
 
   const marker = L.marker([lat, lng], { icon: boatIcon }).bindPopup(
     `
-      <div style="width: 50vh; padding: 1vh; font-family: 'Inter', sans-serif">
+      <div style="width: 60vh; padding: 1vh; font-family: 'Inter', sans-serif">
         <h3 style="font-size: 2vh; font-family: 'Sarabun', sans-serif; margin-bottom: 10px; border-bottom: 1px solid #9F9F9F; padding-bottom: 1vh;">
           ${deletePrefix(boatInfo.DeviceLabel)}
         </h3>
@@ -187,6 +205,10 @@ const createBoatMarker = (boatInfo) => {
             <p style="margin: 5px 0;">
               <i class="mdi mdi-weather-windy" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh;"></i>
               <strong style="color: #9F9F9F; font-size: 1.5vh;">Wind-Speed:</strong> กำลังโหลด...
+            </p>
+            <p style="margin: 5px 0;">
+              <i class="mdi mdi-weather-windy" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh;"></i>
+              <strong style="color: #9F9F9F; font-size: 1.5vh;">Sync Time:</strong> กำลังโหลด...
             </p>
           </div>
           
@@ -285,6 +307,14 @@ const createBoatMarker = (boatInfo) => {
                 : "N/A"
             } ${deviceDetails.measurements?.["Wind-Speed"]?.unit || ""}
           </p>
+          <p style="margin: 5px 0; font-family: 'Inter', sans-serif; font-size: 1.5vh;">
+            <i class="mdi mdi-timer-sand" style="color: #9F9F9F; margin-right: 5px; font-size: 2.5vh"></i>
+            <strong style="color: #9F9F9F;">Sync Time:</strong> 
+            ${ deviceDetails.measurements?.RPM?.lastTimestamp
+                ? deviceDetails.measurements.RPM?.lastTimestamp
+                : "N/A"
+              } 
+          </p>
         `
 
         rightDiv.innerHTML = `
@@ -330,7 +360,7 @@ const updateMapMarkers = async () => {
   if (selectedBoatNames.length === 0) return
 
   const locations = await fetchBoatLocations(selectedBoatNames)
-  console.log("Fetched locations:", locations)
+  // console.log("Fetched locations:", locations)
 
   selectedBoats.value.forEach((boatId) => {
     const boatInfo = tugboatData.value[boatId]
@@ -338,12 +368,12 @@ const updateMapMarkers = async () => {
       const locationData = locations.find(
         (loc) => loc.DeviceLabel === boatInfo.DeviceLabel,
       )
-      console.log("Location data for boat:", boatInfo.DeviceLabel, locationData)
+      // console.log("Location data for boat:", boatInfo.DeviceLabel, locationData)
 
       const marker = createBoatMarker({
         ...boatInfo,
         value: locationData?.value || [],
-        status: locationData?.status || "Unknown",
+        status: boatInfo?.status || "Unknown",
       })
       if (marker) {
         marker.addTo(map.value)

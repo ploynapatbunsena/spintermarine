@@ -430,6 +430,60 @@ const processChartData = (devices) => {
   return { series, categories }
 }
 
+// const processChartData = (devices) => {
+//   const allSeriesData = {
+//     rpm: [],
+//     fuel: [],
+//     throttle: [],
+//     times: [],
+//   };
+
+//   // รวบรวมเวลาทั้งหมดและเรียงลำดับ
+//   const allTimes = devices.flatMap(device => 
+//     device.Measurement?.flatMap(meas => meas.Xdata || []) || []
+//   ).filter((time, index, self) => 
+//     self.indexOf(time) === index
+//   ).sort((a, b) => new Date(a) - new Date(b));
+
+//   allSeriesData.times = allTimes;
+
+//   // เตรียมข้อมูลสำหรับแต่ละเวลา
+//   allTimes.forEach(time => {
+//     let rpmValue = null;
+//     let fuelValue = null;
+//     let throttleValue = null;
+
+//     devices.forEach(device => {
+//       device.Measurement?.forEach(meas => {
+//         const timeIndex = meas.Xdata?.indexOf(time);
+//         if (timeIndex !== -1 && timeIndex !== undefined) {
+//           const value = meas.Ydata[0]?.data[timeIndex];
+//           if (meas.measurementname === "RPM" && value !== null) {
+//             rpmValue = value;
+//           } else if (meas.measurementname === "Fuel Rate" && value !== null) {
+//             fuelValue = value;
+//           } else if (meas.measurementname === "%Throttle" && value !== null) {
+//             throttleValue = value;
+//           }
+//         }
+//       });
+//     });
+
+//     allSeriesData.rpm.push(rpmValue);
+//     allSeriesData.fuel.push(fuelValue);
+//     allSeriesData.throttle.push(throttleValue);
+//   });
+
+//   return {
+//     series: [
+//       { name: "RPM", type: "line", data: allSeriesData.rpm },
+//       { name: "Fuel Rate", type: "line", data: allSeriesData.fuel },
+//       { name: "%Throttle", type: "line", data: allSeriesData.throttle }
+//     ],
+//     categories: allTimes
+//   };
+// };
+
 const searchRecords = async () => {
   try {
     searchLoading.value = true
@@ -583,9 +637,6 @@ const chartOptions = ref({
       axisTicks: { show: true },
       labels: {
         style: { colors: "#352B54" },
-        formatter: function (val) {
-          return val.toFixed(0)
-        },
       },
       title: { text: "RPM (RPM)", style: { color: "#352B54" } },
     },
@@ -595,9 +646,6 @@ const chartOptions = ref({
       axisTicks: { show: true },
       labels: {
         style: { colors: "#FAC12A" },
-        formatter: function (val) {
-          return val.toFixed(2)
-        },
       },
       title: { text: "Fuel Rate (L/hr)", style: { color: "#FAC12A" } },
     },
@@ -606,9 +654,6 @@ const chartOptions = ref({
       axisTicks: { show: true },
       labels: {
         style: { colors: "#DC2B2B" },
-        formatter: function (val) {
-          return val.toFixed(0) + "%"
-        },
       },
       title: { text: "%Throttle", style: { color: "#DC2B2B" } },
     },

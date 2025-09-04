@@ -147,7 +147,7 @@ const fetchCMMSStatus = async (tugboats) => {
           params: { name: deviceNote },
         })
         const statusData = response.data.data
-        const mappedStatus = mapFctoriumStatus(statusData)
+        const mappedStatus = mapFctoriumStatus(statusData.status)
         // console.log(`Fetched status for ${deviceNote}:`, mappedStatus);
 
         return {
@@ -249,8 +249,8 @@ const mapFctoriumStatus = (factoriumStatus) => {
   }
 }
 
-const getStatusClass = (status) => {
-  switch (status) {
+const getStatusClass = (tugboat) => {
+  switch (tugboat.status) {
     case "Running":
       return "status-running"
     case "Maintenance":
